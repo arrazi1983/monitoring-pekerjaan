@@ -1094,6 +1094,7 @@ self.addEventListener('fetch', event => {
     .card-header { gap: 10px; }
   }
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -1693,6 +1694,13 @@ self.addEventListener('fetch', event => {
         Backup menyimpan SEMUA data aplikasi ini (pekerjaan, pembukuan, checklist, rekam keluarga, & foto) jadi satu file. Simpan file ini di Google Drive supaya aman kalau penyimpanan HP/browser penuh atau HP hilang/ganti.
       </p>
 
+      <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:#f0f7ff;">
+        <div style="font-weight:800;font-size:13px;color:var(--navy);margin-bottom:4px;">☁️ Upload Langsung ke Google Drive</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;" id="gdrive-status">Belum login Google.</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Login sekali di sini. Setelah itu, tiap kali Anda buka aplikasi ini dan sesi Google masih aktif, backup akan otomatis tersimpan 1x/hari ke file yang sama di Drive — <b>tanpa popup</b>. Kalau sesi sudah habis, tinggal klik tombol ini lagi.</div>
+        <button class="btn btn-primary btn-sm" id="gdrive-signin-btn" onclick="signInGoogleDrive()">🔑 Login Google &amp; Upload ke Drive</button>
+      </div>
+
       <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
         <div style="font-weight:800;font-size:13px;color:var(--navy);margin-bottom:4px;">⬇️ Export (Download Backup)</div>
         <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">File akan terdownload ke HP/laptop Anda. Setelah itu, buka aplikasi Google Drive dan upload file tersebut ke folder pilihan Anda.</div>
@@ -1704,6 +1712,24 @@ self.addEventListener('fetch', event => {
         <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Pilih file backup (.json) yang pernah Anda download / ambil dari Google Drive. <b style="color:var(--red);">Ini akan menimpa semua data yang ada sekarang.</b></div>
         <input type="file" id="backup-import-input" accept=".json,application/json" style="display:none" onchange="importBackupData(event)">
         <button class="btn btn-outline btn-sm" onclick="document.getElementById('backup-import-input').click()">⬆️ Pilih File Backup</button>
+      </div>
+      <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-top:14px;">
+        <div style="font-weight:800;font-size:13px;color:var(--navy);margin-bottom:8px;">📊 Pemakaian Penyimpanan</div>
+        <div id="storage-info-content" style="font-size:12px;color:var(--text-muted);">Menghitung...</div>
+      </div>
+
+      <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-top:14px;">
+        <div style="font-weight:800;font-size:13px;color:var(--navy);margin-bottom:4px;">🧹 Bersihkan Foto Galeri Lokal yang Lama</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Hanya membersihkan foto galeri Rekam Keluarga yang tersimpan LOKAL di perangkat ini (bukan yang sudah ada di server/Firebase) dan lebih lama dari batas di bawah. <b style="color:var(--red);">Pastikan sudah Export Backup dulu</b> sebelum membersihkan.</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select id="cleanup-hari-batas" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;outline:none;">
+            <option value="30">Lebih dari 30 hari</option>
+            <option value="60">Lebih dari 60 hari</option>
+            <option value="90" selected>Lebih dari 90 hari</option>
+            <option value="180">Lebih dari 180 hari</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="bersihkanFotoLokalLama()">🧹 Bersihkan Sekarang</button>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -4095,15 +4121,247 @@ function formatRupiah(n) {
 }
 
 // ─────────────────────────────────────────────────────
+// GOOGLE DRIVE — upload backup via OAuth (Google Identity Services)
+// Manual (klik tombol) = interaktif, selalu minta login kalau belum.
+// Auto (saat app dibuka) = SILENT saja — kalau sesi Google masih aktif &
+// sudah pernah izin sebelumnya, backup jalan diam-diam. Kalau tidak, TIDAK
+// memaksa popup — supaya tidak mengganggu, user tinggal klik manual saja.
+// ─────────────────────────────────────────────────────
+const GOOGLE_CLIENT_ID = '607729195090-nl1l1j1pbhppn8r2e94cm6n4qsdhu71v.apps.googleusercontent.com';
+const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const GDRIVE_FILEID_KEY = 'gdrive_backup_file_id';
+const GDRIVE_LASTBACKUP_KEY = 'gdrive_last_backup_date';
+const GDRIVE_FILENAME = 'Backup_Monitoring_Pekerjaan.json';
+
+let _gdriveTokenClient = null;
+let _gdriveAccessToken = null;
+let _gdriveSilentMode = false;
+
+function _initGoogleDriveTokenClient() {
+  if (_gdriveTokenClient) return true;
+  if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) return false;
+  _gdriveTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: GOOGLE_DRIVE_SCOPE,
+    callback: (resp) => {
+      const wasSilent = _gdriveSilentMode;
+      _gdriveSilentMode = false;
+      if (resp.error) {
+        // Kalau ini percobaan SILENT (otomatis saat buka app) dan gagal,
+        // diamkan saja — wajar kalau belum pernah login / sesi tidak aktif.
+        if (!wasSilent) showToast('❌ Login Google gagal: ' + resp.error);
+        return;
+      }
+      _gdriveAccessToken = resp.access_token;
+      const st = document.getElementById('gdrive-status');
+      if (st) st.textContent = '✅ Sudah login Google.';
+      uploadBackupToGoogleDrive(wasSilent);
+    }
+  });
+  return true;
+}
+
+function signInGoogleDrive() {
+  const ready = _initGoogleDriveTokenClient();
+  if (!ready) {
+    showToast('⏳ Google belum siap dimuat, coba lagi sebentar (cek koneksi internet).');
+    return;
+  }
+  if (_gdriveAccessToken) {
+    uploadBackupToGoogleDrive(false);
+  } else {
+    _gdriveSilentMode = false;
+    _gdriveTokenClient.requestAccessToken();
+  }
+}
+
+function _gdriveShouldAutoBackupToday() {
+  return localStorage.getItem(GDRIVE_LASTBACKUP_KEY) !== todayLocalISO();
+}
+
+// Dipanggil otomatis tiap kali app dibuka. TIDAK memunculkan popup —
+// kalau sesi Google tidak aktif / belum pernah izin, ini gagal diam-diam.
+function _trySilentGoogleDriveBackup() {
+  if (!_gdriveShouldAutoBackupToday()) return;
+  if (_gdriveAccessToken) { uploadBackupToGoogleDrive(true); return; }
+  const ready = _initGoogleDriveTokenClient();
+  if (!ready) return;
+  _gdriveSilentMode = true;
+  try {
+    _gdriveTokenClient.requestAccessToken({ prompt: '' });
+  } catch (e) {
+    _gdriveSilentMode = false;
+  }
+}
+
+async function uploadBackupToGoogleDrive(isAuto) {
+  if (!_gdriveAccessToken) { if (!isAuto) showToast('⚠️ Belum login Google.'); return; }
+  const btn = document.getElementById('gdrive-signin-btn');
+  try {
+    if (btn && !isAuto) { btn.disabled = true; btn.textContent = '⏳ Mengupload...'; }
+
+    const backup = { _app: 'Monitoring Pekerjaan', _version: 1, _exportedAt: new Date().toISOString(), data: {} };
+    BACKUP_KEYS.forEach(k => { backup.data[k] = localStorage.getItem(k); });
+    const json = JSON.stringify(backup);
+
+    const metadata = { name: GDRIVE_FILENAME, mimeType: 'application/json' };
+    const boundary = '-------monitoringpekerjaan314159';
+    const delimiter = '\r\n--' + boundary + '\r\n';
+    const closeDelim = '\r\n--' + boundary + '--';
+    const multipartBody =
+      delimiter + 'Content-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify(metadata) +
+      delimiter + 'Content-Type: application/json\r\n\r\n' + json +
+      closeDelim;
+
+    const existingId = localStorage.getItem(GDRIVE_FILEID_KEY);
+    const url = existingId
+      ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart&fields=id,name,modifiedTime`
+      : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,modifiedTime`;
+    const method = existingId ? 'PATCH' : 'POST';
+
+    if (!isAuto) showToast('⏳ Mengupload backup ke Google Drive...');
+    const res = await fetch(url, {
+      method,
+      headers: { Authorization: 'Bearer ' + _gdriveAccessToken, 'Content-Type': 'multipart/related; boundary=' + boundary },
+      body: multipartBody
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) {
+        _gdriveAccessToken = null;
+        const st = document.getElementById('gdrive-status');
+        if (st) st.textContent = 'Sesi login berakhir, silakan login lagi.';
+        if (!isAuto) showToast('⚠️ Sesi Google berakhir, klik tombol lagi untuk login ulang.');
+        return;
+      }
+      if (res.status === 404 && existingId) {
+        // File yang lama sudah dihapus manual dari Drive → reset & buat baru
+        localStorage.removeItem(GDRIVE_FILEID_KEY);
+        return uploadBackupToGoogleDrive(isAuto);
+      }
+      const errText = await res.text();
+      throw new Error(res.status + ': ' + errText);
+    }
+
+    const result = await res.json();
+    if (result.id) localStorage.setItem(GDRIVE_FILEID_KEY, result.id);
+    localStorage.setItem(GDRIVE_LASTBACKUP_KEY, todayLocalISO());
+
+    const jamBackup = new Date().toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' });
+    const st = document.getElementById('gdrive-status');
+    if (st) st.textContent = `✅ Login aktif — terakhir tersimpan otomatis: ${jamBackup}`;
+    if (!isAuto) showToast(`✅ Backup "${GDRIVE_FILENAME}" berhasil diupload ke Google Drive!`);
+  } catch (e) {
+    console.error(e);
+    if (!isAuto) showToast('❌ Gagal upload ke Google Drive: ' + e.message);
+  } finally {
+    if (btn && !isAuto) { btn.disabled = false; btn.textContent = '🔑 Login Google & Upload ke Drive'; }
+  }
+}
+
+// Coba backup otomatis (silent) beberapa saat setelah app dibuka —
+// dikasih delay supaya script Google Identity Services sempat termuat dulu.
+setTimeout(() => { _trySilentGoogleDriveBackup(); }, 3000);
+// ─────────────────────────────────────────────────────
 // BACKUP & RESTORE — kumpulkan semua localStorage jadi 1 file
 // ─────────────────────────────────────────────────────
 const BACKUP_KEYS = ['monitoring_akademik_v4', 'monitoring_kas_v2', 'monitoring_checklist_v1', 'monitoring_keluarga_v1', 'monitoring_keluarga_foto_v1'];
 
 function openBackupModal() {
   document.getElementById('backup-modal-overlay').classList.add('open');
+  renderStorageInfo();
+  const st = document.getElementById('gdrive-status');
+  if (st) {
+    if (_gdriveAccessToken) {
+      const last = localStorage.getItem(GDRIVE_LASTBACKUP_KEY);
+      st.textContent = last ? `✅ Login aktif — backup otomatis terakhir: ${last}` : '✅ Sudah login Google.';
+    } else {
+      const last = localStorage.getItem(GDRIVE_LASTBACKUP_KEY);
+      st.textContent = last ? `Belum login di sesi ini (backup otomatis terakhir: ${last}).` : 'Belum login Google.';
+    }
+  }
 }
 function closeBackupModal() {
   document.getElementById('backup-modal-overlay').classList.remove('open');
+}
+
+function getStorageSizeKB(key) {
+  const v = localStorage.getItem(key);
+  return v ? Math.round(v.length / 1024) : 0;
+}
+
+async function renderStorageInfo() {
+  const el = document.getElementById('storage-info-content');
+  if (!el) return;
+  const sizes = {
+    'Pekerjaan (Monitoring)': getStorageSizeKB('monitoring_akademik_v4'),
+    'Pembukuan (Kas)': getStorageSizeKB('monitoring_kas_v2'),
+    'Checklist Harian': getStorageSizeKB('monitoring_checklist_v1'),
+    'Rekam Keluarga (data)': getStorageSizeKB('monitoring_keluarga_v1'),
+    'Rekam Keluarga (foto lokal)': getStorageSizeKB('monitoring_keluarga_foto_v1'),
+  };
+  const total = Object.values(sizes).reduce((a, b) => a + b, 0);
+
+  let quotaInfo = '';
+  if (navigator.storage && navigator.storage.estimate) {
+    try {
+      const est = await navigator.storage.estimate();
+      if (est.quota) {
+        const usedMB = (est.usage / 1024 / 1024).toFixed(1);
+        const quotaMB = (est.quota / 1024 / 1024).toFixed(0);
+        const pct = Math.round((est.usage / est.quota) * 100);
+        quotaInfo = `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;">Perkiraan total penyimpanan browser: ${usedMB} MB terpakai dari kuota ~${quotaMB} MB (${pct}%).</div>`;
+      }
+    } catch (e) { /* abaikan, tidak semua browser dukung */ }
+  }
+
+  el.innerHTML = `
+    ${Object.entries(sizes).map(([label, kb]) => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);"><span>${label}</span><b style="color:var(--navy);">${kb} KB</b></div>`).join('')}
+    <div style="display:flex;justify-content:space-between;padding:8px 0 0;font-weight:800;color:var(--navy);"><span>Total (aplikasi ini)</span><span>${total} KB (~${(total / 1024).toFixed(2)} MB)</span></div>
+    ${quotaInfo}`;
+}
+
+// Cari foto galeri yang HANYA tersimpan lokal (base64, belum ada di Firebase Storage) & lebih tua dari batas hari
+function cariFotoLokalLama(hariBatas) {
+  const cutoff = new Date(Date.now() - hariBatas * 24 * 60 * 60 * 1000);
+  const hasil = [];
+  (anggotaList || []).forEach(a => {
+    (a.galeri || []).forEach((g, idx) => {
+      if (g && g.data && !g.url) {
+        const d = g.tanggal ? new Date(g.tanggal) : null;
+        if (!d || d < cutoff) {
+          hasil.push({ anggotaId: a.id, idx, nama: a.nama, tanggal: g.tanggal, sizeKB: Math.round((g.data.length || 0) / 1024) });
+        }
+      }
+    });
+  });
+  return hasil;
+}
+
+function bersihkanFotoLokalLama() {
+  const hari = parseInt(document.getElementById('cleanup-hari-batas').value, 10);
+  const list = cariFotoLokalLama(hari);
+  if (list.length === 0) { showToast('✅ Tidak ada foto lokal lama untuk dibersihkan.'); return; }
+
+  const totalKB = list.reduce((s, x) => s + x.sizeKB, 0);
+  const ok = confirm(`Ditemukan ${list.length} foto galeri yang hanya tersimpan LOKAL (offline) di perangkat ini, lebih dari ${hari} hari, total ~${totalKB} KB.\n\nFoto ini TIDAK ada cadangannya di server. Setelah dihapus, TIDAK BISA dikembalikan kecuali Anda sudah punya file Export Backup.\n\nSudah yakin sudah backup? Lanjutkan hapus?`);
+  if (!ok) return;
+
+  const byAnggota = {};
+  list.forEach(item => { (byAnggota[item.anggotaId] = byAnggota[item.anggotaId] || []).push(item.idx); });
+  Object.entries(byAnggota).forEach(([id, idxs]) => {
+    const a = anggotaList.find(x => x.id === Number(id));
+    if (!a || !a.galeri) return;
+    idxs.sort((x, y) => y - x).forEach(idx => a.galeri.splice(idx, 1)); // hapus dari belakang agar index tetap valid
+  });
+
+  const saved = saveKelData();
+  if (!saved) { showToast('❌ Gagal menyimpan setelah membersihkan. Coba lagi atau hapus manual satu-satu.'); return; }
+
+  renderStorageInfo();
+  if (typeof renderDetailAnggota === 'function' && activeAnggotaId) renderDetailAnggota();
+  if (typeof renderKeluarga === 'function') renderKeluarga();
+  showToast(`✅ ${list.length} foto lama dibersihkan, ~${totalKB} KB penyimpanan dibebaskan.`);
 }
 
 function exportBackupData() {
