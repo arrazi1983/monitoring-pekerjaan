@@ -4,88 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Monitoring Pekerjaan</title>
+
+<!-- PWA: manifest & ikon -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f2544">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Monitoring">
+
 <script>
 // ── SERVICE WORKER REGISTRATION ──
-// Inject SW sebagai blob agar tidak butuh file terpisah
+// Daftarkan sw.js sebagai file asli (BUKAN blob) — wajib untuk memenuhi
+// kriteria "Install App"/Add to Home Screen di Chrome/Android.
 if ('serviceWorker' in navigator) {
-  const SW_CODE = `
-const CACHE_NAME = 'monitoring-v1';
-const FIREBASE_SDK_URLS = [
-  'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js',
-  'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js',
-  'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js',
-];
-const FONT_PATTERNS = [
-  'fonts.googleapis.com',
-  'fonts.gstatic.com',
-];
-
-// Cache Firebase SDK & font saat install
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return Promise.allSettled(
-        FIREBASE_SDK_URLS.map(url => cache.add(url))
-      );
-    })
-  );
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
-
-// Strategi: Cache-first untuk Firebase SDK & font, Network-first untuk sisanya
-self.addEventListener('fetch', event => {
-  const url = event.request.url;
-
-  // Firebase SDK & Google Fonts → cache-first
-  const isCacheable = FIREBASE_SDK_URLS.includes(url) ||
-    FONT_PATTERNS.some(p => url.includes(p));
-
-  if (isCacheable) {
-    event.respondWith(
-      caches.match(event.request).then(cached => {
-        if (cached) return cached;
-        return fetch(event.request).then(response => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-          return response;
-        }).catch(() => cached || new Response('', { status: 503 }));
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', { scope: './' })
+      .then(reg => {
+        console.log('✅ Service Worker terdaftar:', reg.scope);
+        if (navigator.onLine && reg.active) {
+          reg.active.postMessage({ type: 'PRELOAD' });
+        }
       })
-    );
-    return;
-  }
-
-  // Firebase Realtime Database & Storage API → network-first, fallback diam
-  if (url.includes('firebasedatabase.app') || url.includes('firebasestorage')) {
-    event.respondWith(
-      fetch(event.request).catch(() => new Response('{}', {
-        status: 503,
-        headers: { 'Content-Type': 'application/json' }
-      }))
-    );
-    return;
-  }
-});
-`;
-  const blob = new Blob([SW_CODE], { type: 'application/javascript' });
-  const swUrl = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swUrl, { scope: '/' })
-    .then(reg => {
-      console.log('✅ Service Worker terdaftar:', reg.scope);
-      // Preload Firebase SDK ke cache jika online
-      if (navigator.onLine && reg.active) {
-        reg.active.postMessage({ type: 'PRELOAD' });
-      }
-    })
-    .catch(err => console.warn('SW gagal:', err));
+      .catch(err => console.warn('SW gagal:', err));
+  });
 }
 </script>
 <style>
