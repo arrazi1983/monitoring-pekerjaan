@@ -4240,11 +4240,14 @@ async function _ensureGDrivePhotoFolder(token) {
 
 // Upload 1 file gambar ke Google Drive → kembalikan { url, fileId }
 async function uploadImageToGDrive(file, labelPrefix) {
-  // Kompres dulu (hemat kuota Drive & lebih cepat), reuse fungsi kompresi yang sudah ada
+  // PENTING: minta token/izin Google DULUAN, sebelum proses async lain (kompres gambar dsb).
+  // Popup login Google cuma diizinkan browser kalau dipicu LANGSUNG dari klik user tanpa
+  // jeda proses lain di depannya — kalau kompres gambar dilakukan dulu, popup-nya keblokir.
+  const token = await _ensureGDriveToken(true); // interaktif — boleh popup, ini aksi user yang sengaja klik upload
+
   const dataUrl = await compressImageSmart(file, 1280, 0.8, 800);
   const blob = await fetch(dataUrl).then(r => r.blob());
 
-  const token = await _ensureGDriveToken(true); // interaktif — boleh popup, ini aksi user yang sengaja klik upload
   const folderId = await _ensureGDrivePhotoFolder(token);
 
   const metadata = { name: `${labelPrefix}_${Date.now()}.jpg`, parents: [folderId] };
