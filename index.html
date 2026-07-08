@@ -1640,7 +1640,7 @@ if ('serviceWorker' in navigator) {
       <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:#f0f7ff;">
         <div style="font-weight:800;font-size:13px;color:var(--navy);margin-bottom:4px;">☁️ Upload Langsung ke Google Drive</div>
         <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;" id="gdrive-status">Belum login Google.</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Login sekali di sini. Setelah itu, tiap kali Anda buka aplikasi ini dan sesi Google masih aktif, backup akan otomatis tersimpan 1x/hari ke file yang sama di Drive — <b>tanpa popup</b>. Kalau sesi sudah habis, tinggal klik tombol ini lagi.</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Login sekali di sini. Setelah itu, tiap kali Anda buka aplikasi ini dan sesi Google masih aktif, backup akan otomatis tersimpan 1x/hari ke file yang sama di Drive — <b>tanpa popup</b>. Kalau sesi sudah habis, tinggal klik tombol ini lagi. <b>Foto profil &amp; galeri Rekam Keluarga</b> juga otomatis tersimpan ke folder "Monitoring Pekerjaan - Foto Keluarga" di Drive Anda saat diupload (akan minta login kalau belum).</div>
         <button class="btn btn-primary btn-sm" id="gdrive-signin-btn" onclick="signInGoogleDrive()">🔑 Login Google &amp; Upload ke Drive</button>
       </div>
 
@@ -4079,6 +4079,7 @@ const GDRIVE_FILENAME = 'Backup_Monitoring_Pekerjaan.json';
 let _gdriveTokenClient = null;
 let _gdriveAccessToken = null;
 let _gdriveSilentMode = false;
+let _gdrivePendingResolvers = []; // antrean {resolve, reject} untuk requestAccessToken yang sedang berjalan
 
 function _initGoogleDriveTokenClient() {
   if (_gdriveTokenClient) return true;
@@ -4089,33 +4090,48 @@ function _initGoogleDriveTokenClient() {
     callback: (resp) => {
       const wasSilent = _gdriveSilentMode;
       _gdriveSilentMode = false;
+      const resolvers = _gdrivePendingResolvers;
+      _gdrivePendingResolvers = [];
       if (resp.error) {
-        // Kalau ini percobaan SILENT (otomatis saat buka app) dan gagal,
-        // diamkan saja — wajar kalau belum pernah login / sesi tidak aktif.
         if (!wasSilent) showToast('❌ Login Google gagal: ' + resp.error);
+        resolvers.forEach(r => r.reject(new Error(resp.error)));
         return;
       }
       _gdriveAccessToken = resp.access_token;
       const st = document.getElementById('gdrive-status');
       if (st) st.textContent = '✅ Sudah login Google.';
-      uploadBackupToGoogleDrive(wasSilent);
+      resolvers.forEach(r => r.resolve(_gdriveAccessToken));
     }
   });
   return true;
 }
 
+// Minta token Google Drive dalam bentuk Promise.
+// interactive=true → boleh munculkan popup login (dipakai untuk aksi yang sengaja diklik user, seperti upload foto/backup manual).
+// interactive=false → SILENT, tidak pernah munculkan popup (dipakai untuk auto-backup saat app dibuka).
+function _ensureGDriveToken(interactive) {
+  return new Promise((resolve, reject) => {
+    if (_gdriveAccessToken) { resolve(_gdriveAccessToken); return; }
+    const ready = _initGoogleDriveTokenClient();
+    if (!ready) { reject(new Error('gsi_not_ready')); return; }
+    _gdrivePendingResolvers.push({ resolve, reject });
+    _gdriveSilentMode = !interactive;
+    try {
+      _gdriveTokenClient.requestAccessToken(interactive ? {} : { prompt: '' });
+    } catch (e) {
+      _gdrivePendingResolvers = _gdrivePendingResolvers.filter(r => r.resolve !== resolve);
+      reject(e);
+    }
+  });
+}
+
 function signInGoogleDrive() {
-  const ready = _initGoogleDriveTokenClient();
-  if (!ready) {
-    showToast('⏳ Google belum siap dimuat, coba lagi sebentar (cek koneksi internet).');
-    return;
-  }
-  if (_gdriveAccessToken) {
-    uploadBackupToGoogleDrive(false);
-  } else {
-    _gdriveSilentMode = false;
-    _gdriveTokenClient.requestAccessToken();
-  }
+  _ensureGDriveToken(true)
+    .then(() => uploadBackupToGoogleDrive(false))
+    .catch(e => {
+      if (e.message === 'gsi_not_ready') showToast('⏳ Google belum siap dimuat, coba lagi sebentar (cek koneksi internet).');
+      // kalau error lain (login ditolak/gagal), toast sudah ditampilkan di callback token client
+    });
 }
 
 function _gdriveShouldAutoBackupToday() {
@@ -4126,15 +4142,9 @@ function _gdriveShouldAutoBackupToday() {
 // kalau sesi Google tidak aktif / belum pernah izin, ini gagal diam-diam.
 function _trySilentGoogleDriveBackup() {
   if (!_gdriveShouldAutoBackupToday()) return;
-  if (_gdriveAccessToken) { uploadBackupToGoogleDrive(true); return; }
-  const ready = _initGoogleDriveTokenClient();
-  if (!ready) return;
-  _gdriveSilentMode = true;
-  try {
-    _gdriveTokenClient.requestAccessToken({ prompt: '' });
-  } catch (e) {
-    _gdriveSilentMode = false;
-  }
+  _ensureGDriveToken(false)
+    .then(() => uploadBackupToGoogleDrive(true))
+    .catch(() => { /* wajar gagal kalau belum pernah login / sesi tidak aktif — diamkan */ });
 }
 
 async function uploadBackupToGoogleDrive(isAuto) {
@@ -4205,6 +4215,77 @@ async function uploadBackupToGoogleDrive(isAuto) {
 // Coba backup otomatis (silent) beberapa saat setelah app dibuka —
 // dikasih delay supaya script Google Identity Services sempat termuat dulu.
 setTimeout(() => { _trySilentGoogleDriveBackup(); }, 3000);
+// ─────────────────────────────────────────────────────
+// GOOGLE DRIVE — upload FOTO (profil & galeri Rekam Keluarga)
+// Menggantikan Firebase Storage (yang sekarang wajib paket berbayar).
+// Foto diset "siapa saja yang punya link bisa lihat" supaya tampil
+// langsung tanpa perlu login Google tiap kali MELIHAT — cuma perlu
+// login saat mau MENGUPLOAD foto baru.
+// ─────────────────────────────────────────────────────
+const GDRIVE_PHOTO_FOLDER_KEY = 'gdrive_photo_folder_id';
+
+async function _ensureGDrivePhotoFolder(token) {
+  const cached = localStorage.getItem(GDRIVE_PHOTO_FOLDER_KEY);
+  if (cached) return cached;
+  const res = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Monitoring Pekerjaan - Foto Keluarga', mimeType: 'application/vnd.google-apps.folder' })
+  });
+  if (!res.ok) throw new Error('Gagal membuat folder Drive: ' + res.status);
+  const folder = await res.json();
+  localStorage.setItem(GDRIVE_PHOTO_FOLDER_KEY, folder.id);
+  return folder.id;
+}
+
+// Upload 1 file gambar ke Google Drive → kembalikan { url, fileId }
+async function uploadImageToGDrive(file, labelPrefix) {
+  // Kompres dulu (hemat kuota Drive & lebih cepat), reuse fungsi kompresi yang sudah ada
+  const dataUrl = await compressImageSmart(file, 1280, 0.8, 800);
+  const blob = await fetch(dataUrl).then(r => r.blob());
+
+  const token = await _ensureGDriveToken(true); // interaktif — boleh popup, ini aksi user yang sengaja klik upload
+  const folderId = await _ensureGDrivePhotoFolder(token);
+
+  const metadata = { name: `${labelPrefix}_${Date.now()}.jpg`, parents: [folderId] };
+  const boundary = '-------monitoringpekerjaanfoto314159';
+  const delimiter = '\r\n--' + boundary + '\r\n';
+  const closeDelim = '\r\n--' + boundary + '--';
+  const metaPart = delimiter + 'Content-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify(metadata);
+  const contentPart = delimiter + `Content-Type: ${blob.type || 'image/jpeg'}\r\n\r\n`;
+  const bodyBlob = new Blob([metaPart, contentPart, blob, closeDelim]);
+
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'multipart/related; boundary=' + boundary },
+    body: bodyBlob
+  });
+  if (!res.ok) throw new Error('Upload ke Google Drive gagal: ' + res.status);
+  const result = await res.json();
+  const fileId = result.id;
+
+  // Jadikan link-viewable ("siapa saja yang punya link bisa lihat") — supaya tampil tanpa perlu login saat DILIHAT
+  await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role: 'reader', type: 'anyone' })
+  }).catch(e => console.warn('Gagal set izin publik file Drive (foto tetap tersimpan, tapi mungkin perlu login untuk melihatnya):', e));
+
+  return { url: `https://lh3.googleusercontent.com/d/${fileId}`, fileId };
+}
+
+async function deleteImageFromGDrive(fileId) {
+  if (!fileId) return;
+  try {
+    const token = await _ensureGDriveToken(false); // silent — kalau sesi habis, cukup dilewati (file jadi sampah kecil di Drive, tidak fatal)
+    await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer ' + token }
+    });
+  } catch (e) {
+    console.warn('Gagal hapus file di Google Drive (dilewati):', e);
+  }
+}
 // ─────────────────────────────────────────────────────
 // BACKUP & RESTORE — kumpulkan semua localStorage jadi 1 file
 // ─────────────────────────────────────────────────────
@@ -5495,56 +5576,33 @@ function uploadGaleriFoto(event) {
   if (!files.length) return;
 
   const jumlahSebelum = a.galeri.length; // untuk rollback jika save gagal
+  _kelFirebasePaused = true;
+  let uploaded = 0;
+  showToast(`⏳ Mengupload ${files.length} foto ke Google Drive...`);
 
-  if (window._firebaseReady && window._fbStorage) {
-    let uploaded = 0;
-    showToast(`⏳ Mengupload ${files.length} foto...`);
-    files.forEach(file => {
-      const path = `keluarga/${a.id}/galeri/${Date.now()}_${file.name}`;
-      const sRef = window._fbSRef(window._fbStorage, path);
-      _withTimeout(
-        window._fbUploadBytes(sRef, file).then(snap => window._fbGetDownloadURL(snap.ref)),
-        6000
-      ).then(url => {
-        a.galeri.push({ url, data: null, storagePath: path, tanggal, tahun, keterangan: ket });
+  const selesaiSemua = () => {
+    const ok = saveKelData();
+    if (!ok) { a.galeri.length = jumlahSebelum; alert('❌ Foto galeri GAGAL disimpan karena penyimpanan lokal penuh.\n\nHapus beberapa foto lama lalu coba lagi.'); }
+    else showToast(`✅ ${files.length} foto berhasil diupload!`);
+    setTimeout(() => { _kelFirebasePaused = false; }, 3000);
+    renderGaleri();
+  };
+
+  files.forEach(file => {
+    uploadImageToGDrive(file, `galeri_${a.id}`)
+      .then(({ url, fileId }) => {
+        a.galeri.push({ url, data: null, driveFileId: fileId, storagePath: null, tanggal, tahun, keterangan: ket });
         uploaded++;
-        if (uploaded === files.length) {
-          const ok = saveKelData();
-          if (!ok) { a.galeri.length = jumlahSebelum; alert('❌ Foto galeri GAGAL disimpan karena penyimpanan lokal penuh.\n\nHapus beberapa foto lama lalu coba lagi.'); }
-          else showToast(`✅ ${files.length} foto berhasil diupload!`);
-          renderGaleri();
-        }
-      }).catch(err => {
-        console.warn('Upload galeri ke server gagal, simpan lokal:', err);
-        _kelFirebasePaused = true;
+        if (uploaded === files.length) selesaiSemua();
+      })
+      .catch(err => {
+        console.warn('Upload galeri ke Google Drive gagal, simpan lokal:', err);
         _uploadGaleriLokal(file, a, tanggal, tahun, ket, files.length, () => {
           uploaded++;
-          if (uploaded === files.length) {
-            const ok = saveKelData();
-            if (!ok) { a.galeri.length = jumlahSebelum; alert('❌ Foto galeri GAGAL disimpan karena penyimpanan lokal penuh.\n\nHapus beberapa foto lama lalu coba lagi.'); }
-            setTimeout(() => { _kelFirebasePaused = false; }, 3000);
-            renderGaleri();
-          }
+          if (uploaded === files.length) selesaiSemua();
         });
       });
-    });
-  } else {
-    let loaded = 0;
-    showToast(`⏳ Memproses ${files.length} foto...`);
-    _kelFirebasePaused = true;
-    files.forEach(file => _uploadGaleriLokal(file, a, tanggal, tahun, ket, files.length, (berhasil) => {
-      loaded++;
-      if (loaded === files.length) {
-        if (a.galeri.length > jumlahSebelum) {
-          const ok = saveKelData();
-          if (!ok) { a.galeri.length = jumlahSebelum; alert('❌ Foto galeri GAGAL disimpan karena penyimpanan lokal penuh.\n\nHapus beberapa foto lama lalu coba lagi.'); }
-          else showToast(`✅ ${a.galeri.length - jumlahSebelum} foto disimpan`);
-        }
-        setTimeout(() => { _kelFirebasePaused = false; }, 3000);
-        renderGaleri();
-      }
-    }));
-  }
+  });
   event.target.value = '';
 }
 
@@ -5563,7 +5621,9 @@ function hapusGaleriFoto(idx) {
   const a = anggotaList.find(x => x.id === activeAnggotaId);
   if (!a || !a.galeri) return;
   const f = a.galeri[idx];
-  if (f.storagePath && window._firebaseReady && window._fbStorage) {
+  if (f.driveFileId) {
+    deleteImageFromGDrive(f.driveFileId);
+  } else if (f.storagePath && window._firebaseReady && window._fbStorage) {
     window._fbDeleteObject(window._fbSRef(window._fbStorage, f.storagePath)).catch(()=>{});
   }
   a.galeri.splice(idx, 1);
@@ -5658,34 +5718,37 @@ function uploadFotoProfil(event) {
   const a = anggotaList.find(x => x.id === activeAnggotaId);
   if (!a) { showToast('❌ Tidak ada anggota yang dipilih'); return; }
   const file = event.target.files[0];
+  event.target.value = '';
   if (!file) return;
 
-  // Bekukan Firebase listener dulu, baru proses foto
+  // Bekukan Firebase Realtime DB listener dulu, baru proses foto
   _kelFirebasePaused = true;
+  showToast('⏳ Mengupload foto profil ke Google Drive...');
 
-  if (window._firebaseReady && window._fbStorage) {
-    showToast('⏳ Mengupload foto profil...');
-    const path = `keluarga/${a.id}/profil/${Date.now()}_${file.name}`;
-    const sRef = window._fbSRef(window._fbStorage, path);
-    _withTimeout(
-      window._fbUploadBytes(sRef, file).then(snap => window._fbGetDownloadURL(snap.ref)),
-      6000
-    )
-      .then(url => {
-        a.fotoProfil = url;
-        saveKelData();
-        renderDetailAnggota();
-        renderKeluarga();
-        showToast('✅ Foto profil diperbarui!');
-        setTimeout(() => { _kelFirebasePaused = false; }, 4000);
-      }).catch(err => {
-        console.warn('Upload Firebase Storage gagal, coba lokal:', err);
-        _setFotoProfilLokal(file, a); // sudah handle _kelFirebasePaused di dalamnya
-      });
-  } else {
-    _setFotoProfilLokal(file, a);
-  }
-  event.target.value = '';
+  uploadImageToGDrive(file, `profil_${a.id}`)
+    .then(({ url, fileId }) => {
+      a.fotoProfil = url;
+      a.fotoProfilDriveId = fileId;
+      const ok = saveKelData();
+      if (!ok) {
+        alert('❌ Foto berhasil ke Drive, tapi GAGAL menyimpan referensinya karena penyimpanan lokal penuh.\n\nCoba bersihkan penyimpanan (menu Backup) lalu upload ulang.');
+        _kelFirebasePaused = false;
+        return;
+      }
+      renderDetailAnggota();
+      renderKeluarga();
+      showToast('✅ Foto profil diperbarui (tersimpan di Google Drive)!');
+      setTimeout(() => { _kelFirebasePaused = false; }, 4000);
+    })
+    .catch(err => {
+      console.warn('Upload ke Google Drive gagal, simpan lokal saja:', err);
+      if (err.message === 'gsi_not_ready') {
+        showToast('⏳ Google belum siap dimuat, foto disimpan di perangkat ini dulu.');
+      } else {
+        showToast('⚠️ Upload ke Drive gagal/dibatalkan, foto disimpan di perangkat ini saja.');
+      }
+      _setFotoProfilLokal(file, a); // sudah handle _kelFirebasePaused di dalamnya
+    });
 }
 
 function _setFotoProfilLokal(file, a) {
