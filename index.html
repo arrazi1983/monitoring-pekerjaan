@@ -1634,36 +1634,24 @@ if ('serviceWorker' in navigator) {
     </div>
     <div class="modal-body">
       <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin:0 0 16px;">
-        Backup menyimpan SEMUA data aplikasi ini (pekerjaan, pembukuan, checklist, rekam keluarga, & foto) jadi satu file. Simpan file ini di Google Drive supaya aman kalau penyimpanan HP/browser penuh atau HP hilang/ganti.
+        Backup menyimpan SEMUA data aplikasi ini (pekerjaan, pembukuan, checklist, rekam keluarga, & foto) ke folder <b>"Monitoring Pekerjaan"</b> di Google Drive Anda — aman kalau penyimpanan HP/browser penuh atau HP hilang/ganti.
       </p>
 
-      <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;background:#f0f7ff;">
-        <div style="font-weight:800;font-size:13px;color:var(--navy);margin-bottom:4px;">☁️ Upload Langsung ke Google Drive</div>
+      <div style="border:1.5px solid var(--blue);border-radius:10px;padding:16px;margin-bottom:14px;background:#f0f7ff;">
+        <div style="font-weight:800;font-size:14px;color:var(--navy);margin-bottom:4px;">🔄 Sync ke Google Drive</div>
         <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;" id="gdrive-status">Belum login Google.</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Login sekali di sini. Setelah itu, tiap kali Anda buka aplikasi ini dan sesi Google masih aktif, backup akan otomatis tersimpan 1x/hari ke file yang sama di Drive — <b>tanpa popup</b>. Kalau sesi sudah habis, tinggal klik tombol ini lagi. <b>Foto profil &amp; galeri Rekam Keluarga</b> juga otomatis tersimpan ke folder "Monitoring Pekerjaan - Foto Keluarga" di Drive Anda saat diupload (akan minta login kalau belum).</div>
-        <button class="btn btn-primary btn-sm" id="gdrive-signin-btn" onclick="signInGoogleDrive()">🔑 Login Google &amp; Upload ke Drive</button>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Klik sekali untuk login &amp; langsung simpan data terkini ke Drive. Setelah login, ini juga otomatis jalan sendiri 1x/hari tiap Anda buka app (tanpa popup) — tinggal klik lagi kalau sesi habis atau mau sync manual kapan saja.</div>
+        <button class="btn btn-primary" id="gdrive-signin-btn" onclick="signInGoogleDrive()" style="width:100%;">🔄 Sync Sekarang</button>
       </div>
 
       <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
-        <div style="font-weight:800;font-size:13px;color:var(--navy);margin-bottom:4px;">⬇️ Export (Download Backup)</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">File akan terdownload ke HP/laptop Anda. Setelah itu, buka aplikasi Google Drive dan upload file tersebut ke folder pilihan Anda.</div>
-        <button class="btn btn-primary btn-sm" onclick="exportBackupData()">⬇️ Download File Backup</button>
-      </div>
-
-      <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;">
-        <div style="font-weight:800;font-size:13px;color:var(--navy);margin-bottom:4px;">⬆️ Import (Pulihkan dari Backup)</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Pilih file backup (.json) yang pernah Anda download / ambil dari Google Drive. <b style="color:var(--red);">Ini akan menimpa semua data yang ada sekarang.</b></div>
-        <input type="file" id="backup-import-input" accept=".json,application/json" style="display:none" onchange="importBackupData(event)">
-        <button class="btn btn-outline btn-sm" onclick="document.getElementById('backup-import-input').click()">⬆️ Pilih File Backup</button>
-      </div>
-      <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-top:14px;">
         <div style="font-weight:800;font-size:13px;color:var(--navy);margin-bottom:8px;">📊 Pemakaian Penyimpanan</div>
         <div id="storage-info-content" style="font-size:12px;color:var(--text-muted);">Menghitung...</div>
       </div>
 
-      <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-top:14px;">
+      <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
         <div style="font-weight:800;font-size:13px;color:var(--navy);margin-bottom:4px;">🧹 Bersihkan Foto Galeri Lokal yang Lama</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Hanya membersihkan foto galeri Rekam Keluarga yang tersimpan LOKAL di perangkat ini (bukan yang sudah ada di server/Firebase) dan lebih lama dari batas di bawah. <b style="color:var(--red);">Pastikan sudah Export Backup dulu</b> sebelum membersihkan.</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Hanya membersihkan foto galeri Rekam Keluarga yang tersimpan LOKAL di perangkat ini (bukan yang sudah ada di Drive) dan lebih lama dari batas di bawah. <b style="color:var(--red);">Pastikan sudah Sync dulu</b> sebelum membersihkan.</div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <select id="cleanup-hari-batas" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;outline:none;">
             <option value="30">Lebih dari 30 hari</option>
@@ -1674,6 +1662,21 @@ if ('serviceWorker' in navigator) {
           <button class="btn btn-outline btn-sm" onclick="bersihkanFotoLokalLama()">🧹 Bersihkan Sekarang</button>
         </div>
       </div>
+
+      <details style="border:1.5px solid var(--border);border-radius:10px;padding:14px;">
+        <summary style="font-weight:800;font-size:13px;color:var(--navy);cursor:pointer;">⚙️ Opsi manual (download/upload file sendiri)</summary>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <div style="font-weight:700;font-size:12.5px;color:var(--navy);margin-bottom:4px;">⬇️ Download File Backup</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Untuk disimpan manual sendiri (tanpa lewat Google Drive/login).</div>
+          <button class="btn btn-outline btn-sm" onclick="exportBackupData()">⬇️ Download File Backup</button>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+          <div style="font-weight:700;font-size:12.5px;color:var(--navy);margin-bottom:4px;">⬆️ Pulihkan dari File Backup</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Pilih file backup (.json) yang pernah didownload. <b style="color:var(--red);">Ini akan menimpa semua data yang ada sekarang.</b></div>
+          <input type="file" id="backup-import-input" accept=".json,application/json" style="display:none" onchange="importBackupData(event)">
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('backup-import-input').click()">⬆️ Pilih File Backup</button>
+        </div>
+      </details>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeBackupModal()">Tutup</button>
@@ -4073,6 +4076,58 @@ function formatRupiah(n) {
 const GOOGLE_CLIENT_ID = '607729195090-nl1l1j1pbhppn8r2e94cm6n4qsdhu71v.apps.googleusercontent.com';
 const GOOGLE_DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const GDRIVE_FILEID_KEY = 'gdrive_backup_file_id';
+const GDRIVE_ROOT_FOLDER_KEY = 'gdrive_root_folder_id';
+
+// Cari/bikin folder utama "Monitoring Pekerjaan" di Drive — semua file app
+// (backup & foto) ditaruh DI DALAM folder ini, supaya rapi, tidak berserakan.
+async function _ensureGDriveRootFolder(token) {
+  const cached = localStorage.getItem(GDRIVE_ROOT_FOLDER_KEY);
+  if (cached) return cached;
+
+  // Cek dulu siapa tahu sudah pernah dibuat sebelumnya (jaga-jaga localStorage kehapus)
+  try {
+    const q = encodeURIComponent("name='Monitoring Pekerjaan' and mimeType='application/vnd.google-apps.folder' and trashed=false");
+    const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (searchRes.ok) {
+      const found = await searchRes.json();
+      if (found.files && found.files.length > 0) {
+        localStorage.setItem(GDRIVE_ROOT_FOLDER_KEY, found.files[0].id);
+        return found.files[0].id;
+      }
+    }
+  } catch (e) { /* lanjut ke pembuatan baru kalau pencarian gagal */ }
+
+  const res = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Monitoring Pekerjaan', mimeType: 'application/vnd.google-apps.folder' })
+  });
+  if (!res.ok) throw new Error('Gagal membuat folder utama Drive: ' + res.status);
+  const folder = await res.json();
+  localStorage.setItem(GDRIVE_ROOT_FOLDER_KEY, folder.id);
+  return folder.id;
+}
+
+// Pastikan sebuah file/folder ada DI DALAM folder utama — kalau ternyata
+// nyasar di tempat lain (dari versi sebelumnya), pindahkan ke sana.
+async function _ensureUnderRootFolder(token, fileId, rootId) {
+  try {
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=parents`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (!res.ok) return;
+    const info = await res.json();
+    const parents = info.parents || [];
+    if (parents.includes(rootId)) return; // sudah di tempat yang benar
+    const removeParents = parents.join(',');
+    await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?addParents=${rootId}${removeParents ? '&removeParents=' + removeParents : ''}`, {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + token }
+    });
+  } catch (e) { console.warn('Gagal merapikan lokasi file Drive (dilewati):', e); }
+}
 const GDRIVE_LASTBACKUP_KEY = 'gdrive_last_backup_date';
 const GDRIVE_FILENAME = 'Backup_Monitoring_Pekerjaan.json';
 
@@ -4153,11 +4208,17 @@ async function uploadBackupToGoogleDrive(isAuto) {
   try {
     if (btn && !isAuto) { btn.disabled = true; btn.textContent = '⏳ Mengupload...'; }
 
+    const rootId = await _ensureGDriveRootFolder(_gdriveAccessToken);
+    const existingId = localStorage.getItem(GDRIVE_FILEID_KEY);
+    if (existingId) await _ensureUnderRootFolder(_gdriveAccessToken, existingId, rootId);
+
     const backup = { _app: 'Monitoring Pekerjaan', _version: 1, _exportedAt: new Date().toISOString(), data: {} };
     BACKUP_KEYS.forEach(k => { backup.data[k] = localStorage.getItem(k); });
     const json = JSON.stringify(backup);
 
-    const metadata = { name: GDRIVE_FILENAME, mimeType: 'application/json' };
+    const metadata = existingId
+      ? { name: GDRIVE_FILENAME }
+      : { name: GDRIVE_FILENAME, mimeType: 'application/json', parents: [rootId] };
     const boundary = '-------monitoringpekerjaan314159';
     const delimiter = '\r\n--' + boundary + '\r\n';
     const closeDelim = '\r\n--' + boundary + '--';
@@ -4166,7 +4227,6 @@ async function uploadBackupToGoogleDrive(isAuto) {
       delimiter + 'Content-Type: application/json\r\n\r\n' + json +
       closeDelim;
 
-    const existingId = localStorage.getItem(GDRIVE_FILEID_KEY);
     const url = existingId
       ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart&fields=id,name,modifiedTime`
       : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,modifiedTime`;
@@ -4208,7 +4268,7 @@ async function uploadBackupToGoogleDrive(isAuto) {
     console.error(e);
     if (!isAuto) showToast('❌ Gagal upload ke Google Drive: ' + e.message);
   } finally {
-    if (btn && !isAuto) { btn.disabled = false; btn.textContent = '🔑 Login Google & Upload ke Drive'; }
+    if (btn && !isAuto) { btn.disabled = false; btn.textContent = '🔄 Sync Sekarang'; }
   }
 }
 
@@ -4225,12 +4285,16 @@ setTimeout(() => { _trySilentGoogleDriveBackup(); }, 3000);
 const GDRIVE_PHOTO_FOLDER_KEY = 'gdrive_photo_folder_id';
 
 async function _ensureGDrivePhotoFolder(token) {
+  const rootId = await _ensureGDriveRootFolder(token);
   const cached = localStorage.getItem(GDRIVE_PHOTO_FOLDER_KEY);
-  if (cached) return cached;
+  if (cached) {
+    await _ensureUnderRootFolder(token, cached, rootId);
+    return cached;
+  }
   const res = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: 'Monitoring Pekerjaan - Foto Keluarga', mimeType: 'application/vnd.google-apps.folder' })
+    body: JSON.stringify({ name: 'Foto Keluarga', mimeType: 'application/vnd.google-apps.folder', parents: [rootId] })
   });
   if (!res.ok) throw new Error('Gagal membuat folder Drive: ' + res.status);
   const folder = await res.json();
