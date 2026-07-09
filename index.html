@@ -4085,9 +4085,27 @@ const GDRIVE_ROOT_FOLDER_KEY = 'gdrive_root_folder_id';
 // bukan masing-masing bikin folder baru sendiri-sendiri (race condition).
 let _gdriveRootFolderPromise = null;
 
+// Cek apakah sebuah file/folder di Drive masih ada (belum dihapus/di-trash manual oleh user)
+async function _gdriveFileExists(token, fileId) {
+  try {
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=id,trashed`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (!res.ok) return false; // 404 dll → dianggap sudah tidak ada
+    const info = await res.json();
+    return !info.trashed;
+  } catch (e) {
+    return true; // gagal cek karena masalah jaringan sesaat → anggap masih ada, jangan buru-buru bikin baru
+  }
+}
+
 async function _ensureGDriveRootFolder(token) {
   const cached = localStorage.getItem(GDRIVE_ROOT_FOLDER_KEY);
-  if (cached) return cached;
+  if (cached) {
+    const stillExists = await _gdriveFileExists(token, cached);
+    if (stillExists) return cached;
+    localStorage.removeItem(GDRIVE_ROOT_FOLDER_KEY); // folder sudah dihapus manual di Drive → buat ulang
+  }
   if (_gdriveRootFolderPromise) return _gdriveRootFolderPromise;
 
   _gdriveRootFolderPromise = (async () => {
@@ -4342,8 +4360,12 @@ async function _ensureGDrivePhotoFolder(token) {
   const rootId = await _ensureGDriveRootFolder(token);
   const cached = localStorage.getItem(GDRIVE_PHOTO_FOLDER_KEY);
   if (cached) {
-    await _ensureUnderRootFolder(token, cached, rootId);
-    return cached;
+    const stillExists = await _gdriveFileExists(token, cached);
+    if (stillExists) {
+      await _ensureUnderRootFolder(token, cached, rootId);
+      return cached;
+    }
+    localStorage.removeItem(GDRIVE_PHOTO_FOLDER_KEY); // folder sudah dihapus manual di Drive → buat ulang
   }
   const res = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
     method: 'POST',
