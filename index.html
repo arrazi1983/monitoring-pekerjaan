@@ -1073,8 +1073,7 @@ if ('serviceWorker' in navigator) {
 <!-- TABS -->
 <div class="tabs">
   <div class="tabs-inner">
-    <div class="tab active" onclick="switchTab('monitoring',this)">📊 Monitoring</div>
-    <div class="tab" onclick="switchTab('laporan',this)">📄 Laporan Otomatis</div>
+    <div class="tab active" id="tab-monitoring" onclick="switchTab('monitoring',this)">📊 Monitoring</div>
     <div class="tab" id="tab-notif" onclick="switchTab('notif',this)">
       🔔 Notifikasi
       <span class="tab-badge hidden" id="notif-badge">0</span>
@@ -1205,11 +1204,21 @@ if ('serviceWorker' in navigator) {
         </div>
         <div style="display:flex;gap:8px;position:relative;">
           <div style="position:relative;">
-            <button class="btn btn-sm" style="background:#dcfce7;color:var(--green);" onclick="toggleKasExportMenu()">📤 Export Excel</button>
-            <div id="kas-export-menu" style="display:none;position:absolute;right:0;top:110%;background:#fff;border:1.5px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:50;min-width:210px;overflow:hidden;">
-              <button onclick="exportPembukuanExcel('bulan')" style="display:block;width:100%;text-align:left;padding:11px 14px;font-size:12.5px;font-weight:600;color:var(--text);border:none;background:none;cursor:pointer;font-family:inherit;">📅 Bulan yang dipilih</button>
-              <button onclick="exportPembukuanExcel('tahun')" style="display:block;width:100%;text-align:left;padding:11px 14px;font-size:12.5px;font-weight:600;color:var(--text);border:none;background:none;cursor:pointer;font-family:inherit;border-top:1px solid var(--border);">🗓️ Tahun ini</button>
-              <button onclick="exportPembukuanExcel('semua')" style="display:block;width:100%;text-align:left;padding:11px 14px;font-size:12.5px;font-weight:600;color:var(--text);border:none;background:none;cursor:pointer;font-family:inherit;border-top:1px solid var(--border);">📚 Semua data</button>
+            <button class="btn btn-sm" style="background:#dcfce7;color:var(--green);" onclick="toggleKasExportMenu()">📤 Export</button>
+            <div id="kas-export-menu" style="display:none;position:absolute;right:0;top:110%;background:#fff;border:1.5px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:50;min-width:230px;padding:14px;">
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Format</label>
+              <select id="kas-export-format" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;margin-bottom:12px;">
+                <option value="excel">📊 Excel (.xlsx)</option>
+                <option value="pdf">📄 PDF</option>
+                <option value="word">📝 Word (.doc)</option>
+              </select>
+              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Periode</label>
+              <select id="kas-export-scope" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;margin-bottom:12px;">
+                <option value="bulan">📅 Bulan yang dipilih</option>
+                <option value="tahun">🗓️ Tahun ini</option>
+                <option value="semua" selected>📚 Semua data</option>
+              </select>
+              <button class="btn btn-primary btn-sm" style="width:100%;" onclick="exportPembukuan()">⬇️ Export Sekarang</button>
             </div>
           </div>
           <button class="btn btn-sm" style="background:var(--blue-light);color:var(--blue);" onclick="editCurrentBuku()">✏️ Edit Buku</button>
@@ -3544,16 +3553,22 @@ function switchTab(name, el) {
 }
 
 function switchTabByName(name) {
-  const tabs = document.querySelectorAll('.tab');
-  tabs.forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  if (name === 'monitoring') tabs[0].classList.add('active');
-  if (name === 'laporan') { tabs[1].classList.add('active'); renderLaporan(); }
-  if (name === 'notif') { tabs[2].classList.add('active'); renderNotifPage(); }
-  if (name === 'keuangan') { tabs[3].classList.add('active'); renderKeuangan(); }
-  if (name === 'keluarga') { tabs[4].classList.add('active'); renderKeluarga(); }
-  if (name === 'checklist') { tabs[5].classList.add('active'); renderChecklist(); }
+  const pageEl = document.getElementById('page-' + name);
+  if (pageEl) pageEl.classList.add('active');
+
+  // "laporan" sudah tidak ada tombol tab-nya di baris menu (diakses lewat tombol
+  // "📋 Laporan" di header), jadi tidak ada tab yang perlu di-highlight untuk itu.
+  const tabIdMap = { monitoring: 'tab-monitoring', notif: 'tab-notif', keuangan: 'tab-keuangan', keluarga: 'tab-keluarga', checklist: 'tab-checklist' };
+  const tabId = tabIdMap[name];
+  if (tabId) { const tabEl = document.getElementById(tabId); if (tabEl) tabEl.classList.add('active'); }
+
+  if (name === 'laporan') renderLaporan();
+  if (name === 'notif') renderNotifPage();
+  if (name === 'keuangan') renderKeuangan();
+  if (name === 'keluarga') renderKeluarga();
+  if (name === 'checklist') renderChecklist();
 }
 
 // ─────────────────────────────────────────
@@ -4857,7 +4872,7 @@ function showDetailView() {
 }
 
 // ─────────────────────────────────────────────────────
-// EXPORT PEMBUKUAN KE EXCEL — per bulan / per tahun / semua data
+// EXPORT PEMBUKUAN — Excel / PDF / Word, per bulan / per tahun / semua data
 // ─────────────────────────────────────────────────────
 function toggleKasExportMenu() {
   const m = document.getElementById('kas-export-menu');
@@ -4878,17 +4893,32 @@ function _loadSheetJS() {
     const s = document.createElement('script');
     s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
     s.onload = resolve;
-    s.onerror = () => reject(new Error('Gagal memuat modul Export (cek koneksi internet)'));
+    s.onerror = () => reject(new Error('Gagal memuat modul Excel (cek koneksi internet)'));
     document.head.appendChild(s);
   });
 }
 
-async function exportPembukuanExcel(scope) {
-  const menu = document.getElementById('kas-export-menu');
-  if (menu) menu.style.display = 'none';
+function _loadPDFLibs() {
+  if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const s1 = document.createElement('script');
+    s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s1.onload = () => {
+      const s2 = document.createElement('script');
+      s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
+      s2.onload = resolve;
+      s2.onerror = () => reject(new Error('Gagal memuat modul PDF (cek koneksi internet)'));
+      document.head.appendChild(s2);
+    };
+    s1.onerror = () => reject(new Error('Gagal memuat modul PDF (cek koneksi internet)'));
+    document.head.appendChild(s1);
+  });
+}
 
+// Kumpulkan & filter data transaksi sesuai periode yang dipilih — dipakai bersama oleh ketiga format export
+function _siapkanDataExportPembukuan(scope) {
   const buku = bukuList.find(b => b.id === activeBukuId);
-  if (!buku) return;
+  if (!buku) return null;
 
   const trxAll = (transaksiMap[activeBukuId] || []).slice().sort((a, b) => {
     if (a.tanggal > b.tanggal) return 1;
@@ -4913,8 +4943,43 @@ async function exportPembukuanExcel(scope) {
     labelPeriode = `Tahun ${tahunTarget}`;
   }
 
-  if (trx.length === 0) { showToast(`⚠️ Tidak ada transaksi untuk periode "${labelPeriode}".`); return; }
+  let saldo = 0;
+  const baris = trx.map(t => {
+    const jml = Number(t.jumlah || 0);
+    saldo += (t.jenis === 'masuk' ? jml : -jml);
+    return {
+      tanggal: t.tanggal || '',
+      keterangan: t.keterangan || '',
+      kategori: t.kategori || '',
+      masuk: t.jenis === 'masuk' ? jml : 0,
+      keluar: t.jenis === 'keluar' ? jml : 0,
+      saldo
+    };
+  });
+  const totalMasuk = trx.filter(t => t.jenis === 'masuk').reduce((s, t) => s + Number(t.jumlah || 0), 0);
+  const totalKeluar = trx.filter(t => t.jenis === 'keluar').reduce((s, t) => s + Number(t.jumlah || 0), 0);
 
+  return { buku, trx, baris, totalMasuk, totalKeluar, labelPeriode };
+}
+
+async function exportPembukuan() {
+  const menu = document.getElementById('kas-export-menu');
+  if (menu) menu.style.display = 'none';
+
+  const format = document.getElementById('kas-export-format').value;
+  const scope = document.getElementById('kas-export-scope').value;
+
+  const d = _siapkanDataExportPembukuan(scope);
+  if (!d) return;
+  if (d.trx.length === 0) { showToast(`⚠️ Tidak ada transaksi untuk periode "${d.labelPeriode}".`); return; }
+
+  if (format === 'excel') return _exportPembukuanExcel(d);
+  if (format === 'pdf') return _exportPembukuanPDF(d);
+  if (format === 'word') return _exportPembukuanWord(d);
+}
+
+async function _exportPembukuanExcel(d) {
+  const { buku, baris, totalMasuk, totalKeluar, labelPeriode, trx } = d;
   try {
     showToast('⏳ Menyiapkan file Excel...');
     await _loadSheetJS();
@@ -4925,21 +4990,7 @@ async function exportPembukuanExcel(scope) {
       [],
       ['Tanggal', 'Keterangan', 'Kategori', 'Pemasukan', 'Pengeluaran', 'Saldo Berjalan']
     ];
-    let saldo = 0;
-    trx.forEach(t => {
-      const jml = Number(t.jumlah || 0);
-      saldo += (t.jenis === 'masuk' ? jml : -jml);
-      rows.push([
-        t.tanggal || '',
-        t.keterangan || '',
-        t.kategori || '',
-        t.jenis === 'masuk' ? jml : '',
-        t.jenis === 'keluar' ? jml : '',
-        saldo
-      ]);
-    });
-    const totalMasuk = trx.filter(t => t.jenis === 'masuk').reduce((s, t) => s + Number(t.jumlah || 0), 0);
-    const totalKeluar = trx.filter(t => t.jenis === 'keluar').reduce((s, t) => s + Number(t.jumlah || 0), 0);
+    baris.forEach(b => rows.push([b.tanggal, b.keterangan, b.kategori, b.masuk || '', b.keluar || '', b.saldo]));
     rows.push([]);
     rows.push(['', '', 'TOTAL', totalMasuk, totalKeluar, totalMasuk - totalKeluar]);
 
@@ -4953,10 +5004,101 @@ async function exportPembukuanExcel(scope) {
     const namaFileAman = buku.nama.replace(/[^a-z0-9]+/gi, '_');
     const periodeAman = labelPeriode.replace(/\s+/g, '_');
     XLSX.writeFile(wb, `Pembukuan_${namaFileAman}_${periodeAman}.xlsx`);
-    showToast(`✅ Export "${labelPeriode}" berhasil didownload! (${trx.length} transaksi)`);
+    showToast(`✅ Export Excel "${labelPeriode}" berhasil didownload! (${trx.length} transaksi)`);
   } catch (e) {
     console.error(e);
-    showToast('❌ Gagal export: ' + e.message);
+    showToast('❌ Gagal export Excel: ' + e.message);
+  }
+}
+
+async function _exportPembukuanPDF(d) {
+  const { buku, baris, totalMasuk, totalKeluar, labelPeriode, trx } = d;
+  try {
+    showToast('⏳ Menyiapkan file PDF...');
+    await _loadPDFLibs();
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    doc.setFontSize(14);
+    doc.text(`Pembukuan: ${buku.nama}`, 14, 15);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Periode: ${labelPeriode}`, 14, 21);
+
+    const body = baris.map(b => [
+      b.tanggal,
+      b.keterangan,
+      b.kategori,
+      b.masuk ? formatRupiah(b.masuk) : '-',
+      b.keluar ? formatRupiah(b.keluar) : '-',
+      formatRupiah(b.saldo)
+    ]);
+
+    doc.autoTable({
+      startY: 26,
+      head: [['Tanggal', 'Keterangan', 'Kategori', 'Pemasukan', 'Pengeluaran', 'Saldo']],
+      body,
+      foot: [['', '', 'TOTAL', formatRupiah(totalMasuk), formatRupiah(totalKeluar), formatRupiah(totalMasuk - totalKeluar)]],
+      styles: { fontSize: 8.5, cellPadding: 2.5 },
+      headStyles: { fillColor: [15, 37, 68], textColor: 255, fontStyle: 'bold' },
+      footStyles: { fillColor: [240, 240, 240], textColor: [15, 37, 68], fontStyle: 'bold' },
+      columnStyles: { 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } }
+    });
+
+    const namaFileAman = buku.nama.replace(/[^a-z0-9]+/gi, '_');
+    const periodeAman = labelPeriode.replace(/\s+/g, '_');
+    doc.save(`Pembukuan_${namaFileAman}_${periodeAman}.pdf`);
+    showToast(`✅ Export PDF "${labelPeriode}" berhasil didownload! (${trx.length} transaksi)`);
+  } catch (e) {
+    console.error(e);
+    showToast('❌ Gagal export PDF: ' + e.message);
+  }
+}
+
+async function _exportPembukuanWord(d) {
+  const { buku, baris, totalMasuk, totalKeluar, labelPeriode, trx } = d;
+  try {
+    showToast('⏳ Menyiapkan file Word...');
+
+    const rowsHtml = baris.map(b => `
+      <tr>
+        <td>${b.tanggal}</td>
+        <td>${(b.keterangan || '').replace(/</g, '&lt;')}</td>
+        <td>${(b.kategori || '').replace(/</g, '&lt;')}</td>
+        <td align="right">${b.masuk ? formatRupiah(b.masuk) : '-'}</td>
+        <td align="right">${b.keluar ? formatRupiah(b.keluar) : '-'}</td>
+        <td align="right">${formatRupiah(b.saldo)}</td>
+      </tr>`).join('');
+
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+      <head><meta charset="utf-8"><title>Pembukuan ${buku.nama}</title>
+      <style>
+        body { font-family: Calibri, Arial, sans-serif; }
+        h2 { color: #0f2544; margin-bottom: 2px; }
+        p.periode { color: #555; margin-top: 0; }
+        table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+        th, td { border: 1px solid #ccc; padding: 6px 8px; font-size: 12px; }
+        th { background: #0f2544; color: #fff; text-align: left; }
+        tfoot td { font-weight: bold; background: #f0f0f0; }
+      </style></head>
+      <body>
+        <h2>Pembukuan: ${buku.nama}</h2>
+        <p class="periode">Periode: ${labelPeriode}</p>
+        <table>
+          <thead><tr><th>Tanggal</th><th>Keterangan</th><th>Kategori</th><th>Pemasukan</th><th>Pengeluaran</th><th>Saldo</th></tr></thead>
+          <tbody>${rowsHtml}</tbody>
+          <tfoot><tr><td colspan="3">TOTAL</td><td align="right">${formatRupiah(totalMasuk)}</td><td align="right">${formatRupiah(totalKeluar)}</td><td align="right">${formatRupiah(totalMasuk - totalKeluar)}</td></tr></tfoot>
+        </table>
+      </body></html>`;
+
+    const namaFileAman = buku.nama.replace(/[^a-z0-9]+/gi, '_');
+    const periodeAman = labelPeriode.replace(/\s+/g, '_');
+    downloadWordFile(html, `Pembukuan_${namaFileAman}_${periodeAman}.doc`);
+    showToast(`✅ Export Word "${labelPeriode}" berhasil didownload! (${trx.length} transaksi)`);
+  } catch (e) {
+    console.error(e);
+    showToast('❌ Gagal export Word: ' + e.message);
   }
 }
 
