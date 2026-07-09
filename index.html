@@ -1061,7 +1061,8 @@ if ('serviceWorker' in navigator) {
         🔔
         <span class="notif-dot" id="notif-dot"></span>
       </button>
-      <button class="btn btn-outline btn-sm" onclick="openBackupModal()">💾 <span>Backup</span></button>
+      <button class="btn btn-outline btn-sm" onclick="syncSekarangDariHeader()">🔄 <span>Sync</span></button>
+      <button class="btn btn-outline btn-sm" onclick="openBackupModal()" title="Pengaturan Backup lainnya">⚙️ <span>Backup</span></button>
       <button class="btn btn-outline btn-sm" onclick="openManageModal('kategori')">🗂️ <span>Kategori</span></button>
       <button class="btn btn-outline btn-sm" onclick="openManageModal('grup')">🏷️ <span>Grup</span></button>
       <button class="btn btn-outline btn-sm" onclick="exportLaporan()">📋 <span>Laporan</span></button>
@@ -4080,34 +4081,83 @@ const GDRIVE_ROOT_FOLDER_KEY = 'gdrive_root_folder_id';
 
 // Cari/bikin folder utama "Monitoring Pekerjaan" di Drive — semua file app
 // (backup & foto) ditaruh DI DALAM folder ini, supaya rapi, tidak berserakan.
+// Dibungkus 1 Promise yang di-cache (bukan cuma hasil akhirnya) supaya kalau
+// ada beberapa upload jalan bersamaan, mereka semua NUNGGU promise yang SAMA,
+// bukan masing-masing bikin folder baru sendiri-sendiri (race condition).
+let _gdriveRootFolderPromise = null;
+
 async function _ensureGDriveRootFolder(token) {
   const cached = localStorage.getItem(GDRIVE_ROOT_FOLDER_KEY);
   if (cached) return cached;
+  if (_gdriveRootFolderPromise) return _gdriveRootFolderPromise;
 
-  // Cek dulu siapa tahu sudah pernah dibuat sebelumnya (jaga-jaga localStorage kehapus)
+  _gdriveRootFolderPromise = (async () => {
+    // Cari SEMUA folder bernama "Monitoring Pekerjaan" (jaga-jaga ada duplikat dari sebelumnya)
+    let found = [];
+    try {
+      const q = encodeURIComponent("name='Monitoring Pekerjaan' and mimeType='application/vnd.google-apps.folder' and trashed=false");
+      const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,createdTime)&orderBy=createdTime`, {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+      if (searchRes.ok) {
+        const data = await searchRes.json();
+        found = data.files || [];
+      }
+    } catch (e) { /* lanjut ke pembuatan baru kalau pencarian gagal */ }
+
+    let rootId;
+    if (found.length > 0) {
+      rootId = found[0].id; // yang paling lama dibuat jadi folder utama
+      // Kalau ada duplikat lain → gabungkan isinya ke folder utama, lalu hapus duplikatnya
+      if (found.length > 1) {
+        for (let i = 1; i < found.length; i++) {
+          await _mergeDuplicateFolder(token, found[i].id, rootId);
+        }
+      }
+    } else {
+      const res = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Monitoring Pekerjaan', mimeType: 'application/vnd.google-apps.folder' })
+      });
+      if (!res.ok) throw new Error('Gagal membuat folder utama Drive: ' + res.status);
+      const folder = await res.json();
+      rootId = folder.id;
+    }
+
+    localStorage.setItem(GDRIVE_ROOT_FOLDER_KEY, rootId);
+    return rootId;
+  })();
+
   try {
-    const q = encodeURIComponent("name='Monitoring Pekerjaan' and mimeType='application/vnd.google-apps.folder' and trashed=false");
-    const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+    return await _gdriveRootFolderPromise;
+  } finally {
+    _gdriveRootFolderPromise = null;
+  }
+}
+
+// Pindahkan semua isi folder duplikat ke folder utama, lalu buang folder duplikatnya (trash)
+async function _mergeDuplicateFolder(token, duplicateId, rootId) {
+  try {
+    const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(`'${duplicateId}' in parents and trashed=false`)}&fields=files(id)`, {
       headers: { Authorization: 'Bearer ' + token }
     });
-    if (searchRes.ok) {
-      const found = await searchRes.json();
-      if (found.files && found.files.length > 0) {
-        localStorage.setItem(GDRIVE_ROOT_FOLDER_KEY, found.files[0].id);
-        return found.files[0].id;
+    if (listRes.ok) {
+      const listData = await listRes.json();
+      for (const f of (listData.files || [])) {
+        await fetch(`https://www.googleapis.com/drive/v3/files/${f.id}?addParents=${rootId}&removeParents=${duplicateId}`, {
+          method: 'PATCH',
+          headers: { Authorization: 'Bearer ' + token }
+        }).catch(() => {});
       }
     }
-  } catch (e) { /* lanjut ke pembuatan baru kalau pencarian gagal */ }
-
-  const res = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: 'Monitoring Pekerjaan', mimeType: 'application/vnd.google-apps.folder' })
-  });
-  if (!res.ok) throw new Error('Gagal membuat folder utama Drive: ' + res.status);
-  const folder = await res.json();
-  localStorage.setItem(GDRIVE_ROOT_FOLDER_KEY, folder.id);
-  return folder.id;
+    // Buang folder duplikat yang sekarang sudah kosong
+    await fetch(`https://www.googleapis.com/drive/v3/files/${duplicateId}`, {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trashed: true })
+    }).catch(() => {});
+  } catch (e) { console.warn('Gagal menggabungkan folder duplikat:', e); }
 }
 
 // Pastikan sebuah file/folder ada DI DALAM folder utama — kalau ternyata
@@ -4187,6 +4237,11 @@ function signInGoogleDrive() {
       if (e.message === 'gsi_not_ready') showToast('⏳ Google belum siap dimuat, coba lagi sebentar (cek koneksi internet).');
       // kalau error lain (login ditolak/gagal), toast sudah ditampilkan di callback token client
     });
+}
+
+// Tombol "🔄 Sync" di header utama — langsung sync tanpa perlu buka modal Backup dulu.
+function syncSekarangDariHeader() {
+  signInGoogleDrive();
 }
 
 function _gdriveShouldAutoBackupToday() {
