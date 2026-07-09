@@ -4280,7 +4280,8 @@ async function uploadBackupToGoogleDrive(isAuto) {
   try {
     if (btn && !isAuto) { btn.disabled = true; btn.textContent = '⏳ Mengupload...'; }
 
-    const rootId = await _ensureGDriveRootFolder(_gdriveAccessToken);
+    const struktur = await _ensureFullGDriveStructure(_gdriveAccessToken);
+    const rootId = struktur.rootId;
     const existingId = localStorage.getItem(GDRIVE_FILEID_KEY);
     if (existingId) await _ensureUnderRootFolder(_gdriveAccessToken, existingId, rootId);
 
@@ -4348,38 +4349,83 @@ async function uploadBackupToGoogleDrive(isAuto) {
 // dikasih delay supaya script Google Identity Services sempat termuat dulu.
 setTimeout(() => { _trySilentGoogleDriveBackup(); }, 3000);
 // ─────────────────────────────────────────────────────
-// GOOGLE DRIVE — upload FOTO (profil & galeri Rekam Keluarga)
+// GOOGLE DRIVE — struktur folder terorganisir
 // Menggantikan Firebase Storage (yang sekarang wajib paket berbayar).
 // Foto diset "siapa saja yang punya link bisa lihat" supaya tampil
 // langsung tanpa perlu login Google tiap kali MELIHAT — cuma perlu
 // login saat mau MENGUPLOAD foto baru.
 // ─────────────────────────────────────────────────────
-const GDRIVE_PHOTO_FOLDER_KEY = 'gdrive_photo_folder_id';
 
-async function _ensureGDrivePhotoFolder(token) {
-  const rootId = await _ensureGDriveRootFolder(token);
-  const cached = localStorage.getItem(GDRIVE_PHOTO_FOLDER_KEY);
+// Cari/bikin 1 sub-folder di dalam parent tertentu. Reusable untuk semua
+// level (folder grup, folder Foto/Dokumen, folder Rekam Keluarga, dst).
+// Cache key disusun dari parent+nama supaya tiap kombinasi unik dan
+// tidak bentrok satu sama lain.
+async function _ensureGDriveSubfolder(token, name, parentId) {
+  const cacheKey = `gdrive_folder__${parentId}__${name}`;
+  const cached = localStorage.getItem(cacheKey);
   if (cached) {
     const stillExists = await _gdriveFileExists(token, cached);
-    if (stillExists) {
-      await _ensureUnderRootFolder(token, cached, rootId);
-      return cached;
-    }
-    localStorage.removeItem(GDRIVE_PHOTO_FOLDER_KEY); // folder sudah dihapus manual di Drive → buat ulang
+    if (stillExists) return cached;
+    localStorage.removeItem(cacheKey); // sudah dihapus manual di Drive → buat ulang
   }
+
+  // Cari dulu siapa tahu sudah ada (dari sesi/device lain, akun sama)
+  try {
+    const safeName = name.replace(/'/g, "\\'");
+    const q = encodeURIComponent(`name='${safeName}' and mimeType='application/vnd.google-apps.folder' and trashed=false and '${parentId}' in parents`);
+    const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+      headers: { Authorization: 'Bearer ' + token }
+    });
+    if (searchRes.ok) {
+      const data = await searchRes.json();
+      if (data.files && data.files.length > 0) {
+        localStorage.setItem(cacheKey, data.files[0].id);
+        return data.files[0].id;
+      }
+    }
+  } catch (e) { /* lanjut ke pembuatan baru kalau pencarian gagal */ }
+
   const res = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: 'Foto Keluarga', mimeType: 'application/vnd.google-apps.folder', parents: [rootId] })
+    body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] })
   });
-  if (!res.ok) throw new Error('Gagal membuat folder Drive: ' + res.status);
+  if (!res.ok) throw new Error(`Gagal membuat folder Drive "${name}": ` + res.status);
   const folder = await res.json();
-  localStorage.setItem(GDRIVE_PHOTO_FOLDER_KEY, folder.id);
+  localStorage.setItem(cacheKey, folder.id);
   return folder.id;
 }
 
-// Upload 1 file gambar ke Google Drive → kembalikan { url, fileId }
-async function uploadImageToGDrive(file, labelPrefix) {
+// Bangun/pastikan seluruh struktur folder Monitoring Pekerjaan lengkap ada di Drive:
+//   Monitoring Pekerjaan/
+//   ├── <tiap Grup pekerjaan>/  → Foto/  Dokumen/   (otomatis ikut nambah kalau grup baru dibuat)
+//   ├── Pembukuan/
+//   ├── Laporan/
+//   └── Rekam Keluarga/ → Kesehatan/  Perkembangan/  Galeri/
+// Kembalikan objek berisi id folder-folder yang sering dipakai langsung.
+async function _ensureFullGDriveStructure(token) {
+  const rootId = await _ensureGDriveRootFolder(token);
+
+  // Folder per grup pekerjaan (dinamis, ikut daftar grup yang ada di app)
+  for (const g of grups) {
+    const gId = await _ensureGDriveSubfolder(token, g, rootId);
+    await _ensureGDriveSubfolder(token, 'Foto', gId);
+    await _ensureGDriveSubfolder(token, 'Dokumen', gId);
+  }
+
+  await _ensureGDriveSubfolder(token, 'Pembukuan', rootId);
+  await _ensureGDriveSubfolder(token, 'Laporan', rootId);
+
+  const rkId = await _ensureGDriveSubfolder(token, 'Rekam Keluarga', rootId);
+  await _ensureGDriveSubfolder(token, 'Kesehatan', rkId);
+  await _ensureGDriveSubfolder(token, 'Perkembangan', rkId);
+  const galeriId = await _ensureGDriveSubfolder(token, 'Galeri', rkId);
+
+  return { rootId, rkId, galeriId };
+}
+
+// Upload 1 file gambar ke Google Drive, ke folder tujuan tertentu → kembalikan { url, fileId }
+async function uploadImageToGDrive(file, labelPrefix, targetKind) {
   // PENTING: minta token/izin Google DULUAN, sebelum proses async lain (kompres gambar dsb).
   // Popup login Google cuma diizinkan browser kalau dipicu LANGSUNG dari klik user tanpa
   // jeda proses lain di depannya — kalau kompres gambar dilakukan dulu, popup-nya keblokir.
@@ -4388,7 +4434,8 @@ async function uploadImageToGDrive(file, labelPrefix) {
   const dataUrl = await compressImageSmart(file, 1280, 0.8, 800);
   const blob = await fetch(dataUrl).then(r => r.blob());
 
-  const folderId = await _ensureGDrivePhotoFolder(token);
+  const struktur = await _ensureFullGDriveStructure(token);
+  const folderId = targetKind === 'profil' ? struktur.rkId : struktur.galeriId;
 
   const metadata = { name: `${labelPrefix}_${Date.now()}.jpg`, parents: [folderId] };
   const boundary = '-------monitoringpekerjaanfoto314159';
@@ -5732,7 +5779,7 @@ function uploadGaleriFoto(event) {
   };
 
   files.forEach(file => {
-    uploadImageToGDrive(file, `galeri_${a.id}`)
+    uploadImageToGDrive(file, `galeri_${a.id}`, 'galeri')
       .then(({ url, fileId }) => {
         a.galeri.push({ url, data: null, driveFileId: fileId, storagePath: null, tanggal, tahun, keterangan: ket });
         uploaded++;
@@ -5868,7 +5915,7 @@ function uploadFotoProfil(event) {
   _kelFirebasePaused = true;
   showToast('⏳ Mengupload foto profil ke Google Drive...');
 
-  uploadImageToGDrive(file, `profil_${a.id}`)
+  uploadImageToGDrive(file, `profil_${a.id}`, 'profil')
     .then(({ url, fileId }) => {
       a.fotoProfil = url;
       a.fotoProfilDriveId = fileId;
