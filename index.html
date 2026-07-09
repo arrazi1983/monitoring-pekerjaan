@@ -1203,7 +1203,15 @@ if ('serviceWorker' in navigator) {
             <option value="keluar">❤️ Pengeluaran</option>
           </select>
         </div>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;gap:8px;position:relative;">
+          <div style="position:relative;">
+            <button class="btn btn-sm" style="background:#dcfce7;color:var(--green);" onclick="toggleKasExportMenu()">📤 Export Excel</button>
+            <div id="kas-export-menu" style="display:none;position:absolute;right:0;top:110%;background:#fff;border:1.5px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:50;min-width:210px;overflow:hidden;">
+              <button onclick="exportPembukuanExcel('bulan')" style="display:block;width:100%;text-align:left;padding:11px 14px;font-size:12.5px;font-weight:600;color:var(--text);border:none;background:none;cursor:pointer;font-family:inherit;">📅 Bulan yang dipilih</button>
+              <button onclick="exportPembukuanExcel('tahun')" style="display:block;width:100%;text-align:left;padding:11px 14px;font-size:12.5px;font-weight:600;color:var(--text);border:none;background:none;cursor:pointer;font-family:inherit;border-top:1px solid var(--border);">🗓️ Tahun ini</button>
+              <button onclick="exportPembukuanExcel('semua')" style="display:block;width:100%;text-align:left;padding:11px 14px;font-size:12.5px;font-weight:600;color:var(--text);border:none;background:none;cursor:pointer;font-family:inherit;border-top:1px solid var(--border);">📚 Semua data</button>
+            </div>
+          </div>
           <button class="btn btn-sm" style="background:var(--blue-light);color:var(--blue);" onclick="editCurrentBuku()">✏️ Edit Buku</button>
           <button class="btn btn-sm btn-danger" onclick="deleteCurrentBuku()">🗑️ Hapus Buku</button>
           <button class="btn btn-primary btn-sm" onclick="openKasModal()">+ Tambah Transaksi</button>
@@ -2811,10 +2819,8 @@ function konfirmasiUpload(pid) {
         reopenCard(pid);
         showToast(`✅ ${files.length} file tersimpan!`);
 
-        // STEP 2: Coba upload ke Firebase Storage di background (opsional)
-        if (window._firebaseReady && window._fbStorage) {
-          _coba_upload_ke_firebase(pid, ket);
-        }
+        // STEP 2: Coba sinkron ke Google Drive di background (opsional, silent, tidak ganggu kalau gagal)
+        _coba_upload_ke_gdrive(pid, p.grup);
       }
     });
   });
@@ -2823,8 +2829,9 @@ function konfirmasiUpload(pid) {
   if (input) input.value = '';
 }
 
-// Upload ke Firebase Storage di background — update entry yg sudah ada di array
-function _coba_upload_ke_firebase(pid, ket) {
+// Upload ke Google Drive di background — SILENT, tidak pernah munculkan popup.
+// Kalau sesi Google tidak aktif, gagal diam-diam & file tetap aman tersimpan lokal.
+function _coba_upload_ke_gdrive(pid, grupNama) {
   const p = data.find(x => x.id === pid);
   if (!p || !p.dokumens) return;
   // Cari entry yang belum punya downloadURL (baru saja disimpan lokal)
@@ -2833,26 +2840,22 @@ function _coba_upload_ke_firebase(pid, ket) {
 
   let done = 0;
   localEntries.forEach(d => {
-    // Convert base64 data URL ke Blob
-    fetch(d.data).then(r => r.blob()).then(blob => {
-      const uniqueName = `dokumens/${pid}/${Date.now()}_${d.nama}`;
-      const storageRef = window._fbSRef(window._fbStorage, uniqueName);
-      return window._fbUploadBytes(storageRef, blob).then(snap =>
-        window._fbGetDownloadURL(snap.ref).then(url => ({ url, uniqueName }))
-      );
-    }).then(({ url, uniqueName }) => {
-      // Update entry: simpan URL, hapus base64 untuk hemat storage
+    fetch(d.data).then(r => r.blob()).then(async blob => {
+      const token = await _ensureGDriveToken(false); // silent
+      const folderId = await _ensureGDriveGrupFolder(token, grupNama, 'Dokumen');
+      return uploadFileToGDriveSilent(blob, d.nama, blob.type, folderId);
+    }).then(({ url, fileId }) => {
       d.downloadURL = url;
-      d.storagePath = uniqueName;
-      d.data = null; // hapus base64 setelah ada URL Firebase
+      d.driveFileId = fileId;
+      d.data = null; // hapus base64 setelah ada URL Drive, hemat penyimpanan lokal
       done++;
       if (done === localEntries.length) {
         saveData();
-        showToast('☁️ File tersinkron ke Firebase Storage!');
+        showToast('☁️ File tersinkron ke Google Drive!');
       }
     }).catch(err => {
       done++;
-      console.warn('Background Firebase upload gagal (file tetap tersimpan lokal):', err.message);
+      console.warn('Sinkron Google Drive gagal di background (file tetap tersimpan lokal):', err.message);
     });
   });
 }
@@ -2936,8 +2939,10 @@ function deleteDokumen(pid, di) {
   const dok = p.dokumens[di];
   const type = dok.type;
 
-  // Hapus dari Firebase Storage jika ada
-  if (dok.storagePath && window._firebaseReady && window._fbStorage) {
+  // Hapus dari Google Drive / Firebase Storage jika ada
+  if (dok.driveFileId) {
+    deleteImageFromGDrive(dok.driveFileId);
+  } else if (dok.storagePath && window._firebaseReady && window._fbStorage) {
     const storageRef = window._fbSRef(window._fbStorage, dok.storagePath);
     window._fbDeleteObject(storageRef)
       .then(() => console.log('✅ File dihapus dari Firebase Storage'))
@@ -3021,51 +3026,41 @@ function handleFotoUpload(event, pid) {
   const sisa = 10 - p.fotos.length;
   const toLoad = files.slice(0, sisa);
   if (files.length > sisa) showToast(`⚠️ Hanya ${sisa} foto lagi yang bisa ditambahkan`);
+  event.target.value = '';
+  if (toLoad.length === 0) return;
 
-  if (window._firebaseReady && window._fbStorage) {
-    let uploaded = 0;
-    showToast(`⏳ Mengupload ${toLoad.length} foto ke Firebase...`);
-    toLoad.forEach(file => {
-      const uniqueName = `fotos/${pid}/${Date.now()}_${file.name}`;
-      const storageRef = window._fbSRef(window._fbStorage, uniqueName);
-      window._fbUploadBytes(storageRef, file).then(snapshot => {
-        return window._fbGetDownloadURL(snapshot.ref);
-      }).then(downloadURL => {
-        p.fotos.push({ data: null, downloadURL, storagePath: uniqueName, caption: '' });
+  let uploaded = 0;
+  showToast(`⏳ Mengupload ${toLoad.length} foto ke Google Drive...`);
+  const bukaSubtask = () => {
+    const body = document.getElementById(`body-${pid}`);
+    const chev = document.getElementById(`chev-${pid}`);
+    if (body) { body.classList.add('open'); if (chev) chev.classList.add('open'); }
+  };
+
+  toLoad.forEach(file => {
+    uploadImageToGDrive(file, `foto_${pid}`, 'grupFoto', p.grup)
+      .then(({ url, fileId }) => {
+        p.fotos.push({ data: null, downloadURL: url, driveFileId: fileId, storagePath: null, caption: '' });
         uploaded++;
         if (uploaded === toLoad.length) {
-          saveData();
-          renderAll();
-          const body = document.getElementById(`body-${pid}`);
-          const chev = document.getElementById(`chev-${pid}`);
-          if (body) { body.classList.add('open'); if(chev) chev.classList.add('open'); }
-          showToast(`✅ ${toLoad.length} foto berhasil diupload ke Firebase!`);
+          saveData(); renderAll(); bukaSubtask();
+          showToast(`✅ ${toLoad.length} foto berhasil diupload ke Google Drive!`);
         }
-      }).catch(err => {
-        console.error('Upload foto gagal:', err);
-        showToast('⚠️ Gagal upload, coba lagi');
+      })
+      .catch(err => {
+        console.warn('Upload foto ke Drive gagal, simpan lokal:', err);
+        const reader = new FileReader();
+        reader.onload = e => {
+          p.fotos.push({ data: e.target.result, downloadURL: null, driveFileId: null, storagePath: null, caption: '' });
+          uploaded++;
+          if (uploaded === toLoad.length) {
+            saveData(); renderAll(); bukaSubtask();
+            showToast(`⚠️ Upload ke Drive gagal, foto disimpan di perangkat ini saja.`);
+          }
+        };
+        reader.readAsDataURL(file);
       });
-    });
-  } else {
-    // Fallback offline → base64
-    let loaded = 0;
-    toLoad.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        p.fotos.push({ data: e.target.result, downloadURL: null, storagePath: null, caption: '' });
-        loaded++;
-        if (loaded === toLoad.length) {
-          saveData(); renderAll();
-          const body = document.getElementById(`body-${pid}`);
-          const chev = document.getElementById(`chev-${pid}`);
-          if (body) { body.classList.add('open'); if(chev) chev.classList.add('open'); }
-          showToast(`✅ ${toLoad.length} foto disimpan lokal`);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-  event.target.value = '';
+  });
 }
 
 function deleteFoto(pid, fi) {
@@ -3074,12 +3069,11 @@ function deleteFoto(pid, fi) {
   if (!confirm('Hapus foto ini?')) return;
   const foto = p.fotos[fi];
 
-  // Hapus dari Firebase Storage jika ada
-  if (foto.storagePath && window._firebaseReady && window._fbStorage) {
+  if (foto.driveFileId) {
+    deleteImageFromGDrive(foto.driveFileId);
+  } else if (foto.storagePath && window._firebaseReady && window._fbStorage) {
     const storageRef = window._fbSRef(window._fbStorage, foto.storagePath);
-    window._fbDeleteObject(storageRef)
-      .then(() => console.log('✅ Foto dihapus dari Firebase Storage'))
-      .catch(e => console.warn('⚠️ Gagal hapus foto dari Storage:', e));
+    window._fbDeleteObject(storageRef).catch(e => console.warn('⚠️ Gagal hapus foto dari Storage:', e));
   }
 
   p.fotos.splice(fi, 1);
@@ -4425,7 +4419,46 @@ async function _ensureFullGDriveStructure(token) {
 }
 
 // Upload 1 file gambar ke Google Drive, ke folder tujuan tertentu → kembalikan { url, fileId }
-async function uploadImageToGDrive(file, labelPrefix, targetKind) {
+// Cari/bikin folder <Grup>/Foto atau <Grup>/Dokumen — dipakai untuk lampiran halaman Pekerjaan
+async function _ensureGDriveGrupFolder(token, grupNama, subKind) {
+  const rootId = await _ensureGDriveRootFolder(token);
+  const grupId = await _ensureGDriveSubfolder(token, grupNama || 'Lainnya', rootId);
+  return _ensureGDriveSubfolder(token, subKind, grupId);
+}
+
+// Upload file APAPUN (bukan cuma gambar — pdf, docx, xlsx, dst) ke Drive, SILENT
+// (tidak pernah munculkan popup). Dipakai untuk sinkron dokumen pekerjaan di
+// background setelah tersimpan lokal duluan — kalau sesi Google tidak aktif,
+// ini gagal diam-diam dan file tetap aman di lokal (tidak ada yang hilang).
+async function uploadFileToGDriveSilent(blob, filename, mimeType, folderId) {
+  const token = await _ensureGDriveToken(false);
+  const metadata = { name: filename, parents: [folderId] };
+  const boundary = '-------monitoringpekerjaanfile314159';
+  const delimiter = '\r\n--' + boundary + '\r\n';
+  const closeDelim = '\r\n--' + boundary + '--';
+  const metaPart = delimiter + 'Content-Type: application/json; charset=UTF-8\r\n\r\n' + JSON.stringify(metadata);
+  const contentPart = delimiter + `Content-Type: ${mimeType || 'application/octet-stream'}\r\n\r\n`;
+  const bodyBlob = new Blob([metaPart, contentPart, blob, closeDelim]);
+
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'multipart/related; boundary=' + boundary },
+    body: bodyBlob
+  });
+  if (!res.ok) throw new Error('Upload ke Google Drive gagal: ' + res.status);
+  const result = await res.json();
+  const fileId = result.id;
+
+  await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role: 'reader', type: 'anyone' })
+  }).catch(() => {});
+
+  return { url: `https://drive.google.com/uc?export=download&id=${fileId}`, fileId };
+}
+
+async function uploadImageToGDrive(file, labelPrefix, targetKind, grupNama) {
   // PENTING: minta token/izin Google DULUAN, sebelum proses async lain (kompres gambar dsb).
   // Popup login Google cuma diizinkan browser kalau dipicu LANGSUNG dari klik user tanpa
   // jeda proses lain di depannya — kalau kompres gambar dilakukan dulu, popup-nya keblokir.
@@ -4434,8 +4467,13 @@ async function uploadImageToGDrive(file, labelPrefix, targetKind) {
   const dataUrl = await compressImageSmart(file, 1280, 0.8, 800);
   const blob = await fetch(dataUrl).then(r => r.blob());
 
-  const struktur = await _ensureFullGDriveStructure(token);
-  const folderId = targetKind === 'profil' ? struktur.rkId : struktur.galeriId;
+  let folderId;
+  if (targetKind === 'grupFoto') {
+    folderId = await _ensureGDriveGrupFolder(token, grupNama, 'Foto');
+  } else {
+    const struktur = await _ensureFullGDriveStructure(token);
+    folderId = targetKind === 'profil' ? struktur.rkId : struktur.galeriId;
+  }
 
   const metadata = { name: `${labelPrefix}_${Date.now()}.jpg`, parents: [folderId] };
   const boundary = '-------monitoringpekerjaanfoto314159';
@@ -4816,6 +4854,110 @@ function showDetailView() {
 
   initKasBulanFilter();
   renderDetailBuku();
+}
+
+// ─────────────────────────────────────────────────────
+// EXPORT PEMBUKUAN KE EXCEL — per bulan / per tahun / semua data
+// ─────────────────────────────────────────────────────
+function toggleKasExportMenu() {
+  const m = document.getElementById('kas-export-menu');
+  if (m) m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('kas-export-menu');
+  if (menu && menu.style.display === 'block' &&
+      !e.target.closest('#kas-export-menu') &&
+      !e.target.closest('button[onclick="toggleKasExportMenu()"]')) {
+    menu.style.display = 'none';
+  }
+});
+
+function _loadSheetJS() {
+  if (window.XLSX) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('Gagal memuat modul Export (cek koneksi internet)'));
+    document.head.appendChild(s);
+  });
+}
+
+async function exportPembukuanExcel(scope) {
+  const menu = document.getElementById('kas-export-menu');
+  if (menu) menu.style.display = 'none';
+
+  const buku = bukuList.find(b => b.id === activeBukuId);
+  if (!buku) return;
+
+  const trxAll = (transaksiMap[activeBukuId] || []).slice().sort((a, b) => {
+    if (a.tanggal > b.tanggal) return 1;
+    if (a.tanggal < b.tanggal) return -1;
+    return a.id - b.id;
+  });
+
+  const filterBulan = document.getElementById('kas-filter-bulan')?.value || '';
+  const bulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+  let trx = trxAll;
+  let labelPeriode = 'Semua Data';
+
+  if (scope === 'bulan') {
+    const bulanTarget = filterBulan || todayLocalISO().slice(0, 7);
+    trx = trxAll.filter(t => t.tanggal && t.tanggal.startsWith(bulanTarget));
+    const [y, m] = bulanTarget.split('-');
+    labelPeriode = `${bulanNama[parseInt(m, 10) - 1]} ${y}`;
+  } else if (scope === 'tahun') {
+    const tahunTarget = filterBulan ? filterBulan.slice(0, 4) : todayLocalISO().slice(0, 4);
+    trx = trxAll.filter(t => t.tanggal && t.tanggal.startsWith(tahunTarget));
+    labelPeriode = `Tahun ${tahunTarget}`;
+  }
+
+  if (trx.length === 0) { showToast(`⚠️ Tidak ada transaksi untuk periode "${labelPeriode}".`); return; }
+
+  try {
+    showToast('⏳ Menyiapkan file Excel...');
+    await _loadSheetJS();
+
+    const rows = [
+      [`Pembukuan: ${buku.nama}`],
+      [`Periode: ${labelPeriode}`],
+      [],
+      ['Tanggal', 'Keterangan', 'Kategori', 'Pemasukan', 'Pengeluaran', 'Saldo Berjalan']
+    ];
+    let saldo = 0;
+    trx.forEach(t => {
+      const jml = Number(t.jumlah || 0);
+      saldo += (t.jenis === 'masuk' ? jml : -jml);
+      rows.push([
+        t.tanggal || '',
+        t.keterangan || '',
+        t.kategori || '',
+        t.jenis === 'masuk' ? jml : '',
+        t.jenis === 'keluar' ? jml : '',
+        saldo
+      ]);
+    });
+    const totalMasuk = trx.filter(t => t.jenis === 'masuk').reduce((s, t) => s + Number(t.jumlah || 0), 0);
+    const totalKeluar = trx.filter(t => t.jenis === 'keluar').reduce((s, t) => s + Number(t.jumlah || 0), 0);
+    rows.push([]);
+    rows.push(['', '', 'TOTAL', totalMasuk, totalKeluar, totalMasuk - totalKeluar]);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{ wch: 12 }, { wch: 32 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } }];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Pembukuan');
+
+    const namaFileAman = buku.nama.replace(/[^a-z0-9]+/gi, '_');
+    const periodeAman = labelPeriode.replace(/\s+/g, '_');
+    XLSX.writeFile(wb, `Pembukuan_${namaFileAman}_${periodeAman}.xlsx`);
+    showToast(`✅ Export "${labelPeriode}" berhasil didownload! (${trx.length} transaksi)`);
+  } catch (e) {
+    console.error(e);
+    showToast('❌ Gagal export: ' + e.message);
+  }
 }
 
 function renderDetailBuku() {
