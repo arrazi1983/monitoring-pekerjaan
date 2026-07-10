@@ -831,6 +831,13 @@ if ('serviceWorker' in navigator) {
     .chk-row { flex-wrap:wrap; }
     .chk-status-group { width:100%; order:3; }
     .chk-row-delete { order:2; }
+
+    /* Supaya baris tombol aksi (Export, Edit, Hapus, Tambah, dll) di semua halaman
+       tidak terpotong di layar HP — otomatis pindah ke baris baru, bukan hilang
+       ke samping tanpa bisa digeser. */
+    .section-header { flex-wrap: wrap; row-gap: 10px; }
+    .section-header > div { flex-wrap: wrap; row-gap: 8px; }
+    .section-header .btn, .section-header button { flex: 0 0 auto; }
   }
 
   /* ── GROUP SECTION ── */
@@ -1152,7 +1159,7 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- Summary semua buku -->
-      <div class="summary-grid" id="kas-all-summary" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;"></div>
+      <div class="summary-grid" id="kas-all-summary" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:24px;"></div>
 
       <!-- Alert Banner Anggaran & Saldo Minus -->
       <div id="kas-alert-banner" style="display:none;margin-bottom:16px;"></div>
@@ -1187,7 +1194,7 @@ if ('serviceWorker' in navigator) {
       </div>
 
       <!-- Summary kartu buku ini -->
-      <div class="summary-grid" id="kas-detail-summary" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;"></div>
+      <div class="summary-grid" id="kas-detail-summary" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:24px;"></div>
 
       <!-- Action bar -->
       <div class="section-header" style="margin-bottom:16px;">
