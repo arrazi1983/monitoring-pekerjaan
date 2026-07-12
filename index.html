@@ -6560,12 +6560,9 @@ function hitungUsia(tglLahir) {
 
 async function analisisAI(tipe, mode) {
   const a = anggotaList.find(x => x.id === activeAnggotaId);
-  if (!a) { showToast('⚠️ Pilih anggota keluarga terlebih dahulu'); return; }
+  if (!a) { showToast('Pilih anggota keluarga terlebih dahulu'); return; }
 
   const usia = hitungUsia(a.lahir);
-  const isAnak = (a.peran === 'Anak' || a.peran === 'anak');
-
-  // Build prompt berdasarkan tipe
   let prompt = '';
 
   if (tipe === 'perkembangan') {
@@ -6579,125 +6576,84 @@ async function analisisAI(tipe, mode) {
     const beratData = mode === 'terbaru' ? beratList.slice(0,1) : beratList;
     const tinggiData = mode === 'terbaru' ? tinggiList.slice(0,1) : tinggiList;
 
-    prompt = `Kamu adalah dokter anak dan ahli gizi berpengalaman. Analisis data perkembangan berikut berdasarkan standar WHO Child Growth Standards 2006, Kemenkes RI, dan IDAI.
+    const beratTeks = beratData.map(x => '- ' + x.tanggal + ': ' + x.nilai + ' kg' + (x.keterangan ? ' (' + x.keterangan + ')' : '')).join('\n') || 'Tidak ada data';
+    const tinggiTeks = tinggiData.map(x => '- ' + x.tanggal + ': ' + x.nilai + ' cm' + (x.keterangan ? ' (' + x.keterangan + ')' : '')).join('\n') || 'Tidak ada data';
+    const prestasiTeks = prestasiList.length ? 'PRESTASI:\n' + prestasiList.map(x => '- ' + x.tanggal + ': ' + x.nilai).join('\n') : '';
+    const kemampuanTeks = kemampuanList.length ? 'KEMAMPUAN BARU:\n' + kemampuanList.map(x => '- ' + x.tanggal + ': ' + x.nilai).join('\n') : '';
+    const lainnyaTeks = lainnyaList.length ? 'CATATAN LAINNYA:\n' + lainnyaList.map(x => '- ' + x.tanggal + ': ' + x.nilai).join('\n') : '';
 
-IDENTITAS:
-- Nama: ${a.nama || '-'}
-- Hubungan: ${a.peran || '-'}
-- Jenis Kelamin: ${a.kelamin || '-'}
-- Tanggal Lahir: ${a.lahir || '-'}
-- Usia Saat Ini: ${usia}
-
-DATA BERAT BADAN:
-${beratData.map(x => `- ${x.tanggal}: ${x.nilai} kg${x.keterangan ? ' ('+x.keterangan+')' : ''}`).join('
-') || 'Tidak ada data'}
-
-DATA TINGGI BADAN:
-${tinggiData.map(x => `- ${x.tanggal}: ${x.nilai} cm${x.keterangan ? ' ('+x.keterangan+')' : ''}`).join('
-') || 'Tidak ada data'}
-
-${prestasiList.length ? 'PRESTASI:
-' + prestasiList.map(x => `- ${x.tanggal}: ${x.nilai}`).join('
-') : ''}
-${kemampuanList.length ? 'KEMAMPUAN BARU:
-' + kemampuanList.map(x => `- ${x.tanggal}: ${x.nilai}`).join('
-') : ''}
-${lainnyaList.length ? 'CATATAN LAINNYA:
-' + lainnyaList.map(x => `- ${x.tanggal}: ${x.nilai}`).join('
-') : ''}
-
-Berikan analisis LENGKAP dalam format berikut (gunakan bahasa Indonesia yang jelas):
-
-**STATUS GIZI:**
-[Status: Normal/Gizi Kurang/Gizi Buruk/Overweight]
-[Z-score BB/U: ... SD]
-[Z-score TB/U: ... SD]  
-[Z-score BB/TB: ... SD]
-[Berat normal untuk usia ini: ... kg]
-[Tinggi normal untuk usia ini: ... cm]
-
-**ANALISIS TREN:**
-[Penjelasan tren pertumbuhan dari data yang ada]
-
-**KESIMPULAN:**
-[Kesimpulan status gizi dan kondisi anak]
-
-**SARAN & REKOMENDASI:**
-[Saran asupan makanan spesifik]
-[Jadwal timbang ulang]
-[Aktivitas yang disarankan]
-
-**KAPAN PERLU KE DOKTER:**
-[Kondisi yang memerlukan pemeriksaan segera]
-
-**SUMBER ILMIAH:**
-[Sebutkan standar/referensi yang digunakan]`;
+    prompt = 'Kamu adalah dokter anak dan ahli gizi berpengalaman. Analisis data perkembangan berikut berdasarkan standar WHO Child Growth Standards 2006, Kemenkes RI, dan IDAI.\n\n'
+      + 'IDENTITAS:\n'
+      + '- Nama: ' + (a.nama || '-') + '\n'
+      + '- Hubungan: ' + (a.peran || '-') + '\n'
+      + '- Jenis Kelamin: ' + (a.kelamin || '-') + '\n'
+      + '- Tanggal Lahir: ' + (a.lahir || '-') + '\n'
+      + '- Usia Saat Ini: ' + usia + '\n\n'
+      + 'DATA BERAT BADAN:\n' + beratTeks + '\n\n'
+      + 'DATA TINGGI BADAN:\n' + tinggiTeks + '\n\n'
+      + (prestasiTeks ? prestasiTeks + '\n' : '')
+      + (kemampuanTeks ? kemampuanTeks + '\n' : '')
+      + (lainnyaTeks ? lainnyaTeks + '\n' : '')
+      + '\nBerikan analisis LENGKAP dalam format berikut (gunakan bahasa Indonesia yang jelas):\n\n'
+      + '**STATUS GIZI:**\n'
+      + '[Status: Normal/Gizi Kurang/Gizi Buruk/Overweight]\n'
+      + '[Z-score BB/U: ... SD]\n'
+      + '[Z-score TB/U: ... SD]\n'
+      + '[Z-score BB/TB: ... SD]\n'
+      + '[Berat normal untuk usia ini: ... kg]\n'
+      + '[Tinggi normal untuk usia ini: ... cm]\n\n'
+      + '**ANALISIS TREN:**\n'
+      + '[Penjelasan tren pertumbuhan dari data yang ada]\n\n'
+      + '**KESIMPULAN:**\n'
+      + '[Kesimpulan status gizi dan kondisi]\n\n'
+      + '**SARAN & REKOMENDASI:**\n'
+      + '[Saran asupan makanan spesifik]\n'
+      + '[Jadwal timbang ulang]\n'
+      + '[Aktivitas yang disarankan]\n\n'
+      + '**KAPAN PERLU KE DOKTER:**\n'
+      + '[Kondisi yang memerlukan pemeriksaan segera]\n\n'
+      + '**SUMBER ILMIAH:**\n'
+      + '[Standar/referensi yang digunakan]';
 
   } else if (tipe === 'kesehatan') {
     const kesList = a.kesehatan || [];
-    if (!kesList.length) { showToast('⚠️ Belum ada data kesehatan yang diinput'); return; }
+    if (!kesList.length) { showToast('Belum ada data kesehatan yang diinput'); return; }
 
-    const dataKes = kesList.map(k => {
-      const penanganan = (k.penanganan || []).map(p =>
-        `  • ${p.tanggal || '-'}: ${p.tempat || ''} | Status: ${p.status || ''} | Obat: ${p.obat || '-'} | Catatan: ${p.catatan || '-'}`
-      ).join('
-');
-      return `PENYAKIT: ${k.penyakit || '-'}
-Mulai Sakit: ${k.tanggal || '-'}
-Riwayat Penanganan:
-${penanganan || '  Belum ada penanganan'}
-Keterangan Akhir: ${k.keterangan || '-'}`;
-    }).join('
+    const dataKes = kesList.map(function(k) {
+      const penanganan = (k.penanganan || []).map(function(p) {
+        return '  - ' + (p.tanggal||'-') + ': ' + (p.tempat||'') + ' | Status: ' + (p.status||'') + ' | Obat: ' + (p.obat||'-') + ' | Catatan: ' + (p.catatan||'-');
+      }).join('\n');
+      return 'PENYAKIT: ' + (k.penyakit||'-') + '\nMulai Sakit: ' + (k.tanggal||'-') + '\nRiwayat Penanganan:\n' + (penanganan||'  Belum ada penanganan') + '\nKeterangan Akhir: ' + (k.keterangan||'-');
+    }).join('\n\n---\n\n');
 
----
-
-');
-
-    prompt = `Kamu adalah dokter umum dan konsultan kesehatan berpengalaman. Analisis riwayat kesehatan berikut dan berikan informasi medis yang berguna berdasarkan sumber ilmiah.
-
-IDENTITAS PASIEN:
-- Nama: ${a.nama || '-'}
-- Hubungan: ${a.peran || '-'}
-- Jenis Kelamin: ${a.kelamin || '-'}
-- Tanggal Lahir: ${a.lahir || '-'}
-- Usia: ${usia}
-
-RIWAYAT KESEHATAN:
-${dataKes}
-
-Berikan analisis LENGKAP dalam format berikut (gunakan bahasa Indonesia yang jelas):
-
-**RINGKASAN KONDISI KESEHATAN:**
-[Ringkasan pola penyakit yang dialami]
-
-**KEMUNGKINAN PENYEBAB:**
-[Analisis kemungkinan penyebab berdasarkan riwayat gejala dan penanganan]
-
-**ANALISIS EFEKTIVITAS PENGOBATAN:**
-[Evaluasi obat yang sudah digunakan dan efektivitasnya]
-
-**REKOMENDASI OBAT HERBAL:**
-[Saran obat herbal alami yang bisa membantu beserta cara pemakaiannya]
-
-**REKOMENDASI OBAT APOTEK:**
-[Saran obat apotek yang umum digunakan untuk kondisi ini]
-
-**SARAN GAYA HIDUP:**
-[Perubahan pola makan, aktivitas, atau kebiasaan yang disarankan]
-
-**KAPAN PERLU KE DOKTER SPESIALIS:**
-[Tanda-tanda yang memerlukan rujukan ke dokter spesialis]
-
-**PERINGATAN PENTING:**
-[Hal-hal yang perlu diwaspadai]
-
-**SUMBER ILMIAH:**
-[Referensi medis yang digunakan]
-
-PENTING: Ini adalah informasi kesehatan umum, bukan pengganti konsultasi dokter langsung.`;
+    prompt = 'Kamu adalah dokter umum dan konsultan kesehatan berpengalaman. Analisis riwayat kesehatan berikut berdasarkan sumber ilmiah.\n\n'
+      + 'IDENTITAS PASIEN:\n'
+      + '- Nama: ' + (a.nama||'-') + '\n'
+      + '- Hubungan: ' + (a.peran||'-') + '\n'
+      + '- Jenis Kelamin: ' + (a.kelamin||'-') + '\n'
+      + '- Tanggal Lahir: ' + (a.lahir||'-') + '\n'
+      + '- Usia: ' + usia + '\n\n'
+      + 'RIWAYAT KESEHATAN:\n' + dataKes + '\n\n'
+      + 'Berikan analisis LENGKAP dalam format berikut (bahasa Indonesia):\n\n'
+      + '**RINGKASAN KONDISI KESEHATAN:**\n'
+      + '[Ringkasan pola penyakit yang dialami]\n\n'
+      + '**KEMUNGKINAN PENYEBAB:**\n'
+      + '[Analisis kemungkinan penyebab berdasarkan gejala dan penanganan]\n\n'
+      + '**ANALISIS EFEKTIVITAS PENGOBATAN:**\n'
+      + '[Evaluasi obat yang sudah digunakan]\n\n'
+      + '**REKOMENDASI OBAT HERBAL:**\n'
+      + '[Saran obat herbal alami beserta cara pemakaiannya]\n\n'
+      + '**REKOMENDASI OBAT APOTEK:**\n'
+      + '[Saran obat apotek yang umum untuk kondisi ini]\n\n'
+      + '**SARAN GAYA HIDUP:**\n'
+      + '[Perubahan pola makan, aktivitas, atau kebiasaan]\n\n'
+      + '**KAPAN PERLU KE DOKTER SPESIALIS:**\n'
+      + '[Tanda-tanda yang memerlukan rujukan spesialis]\n\n'
+      + '**SUMBER ILMIAH:**\n'
+      + '[Referensi medis yang digunakan]\n\n'
+      + 'PENTING: Ini informasi kesehatan umum, bukan pengganti konsultasi dokter.';
   }
 
-  // Show loading
   showLoadingAnalisis(a, tipe, mode);
 
   try {
@@ -6710,113 +6666,77 @@ PENTING: Ini adalah informasi kesehatan umum, bukan pengganti konsultasi dokter 
         messages: [{ role: 'user', content: prompt }]
       })
     });
-
     const data = await response.json();
-    const text = data.content?.[0]?.text || 'Tidak ada hasil analisis.';
-
+    const text = data.content && data.content[0] ? data.content[0].text : 'Tidak ada hasil analisis.';
     showHasilAnalisis(a, tipe, mode, text);
-
   } catch (err) {
     console.error('Analisis AI error:', err);
-    document.getElementById('modal-analisis-ai-content').innerHTML = `
-      <div style="text-align:center;padding:40px;color:#dc2626;">
-        <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
-        <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Gagal terhubung ke AI</div>
-        <div style="font-size:13px;color:#64748b;">Periksa koneksi internet Anda dan coba lagi.</div>
-      </div>`;
+    document.getElementById('modal-analisis-ai-content').innerHTML = '<div style="text-align:center;padding:40px;color:#dc2626;"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="font-size:15px;font-weight:700;margin-bottom:8px;">Gagal terhubung ke AI</div><div style="font-size:13px;color:#64748b;">Periksa koneksi internet Anda dan coba lagi.</div></div>';
   }
 }
 
 function showLoadingAnalisis(a, tipe, mode) {
-  const inisial = (a.nama || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  const inisial = (a.nama||'?').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
   const usia = hitungUsia(a.lahir);
-  document.getElementById('modal-analisis-ai-content').innerHTML = `
-    <div style="padding:16px 0 8px;border-bottom:0.5px solid #e2e8f0;margin-bottom:20px;display:flex;align-items:center;gap:14px;">
-      ${a.fotoProfil ? `<img src="${a.fotoProfil}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #dbeafe;">` :
-        `<div style="width:60px;height:60px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#1e40af;font-family:sans-serif;">${inisial}</div>`}
-      <div>
-        <div style="font-size:16px;font-weight:700;color:#0f2544;">${a.nama || '-'}</div>
-        <div style="font-size:12px;color:#64748b;">${a.peran || ''} · ${a.kelamin || ''} · ${a.lahir ? new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : ''}</div>
-        <div style="font-size:12px;color:#64748b;">Usia: ${usia}</div>
-      </div>
-    </div>
-    <div style="text-align:center;padding:40px 20px;">
-      <div style="font-size:40px;margin-bottom:16px;animation:spin 1.5s linear infinite;display:inline-block;">🤖</div>
-      <div style="font-size:15px;font-weight:700;color:#0f2544;margin-bottom:8px;">AI sedang menganalisis data...</div>
-      <div style="font-size:13px;color:#64748b;">Mohon tunggu 5–15 detik</div>
-    </div>
-    <style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>`;
+  const fotoEl = a.fotoProfil
+    ? '<img src="' + a.fotoProfil + '" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #dbeafe;">'
+    : '<div style="width:60px;height:60px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#1e40af;font-family:sans-serif;">' + inisial + '</div>';
+  document.getElementById('modal-analisis-ai-content').innerHTML =
+    '<div style="padding:16px 0 8px;border-bottom:0.5px solid #e2e8f0;margin-bottom:20px;display:flex;align-items:center;gap:14px;">'
+    + fotoEl
+    + '<div><div style="font-size:16px;font-weight:700;color:#0f2544;">' + (a.nama||'-') + '</div>'
+    + '<div style="font-size:12px;color:#64748b;">' + (a.peran||'') + ' - ' + (a.kelamin||'') + '</div>'
+    + '<div style="font-size:12px;color:#64748b;">Usia: ' + usia + '</div></div></div>'
+    + '<div style="text-align:center;padding:40px 20px;">'
+    + '<div style="font-size:40px;margin-bottom:16px;">&#129302;</div>'
+    + '<div style="font-size:15px;font-weight:700;color:#0f2544;margin-bottom:8px;">AI sedang menganalisis data...</div>'
+    + '<div style="font-size:13px;color:#64748b;">Mohon tunggu 5-15 detik</div></div>';
   document.getElementById('modal-analisis-ai').style.display = 'flex';
 }
 
 function showHasilAnalisis(a, tipe, mode, text) {
-  const inisial = (a.nama || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  const inisial = (a.nama || '?').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
   const usia = hitungUsia(a.lahir);
   const tglAnalisis = new Date().toLocaleString('id-ID');
 
-  // Convert markdown-like text to HTML
+  // Convert markdown text to HTML
   const htmlText = text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/^\*\*(.+?):\*\*$/gm, '<div style="font-size:13px;font-weight:700;color:#0f2544;text-transform:uppercase;letter-spacing:0.5px;margin:18px 0 8px;padding-bottom:5px;border-bottom:1.5px solid #e2e8f0;">$1</div>')
-    .replace(/^\* (.+)$/gm, '<div style="display:flex;gap:8px;margin-bottom:5px;font-size:13px;color:#1e293b;line-height:1.7;"><span style="color:#0f2544;font-weight:700;flex-shrink:0;">•</span><span>$1</span></div>')
-    .replace(/^- (.+)$/gm, '<div style="display:flex;gap:8px;margin-bottom:5px;font-size:13px;color:#1e293b;line-height:1.7;"><span style="color:#0f2544;font-weight:700;flex-shrink:0;">•</span><span>$1</span></div>')
-    .replace(/\n\n/g, '<br>')
+    .replace(/^- (.+)$/gm, '<div style="display:flex;gap:8px;margin-bottom:6px;font-size:13px;color:#1e293b;line-height:1.7;"><span style="color:#0f2544;font-weight:700;">&#8226;</span><span>$1</span></div>')
+    .replace(/\n\n/g, '<br><br>')
     .replace(/\n/g, '<br>');
 
-  const profilHTML = `
-    <div style="padding:16px 0 16px;border-bottom:1px solid #e2e8f0;margin-bottom:20px;display:flex;align-items:center;gap:14px;">
-      ${a.fotoProfil ? `<img src="${a.fotoProfil}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid #dbeafe;">` :
-        `<div style="width:64px;height:64px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#1e40af;font-family:sans-serif;">${inisial}</div>`}
-      <div style="flex:1;">
-        <div style="font-size:17px;font-weight:700;color:#0f2544;margin-bottom:3px;">${a.nama || '-'}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;">
-          <span style="font-size:11px;background:#dbeafe;color:#1e40af;padding:2px 9px;border-radius:20px;font-weight:600;">${a.peran || ''}</span>
-          <span style="font-size:11px;background:#dbeafe;color:#1e40af;padding:2px 9px;border-radius:20px;font-weight:600;">${a.kelamin || ''}</span>
-          ${a.lahir ? `<span style="font-size:11px;background:#dbeafe;color:#1e40af;padding:2px 9px;border-radius:20px;font-weight:600;">📅 ${new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}</span>` : ''}
-        </div>
-        <div style="font-size:12px;color:#64748b;font-family:sans-serif;">⏱ Usia: <strong style="color:#0f2544;">${usia}</strong></div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:10px;color:#94a3b8;font-family:sans-serif;">Dianalisis:</div>
-        <div style="font-size:11px;color:#64748b;font-family:sans-serif;">${tglAnalisis}</div>
-      </div>
-    </div>`;
-
-  const fullHTML = profilHTML + `<div style="font-family:sans-serif;font-size:13px;line-height:1.8;color:#1e293b;">${htmlText}</div>
-    <div style="margin-top:20px;padding-top:14px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;font-family:sans-serif;">
-      ⚠️ Informasi ini bersifat edukatif dan tidak menggantikan konsultasi dengan dokter atau tenaga medis profesional.
-    </div>`;
-
-  document.getElementById('modal-analisis-ai-content').innerHTML = fullHTML;
+  const fotoEl = a.fotoProfil
+    ? '<img src="' + a.fotoProfil + '" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid #dbeafe;">'
+    : '<div style="width:64px;height:64px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#1e40af;font-family:sans-serif;">' + inisial + '</div>';
+  const lahirEl = a.lahir
+    ? '<span style="font-size:11px;background:#dbeafe;color:#1e40af;padding:2px 9px;border-radius:20px;font-weight:600;">' + new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) + '</span>'
+    : '';
+  const profilHTML = '<div style="padding:16px 0 16px;border-bottom:1px solid #e2e8f0;margin-bottom:20px;display:flex;align-items:center;gap:14px;">'
+    + fotoEl
+    + '<div style="flex:1;"><div style="font-size:17px;font-weight:700;color:#0f2544;margin-bottom:3px;">' + (a.nama||'-') + '</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;">'
+    + '<span style="font-size:11px;background:#dbeafe;color:#1e40af;padding:2px 9px;border-radius:20px;font-weight:600;">' + (a.peran||'') + '</span>'
+    + '<span style="font-size:11px;background:#dbeafe;color:#1e40af;padding:2px 9px;border-radius:20px;font-weight:600;">' + (a.kelamin||'') + '</span>'
+    + lahirEl + '</div>'
+    + '<div style="font-size:12px;color:#64748b;">Usia: <strong style="color:#0f2544;">' + usia + '</strong></div></div>'
+    + '<div style="text-align:right;"><div style="font-size:10px;color:#94a3b8;">Dianalisis:</div>'
+    + '<div style="font-size:11px;color:#64748b;">' + tglAnalisis + '</div></div></div>';
+  const fullHTML = profilHTML
+    + '<div style="font-family:sans-serif;font-size:13px;line-height:1.8;color:#1e293b;">' + htmlText + '</div>'
+    + '<div style="margin-top:20px;padding-top:14px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;font-family:sans-serif;">&#9888; Informasi ini bersifat edukatif dan tidak menggantikan konsultasi dengan dokter.</div>';
+    document.getElementById('modal-analisis-ai-content').innerHTML = fullHTML;
 
   // Simpan untuk download
   _lastAnalisisHTML = fullHTML;
-  _lastAnalisisText = `HASIL ANALISIS AI
-${'='.repeat(50)}
-Nama    : ${a.nama}
-Usia    : ${usia}
-Dianalisis: ${tglAnalisis}
-${'='.repeat(50)}
-
-${text}
-
-${'='.repeat(50)}
-⚠️ Informasi ini bersifat edukatif dan tidak menggantikan konsultasi dengan dokter.`;
+  _lastAnalisisText = 'HASIL ANALISIS AI\n' + '='.repeat(50) + '\nNama    : ' + (a.nama||'') + '\nUsia    : ' + usia + '\nDianalisis: ' + tglAnalisis + '\n' + '='.repeat(50) + '\n\n' + text + '\n\n' + '='.repeat(50) + '\n Informasi ini bersifat edukatif dan tidak menggantikan konsultasi dengan dokter.';
 }
 
 function downloadAnalisisPDF() {
   const a = anggotaList.find(x => x.id === activeAnggotaId);
   const nama = a ? a.nama : 'Anggota';
   const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Analisis AI - ${nama}</title>
-  <style>body{margin:30px 40px;font-family:sans-serif;color:#1e293b;line-height:1.8;} strong{color:#0f2544;} @media print{.no-print{display:none!important;}}</style>
-  </head><body>
-  <div class="no-print" style="margin-bottom:20px;">
-    <button onclick="window.print()" style="padding:9px 20px;background:#0f2544;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;">🖨️ Cetak / Simpan PDF</button>
-  </div>
-  <h2 style="color:#0f2544;border-bottom:2px solid #0f2544;padding-bottom:10px;">🤖 Hasil Analisis AI — ${nama}</h2>
-  ${_lastAnalisisHTML}
-  </body></html>`);
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Analisis AI - ' + nama + '</title><style>body{margin:30px 40px;font-family:sans-serif;color:#1e293b;line-height:1.8;}strong{color:#0f2544;}@media print{.no-print{display:none!important;}}</style></head><body><div class="no-print" style="margin-bottom:20px;"><button onclick="window.print()" style="padding:9px 20px;background:#0f2544;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;">Cetak / Simpan PDF</button></div><h2 style="color:#0f2544;border-bottom:2px solid #0f2544;padding-bottom:10px;">Hasil Analisis AI - ' + nama + '</h2>' + _lastAnalisisHTML + '</body></html>');
   win.document.close();
 }
 
@@ -6827,7 +6747,7 @@ function downloadAnalisisWord() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `Analisis_AI_${nama.replace(/\s+/g,'_')}.doc`;
+  link.download = 'Analisis_AI_' + nama.replace(/\s+/g,'_') + '.doc';
   link.click();
   URL.revokeObjectURL(url);
   showToast('📝 Analisis berhasil didownload!');
@@ -6836,61 +6756,62 @@ function downloadAnalisisWord() {
 // ─── LAPORAN PERKEMBANGAN ───────────────────────────────
 
 function buildLaporanHTML() {
-  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  const a = anggotaList.find(function(x){return x.id === activeAnggotaId;});
   if (!a) return '<p>Data tidak ditemukan</p>';
   const perk = a.perkembangan || {};
   const usia = hitungUsia(a.lahir);
   const tglCetak = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
-  const inisial = (a.nama||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  const inisial = (a.nama||'?').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
 
   const semuaTanggal = new Set();
-  PERK_JENIS.forEach(j => { (perk[j.key]||[]).forEach(item => { if(item.tanggal) semuaTanggal.add(item.tanggal); }); });
-  const tanggalSorted = [...semuaTanggal].sort((a,b) => new Date(b)-new Date(a));
+  PERK_JENIS.forEach(function(j){ (perk[j.key]||[]).forEach(function(item){ if(item.tanggal) semuaTanggal.add(item.tanggal); }); });
+  const tanggalSorted = Array.from(semuaTanggal).sort(function(a,b){return new Date(b)-new Date(a);});
 
   if (!tanggalSorted.length) return '<div style="text-align:center;padding:40px;color:#64748b;font-family:sans-serif;">Belum ada data perkembangan.</div>';
 
   const fotoHtml = a.fotoProfil
-    ? `<img src="${a.fotoProfil}" style="width:76px;height:76px;border-radius:50%;object-fit:cover;margin:0 auto 12px;display:block;border:3px solid #dbeafe;">`
-    : `<div style="width:76px;height:76px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#1e40af;margin:0 auto 12px;font-family:sans-serif;">${inisial}</div>`;
+    ? '<img src="' + a.fotoProfil + '" style="width:76px;height:76px;border-radius:50%;object-fit:cover;margin:0 auto 12px;display:block;border:3px solid #dbeafe;">'
+    : '<div style="width:76px;height:76px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#1e40af;margin:0 auto 12px;font-family:sans-serif;">' + inisial + '</div>';
 
-  const entriesHTML = tanggalSorted.map((tgl,idx) => {
+  var entriesHTML = '';
+  tanggalSorted.forEach(function(tgl, idx) {
     const tglFormatted = new Date(tgl).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
-    const warna = idx===0?'#0f2544':'#1a3a6b';
-    let rows = '';
-    let rowBg = false;
-    PERK_JENIS.forEach(j => {
-      (perk[j.key]||[]).filter(item=>item.tanggal===tgl).forEach(item => {
-        const nilai = item.nilai ? `<strong>${item.nilai}${j.satuan?' '+j.satuan:''}</strong>` : '';
-        const ket = item.keterangan||'';
-        const tampil = nilai&&ket ? `${nilai} — ${ket}` : nilai||ket;
+    const warna = idx===0 ? '#0f2544' : '#1a3a6b';
+    var rows = '';
+    var rowBg = false;
+    PERK_JENIS.forEach(function(j) {
+      (perk[j.key]||[]).filter(function(item){return item.tanggal===tgl;}).forEach(function(item) {
+        const nilaiStr = item.nilai ? '<strong>' + item.nilai + (j.satuan ? ' '+j.satuan : '') + '</strong>' : '';
+        const ket = item.keterangan || '';
+        const tampil = nilaiStr && ket ? nilaiStr + ' - ' + ket : nilaiStr || ket;
         if (tampil) {
-          rows += `<tr style="background:${rowBg?'#ffffff':'#f8fafc'}">
-            <td style="padding:9px 12px;border:1px solid #e2e8f0;color:#64748b;width:36%;font-family:sans-serif;font-size:13px;vertical-align:top;">${j.label}</td>
-            <td style="padding:9px 12px;border:1px solid #e2e8f0;color:#1e293b;font-family:sans-serif;font-size:13px;line-height:1.7;">${tampil}</td>
-          </tr>`;
+          rows += '<tr style="background:' + (rowBg?'#ffffff':'#f8fafc') + '">'
+            + '<td style="padding:9px 12px;border:1px solid #e2e8f0;color:#64748b;width:36%;font-family:sans-serif;font-size:13px;vertical-align:top;">' + j.label + '</td>'
+            + '<td style="padding:9px 12px;border:1px solid #e2e8f0;color:#1e293b;font-family:sans-serif;font-size:13px;line-height:1.7;">' + tampil + '</td>'
+            + '</tr>';
           rowBg = !rowBg;
         }
       });
     });
-    if (!rows) return '';
-    return `<div style="margin-bottom:24px;">
-      <div style="background:${warna};color:white;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:700;margin-bottom:14px;font-family:sans-serif;">📅 Update: ${tglFormatted}</div>
-      <table style="width:100%;border-collapse:collapse;">${rows}</table>
-    </div>`;
-  }).filter(Boolean).join('');
+    if (rows) {
+      entriesHTML += '<div style="margin-bottom:24px;">'
+        + '<div style="background:' + warna + ';color:white;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:700;margin-bottom:14px;font-family:sans-serif;">&#128197; Update: ' + tglFormatted + '</div>'
+        + '<table style="width:100%;border-collapse:collapse;">' + rows + '</table>'
+        + '</div>';
+    }
+  });
 
-  return `
-  <div style="text-align:center;margin-bottom:24px;padding-bottom:20px;border-bottom:2px solid #0f2544;">
-    ${fotoHtml}
-    <div style="font-size:22px;font-weight:700;color:#0f2544;margin-bottom:4px;font-family:sans-serif;">${a.nama||'-'}</div>
-    ${a.lahir?`<div style="font-size:13px;color:#64748b;font-family:sans-serif;">Tanggal Lahir: ${new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}</div>`:''}
-    ${usia?`<div style="font-size:13px;color:#64748b;font-family:sans-serif;">Usia: ${usia}</div>`:''}
-    <div style="font-size:11px;color:#94a3b8;margin-top:6px;font-family:sans-serif;">Laporan dicetak: ${tglCetak}</div>
-  </div>
-  ${entriesHTML}
-  <div style="text-align:center;margin-top:28px;padding-top:16px;border-top:1px solid #e2e8f0;font-family:sans-serif;font-size:11px;color:#94a3b8;">
-    Laporan Perkembangan — ${a.nama||''} — Dicetak ${tglCetak}
-  </div>`;
+  const lahirStr = a.lahir ? '<div style="font-size:13px;color:#64748b;font-family:sans-serif;">Tanggal Lahir: ' + new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) + '</div>' : '';
+  const usiaStr = usia ? '<div style="font-size:13px;color:#64748b;font-family:sans-serif;">Usia: ' + usia + '</div>' : '';
+
+  return '<div style="text-align:center;margin-bottom:24px;padding-bottom:20px;border-bottom:2px solid #0f2544;">'
+    + fotoHtml
+    + '<div style="font-size:22px;font-weight:700;color:#0f2544;margin-bottom:4px;font-family:sans-serif;">' + (a.nama||'-') + '</div>'
+    + lahirStr + usiaStr
+    + '<div style="font-size:11px;color:#94a3b8;margin-top:6px;font-family:sans-serif;">Laporan dicetak: ' + tglCetak + '</div>'
+    + '</div>'
+    + entriesHTML
+    + '<div style="text-align:center;margin-top:28px;padding-top:16px;border-top:1px solid #e2e8f0;font-family:sans-serif;font-size:11px;color:#94a3b8;">Laporan Perkembangan - ' + (a.nama||'') + ' - Dicetak ' + tglCetak + '</div>';
 }
 
 function openLaporanPerkembangan() {
@@ -6900,54 +6821,51 @@ function openLaporanPerkembangan() {
 }
 
 function downloadLaporanPDF() {
-  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  const a = anggotaList.find(function(x){return x.id === activeAnggotaId;});
   const nama = a ? a.nama : 'Anggota';
   const html = buildLaporanHTML();
   const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Laporan Perkembangan - ${nama}</title>
-  <style>body{margin:20px 40px;font-family:Georgia,serif;} @media print{.no-print{display:none!important;}}</style>
-  </head><body>
-  <div class="no-print" style="margin-bottom:16px;">
-    <button onclick="window.print()" style="padding:8px 20px;background:#0f2544;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;">🖨️ Cetak / Simpan PDF</button>
-  </div>
-  ${html}</body></html>`);
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Laporan Perkembangan - ' + nama + '</title><style>body{margin:20px 40px;font-family:Georgia,serif;}@media print{.no-print{display:none!important;}}</style></head><body><div class="no-print" style="margin-bottom:16px;"><button onclick="window.print()" style="padding:8px 20px;background:#0f2544;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;">Cetak / Simpan PDF</button></div>' + html + '</body></html>');
   win.document.close();
 }
 
 function downloadLaporanWord() {
-  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  const a = anggotaList.find(function(x){return x.id === activeAnggotaId;});
   if (!a) return;
-  const nama = a.nama||'Anggota';
+  const nama = a.nama || 'Anggota';
   const usia = hitungUsia(a.lahir);
   const tglCetak = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
-  const perk = a.perkembangan||{};
+  const perk = a.perkembangan || {};
   const semuaTanggal = new Set();
-  PERK_JENIS.forEach(j => { (perk[j.key]||[]).forEach(item => { if(item.tanggal) semuaTanggal.add(item.tanggal); }); });
-  const tanggalSorted = [...semuaTanggal].sort((a,b) => new Date(b)-new Date(a));
-  let teks = `LAPORAN PERKEMBANGAN\n${'='.repeat(50)}\nNama: ${nama}\n`;
-  if (a.lahir) teks += `Tgl Lahir: ${new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}\n`;
-  if (usia) teks += `Usia: ${usia}\n`;
-  teks += `Dicetak: ${tglCetak}\n\n${'='.repeat(50)}\nRIWAYAT PERKEMBANGAN\n${'='.repeat(50)}\n\n`;
-  tanggalSorted.forEach(tgl => {
-    teks += `Update: ${new Date(tgl).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}\n${'-'.repeat(40)}\n`;
-    PERK_JENIS.forEach(j => {
-      (perk[j.key]||[]).filter(item=>item.tanggal===tgl).forEach(item => {
-        const nilai = item.nilai?`${item.nilai}${j.satuan?' '+j.satuan:''}`:'';
-        const ket = item.keterangan||'';
-        const tampil = nilai&&ket?`${nilai} — ${ket}`:nilai||ket;
-        if (tampil) teks += `${j.label.replace(/[^\w\s]/gi,'').trim().padEnd(20)}: ${tampil}\n`;
+  PERK_JENIS.forEach(function(j){ (perk[j.key]||[]).forEach(function(item){ if(item.tanggal) semuaTanggal.add(item.tanggal); }); });
+  const tanggalSorted = Array.from(semuaTanggal).sort(function(a,b){return new Date(b)-new Date(a);});
+
+  let teks = 'LAPORAN PERKEMBANGAN\n' + '='.repeat(50) + '\nNama: ' + nama + '\n';
+  if (a.lahir) teks += 'Tgl Lahir: ' + new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) + '\n';
+  if (usia) teks += 'Usia: ' + usia + '\n';
+  teks += 'Dicetak: ' + tglCetak + '\n\n' + '='.repeat(50) + '\nRIWAYAT PERKEMBANGAN\n' + '='.repeat(50) + '\n\n';
+
+  tanggalSorted.forEach(function(tgl) {
+    teks += 'Update: ' + new Date(tgl).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) + '\n' + '-'.repeat(40) + '\n';
+    PERK_JENIS.forEach(function(j) {
+      (perk[j.key]||[]).filter(function(item){return item.tanggal===tgl;}).forEach(function(item) {
+        const nilaiStr = item.nilai ? item.nilai + (j.satuan ? ' '+j.satuan : '') : '';
+        const ket = item.keterangan || '';
+        const tampil = nilaiStr && ket ? nilaiStr + ' - ' + ket : nilaiStr || ket;
+        if (tampil) teks += j.label.replace(/[^\w\s]/gi,'').trim() + ': ' + tampil + '\n';
       });
     });
     teks += '\n';
   });
-  const blob = new Blob(['\ufeff'+teks],{type:'application/msword;charset=utf-8'});
+
+  const blob = new Blob(['\ufeff' + teks], {type:'application/msword;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `Laporan_Perkembangan_${nama.replace(/\s+/g,'_')}.doc`;
+  link.download = 'Laporan_Perkembangan_' + nama.replace(/\s+/g,'_') + '.doc';
   link.click();
   URL.revokeObjectURL(url);
-  showToast('📝 Laporan Word berhasil didownload!');
+  showToast('Laporan Word berhasil didownload!');
 }
 
 </script>
