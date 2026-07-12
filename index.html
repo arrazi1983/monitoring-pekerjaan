@@ -1365,7 +1365,10 @@ if ('serviceWorker' in navigator) {
       <div id="kel-tab-kesehatan">
         <div class="section-header" style="margin-bottom:16px;">
           <div class="section-title">🏥 Riwayat Kesehatan</div>
-          <button class="btn btn-primary btn-sm" onclick="openKesehatanModal()">+ Tambah Catatan Kesehatan</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-sm" style="background:#7c3aed;color:white;font-weight:700;" onclick="analisisAI('kesehatan','semua')">🤖 Analisis AI Semua</button>
+            <button class="btn btn-primary btn-sm" onclick="openKesehatanModal()">+ Tambah Catatan Kesehatan</button>
+          </div>
         </div>
         <div id="kel-kesehatan-list"></div>
         <div id="kel-kesehatan-empty" style="display:none;text-align:center;padding:48px 20px;color:var(--text-muted);">
@@ -1377,28 +1380,15 @@ if ('serviceWorker' in navigator) {
 
       <!-- TAB PERKEMBANGAN -->
       <div id="kel-tab-perkembangan" style="display:none;">
-        <!-- TOMBOL LAPORAN -->
-        <div style="display:flex;gap:10px;justify-content:flex-end;margin-bottom:16px;flex-wrap:wrap;">
-          <button onclick="openLaporanPerkembangan()" style="display:flex;align-items:center;gap:7px;padding:9px 18px;font-size:13px;font-weight:700;border-radius:10px;background:var(--navy);color:white;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(15,37,68,.18);">&#128065; Buka Laporan</button>
-          <button onclick="downloadLaporanPDF()" style="display:flex;align-items:center;gap:7px;padding:9px 18px;font-size:13px;font-weight:700;border-radius:10px;background:#16a34a;color:white;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(22,163,74,.18);">&#128196; Download PDF</button>
-          <button onclick="downloadLaporanWord()" style="display:flex;align-items:center;gap:7px;padding:9px 18px;font-size:13px;font-weight:700;border-radius:10px;background:#2563eb;color:white;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.18);">&#128221; Download Word</button>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:16px;flex-wrap:wrap;">
+          <button onclick="analisisAI('perkembangan','terbaru')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#7c3aed;color:white;border:none;cursor:pointer;">🤖 Analisis Data Terbaru</button>
+          <button onclick="analisisAI('perkembangan','semua')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#5b21b6;color:white;border:none;cursor:pointer;">🤖 Analisis Semua Riwayat</button>
+          <button onclick="openLaporanPerkembangan()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:var(--navy);color:white;border:none;cursor:pointer;">👁 Buka Laporan</button>
+          <button onclick="downloadLaporanPDF()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#16a34a;color:white;border:none;cursor:pointer;">📄 PDF</button>
+          <button onclick="downloadLaporanWord()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#2563eb;color:white;border:none;cursor:pointer;">📝 Word</button>
         </div>
+        <div id="kel-analisis-result" style="display:none;margin-bottom:20px;"></div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;" id="kel-perkembangan-grid"></div>
-      </div>
-
-      <!-- MODAL LAPORAN PERKEMBANGAN -->
-      <div id="modal-laporan-perkembangan" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;" onclick="if(event.target===this)this.style.display='none'">
-        <div style="background:white;border-radius:14px;width:100%;max-width:640px;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,0.28);overflow:hidden;">
-          <div style="background:#0f2544;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;">
-            <div style="color:white;font-size:14px;font-weight:700;">&#128203; Laporan Perkembangan</div>
-            <div style="display:flex;gap:8px;align-items:center;">
-              <button onclick="downloadLaporanPDF()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#16a34a;color:white;border:none;cursor:pointer;">&#128196; PDF</button>
-              <button onclick="downloadLaporanWord()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#2563eb;color:white;border:none;cursor:pointer;">&#128221; Word</button>
-              <button onclick="document.getElementById('modal-laporan-perkembangan').style.display='none'" style="width:30px;height:30px;border:none;background:rgba(255,255,255,0.15);border-radius:7px;cursor:pointer;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;">&#x2715;</button>
-            </div>
-          </div>
-          <div id="laporan-perkembangan-content" style="padding:28px;background:#fff;font-family:Georgia,serif;"></div>
-        </div>
       </div>
 
       <!-- TAB GALERI -->
@@ -3520,7 +3510,38 @@ function buildWordHTML(pList) {
       <p style="text-align:center;color:#666;font-size:10pt;margin-bottom:24px;">Dibuat: ${now}</p>
       <hr style="border:1px solid #e8a020;margin-bottom:24px;">
       ${pagesHtml}
-    </body>
+    
+<!-- MODAL ANALISIS AI -->
+<div id="modal-analisis-ai" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:white;border-radius:14px;width:100%;max-width:660px;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,0.28);overflow:hidden;">
+    <div style="background:#0f2544;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;">
+      <div style="color:white;font-size:14px;font-weight:700;">🤖 Hasil Analisis AI</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button id="btn-dl-pdf-ai" onclick="downloadAnalisisPDF()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#16a34a;color:white;border:none;cursor:pointer;">📄 PDF</button>
+        <button id="btn-dl-word-ai" onclick="downloadAnalisisWord()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#2563eb;color:white;border:none;cursor:pointer;">📝 Word</button>
+        <button onclick="document.getElementById('modal-analisis-ai').style.display='none'" style="width:30px;height:30px;border:none;background:rgba(255,255,255,0.15);border-radius:7px;cursor:pointer;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+    </div>
+    <div id="modal-analisis-ai-content" style="padding:24px;"></div>
+  </div>
+</div>
+
+<!-- MODAL LAPORAN PERKEMBANGAN -->
+<div id="modal-laporan-perkembangan" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:white;border-radius:14px;width:100%;max-width:640px;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,0.28);overflow:hidden;">
+    <div style="background:#0f2544;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;">
+      <div style="color:white;font-size:14px;font-weight:700;">📋 Laporan Perkembangan</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button onclick="downloadLaporanPDF()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#16a34a;color:white;border:none;cursor:pointer;">📄 PDF</button>
+        <button onclick="downloadLaporanWord()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#2563eb;color:white;border:none;cursor:pointer;">📝 Word</button>
+        <button onclick="document.getElementById('modal-laporan-perkembangan').style.display='none'" style="width:30px;height:30px;border:none;background:rgba(255,255,255,0.15);border-radius:7px;cursor:pointer;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+    </div>
+    <div id="laporan-perkembangan-content" style="padding:28px;background:#fff;font-family:Georgia,serif;"></div>
+  </div>
+</div>
+
+</body>
     </html>`;
 }
 
@@ -6508,10 +6529,20 @@ function saveKasTransaksi() {
 
 function editKasTransaksi(id) { openKasModal(id); }
 
+function deleteKasTransaksi(id) {
+  if (!confirm('Hapus transaksi ini?')) return;
+  transaksiMap[activeBukuId] = (transaksiMap[activeBukuId]||[]).filter(t=>t.id!==id);
+  saveKasData();
+  renderDetailBuku();
+  showToast('🗑️ Transaksi dihapus');
+}
 
-// ─────────────────────────────────────────
-// LAPORAN PERKEMBANGAN
-// ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// ANALISIS AI — KESEHATAN & PERKEMBANGAN
+// ═══════════════════════════════════════════════════════════
+
+let _lastAnalisisHTML = '';
+let _lastAnalisisText = '';
 
 function hitungUsia(tglLahir) {
   if (!tglLahir) return '';
@@ -6527,67 +6558,323 @@ function hitungUsia(tglLahir) {
   return tahun + ' Tahun ' + bulan + ' Bulan';
 }
 
-function buildLaporanHTML(forPrint) {
+async function analisisAI(tipe, mode) {
   const a = anggotaList.find(x => x.id === activeAnggotaId);
-  if (!a) return '<p>Data tidak ditemukan</p>';
+  if (!a) { showToast('⚠️ Pilih anggota keluarga terlebih dahulu'); return; }
 
-  const perk = a.perkembangan || {};
   const usia = hitungUsia(a.lahir);
-  const tglCetak = new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+  const isAnak = (a.peran === 'Anak' || a.peran === 'anak');
 
-  // Kumpulkan semua tanggal unik dari semua jenis perkembangan
-  const semuaTanggal = new Set();
-  PERK_JENIS.forEach(j => {
-    (perk[j.key] || []).forEach(item => {
-      if (item.tanggal) semuaTanggal.add(item.tanggal);
-    });
-  });
+  // Build prompt berdasarkan tipe
+  let prompt = '';
 
-  // Urutkan tanggal terbaru ke terlama
-  const tanggalSorted = [...semuaTanggal].sort((a, b) => new Date(b) - new Date(a));
+  if (tipe === 'perkembangan') {
+    const perk = a.perkembangan || {};
+    const beratList = (perk.berat || []).sort((x,y) => new Date(y.tanggal) - new Date(x.tanggal));
+    const tinggiList = (perk.tinggi || []).sort((x,y) => new Date(y.tanggal) - new Date(x.tanggal));
+    const prestasiList = perk.prestasi || [];
+    const kemampuanList = perk.kemampuan || [];
+    const lainnyaList = perk.lainnya || [];
 
-  if (tanggalSorted.length === 0) {
-    return '<div style="text-align:center;padding:40px;color:#64748b;font-family:sans-serif;">Belum ada data perkembangan yang diisi.</div>';
+    const beratData = mode === 'terbaru' ? beratList.slice(0,1) : beratList;
+    const tinggiData = mode === 'terbaru' ? tinggiList.slice(0,1) : tinggiList;
+
+    prompt = `Kamu adalah dokter anak dan ahli gizi berpengalaman. Analisis data perkembangan berikut berdasarkan standar WHO Child Growth Standards 2006, Kemenkes RI, dan IDAI.
+
+IDENTITAS:
+- Nama: ${a.nama || '-'}
+- Hubungan: ${a.peran || '-'}
+- Jenis Kelamin: ${a.kelamin || '-'}
+- Tanggal Lahir: ${a.lahir || '-'}
+- Usia Saat Ini: ${usia}
+
+DATA BERAT BADAN:
+${beratData.map(x => `- ${x.tanggal}: ${x.nilai} kg${x.keterangan ? ' ('+x.keterangan+')' : ''}`).join('
+') || 'Tidak ada data'}
+
+DATA TINGGI BADAN:
+${tinggiData.map(x => `- ${x.tanggal}: ${x.nilai} cm${x.keterangan ? ' ('+x.keterangan+')' : ''}`).join('
+') || 'Tidak ada data'}
+
+${prestasiList.length ? 'PRESTASI:
+' + prestasiList.map(x => `- ${x.tanggal}: ${x.nilai}`).join('
+') : ''}
+${kemampuanList.length ? 'KEMAMPUAN BARU:
+' + kemampuanList.map(x => `- ${x.tanggal}: ${x.nilai}`).join('
+') : ''}
+${lainnyaList.length ? 'CATATAN LAINNYA:
+' + lainnyaList.map(x => `- ${x.tanggal}: ${x.nilai}`).join('
+') : ''}
+
+Berikan analisis LENGKAP dalam format berikut (gunakan bahasa Indonesia yang jelas):
+
+**STATUS GIZI:**
+[Status: Normal/Gizi Kurang/Gizi Buruk/Overweight]
+[Z-score BB/U: ... SD]
+[Z-score TB/U: ... SD]  
+[Z-score BB/TB: ... SD]
+[Berat normal untuk usia ini: ... kg]
+[Tinggi normal untuk usia ini: ... cm]
+
+**ANALISIS TREN:**
+[Penjelasan tren pertumbuhan dari data yang ada]
+
+**KESIMPULAN:**
+[Kesimpulan status gizi dan kondisi anak]
+
+**SARAN & REKOMENDASI:**
+[Saran asupan makanan spesifik]
+[Jadwal timbang ulang]
+[Aktivitas yang disarankan]
+
+**KAPAN PERLU KE DOKTER:**
+[Kondisi yang memerlukan pemeriksaan segera]
+
+**SUMBER ILMIAH:**
+[Sebutkan standar/referensi yang digunakan]`;
+
+  } else if (tipe === 'kesehatan') {
+    const kesList = a.kesehatan || [];
+    if (!kesList.length) { showToast('⚠️ Belum ada data kesehatan yang diinput'); return; }
+
+    const dataKes = kesList.map(k => {
+      const penanganan = (k.penanganan || []).map(p =>
+        `  • ${p.tanggal || '-'}: ${p.tempat || ''} | Status: ${p.status || ''} | Obat: ${p.obat || '-'} | Catatan: ${p.catatan || '-'}`
+      ).join('
+');
+      return `PENYAKIT: ${k.penyakit || '-'}
+Mulai Sakit: ${k.tanggal || '-'}
+Riwayat Penanganan:
+${penanganan || '  Belum ada penanganan'}
+Keterangan Akhir: ${k.keterangan || '-'}`;
+    }).join('
+
+---
+
+');
+
+    prompt = `Kamu adalah dokter umum dan konsultan kesehatan berpengalaman. Analisis riwayat kesehatan berikut dan berikan informasi medis yang berguna berdasarkan sumber ilmiah.
+
+IDENTITAS PASIEN:
+- Nama: ${a.nama || '-'}
+- Hubungan: ${a.peran || '-'}
+- Jenis Kelamin: ${a.kelamin || '-'}
+- Tanggal Lahir: ${a.lahir || '-'}
+- Usia: ${usia}
+
+RIWAYAT KESEHATAN:
+${dataKes}
+
+Berikan analisis LENGKAP dalam format berikut (gunakan bahasa Indonesia yang jelas):
+
+**RINGKASAN KONDISI KESEHATAN:**
+[Ringkasan pola penyakit yang dialami]
+
+**KEMUNGKINAN PENYEBAB:**
+[Analisis kemungkinan penyebab berdasarkan riwayat gejala dan penanganan]
+
+**ANALISIS EFEKTIVITAS PENGOBATAN:**
+[Evaluasi obat yang sudah digunakan dan efektivitasnya]
+
+**REKOMENDASI OBAT HERBAL:**
+[Saran obat herbal alami yang bisa membantu beserta cara pemakaiannya]
+
+**REKOMENDASI OBAT APOTEK:**
+[Saran obat apotek yang umum digunakan untuk kondisi ini]
+
+**SARAN GAYA HIDUP:**
+[Perubahan pola makan, aktivitas, atau kebiasaan yang disarankan]
+
+**KAPAN PERLU KE DOKTER SPESIALIS:**
+[Tanda-tanda yang memerlukan rujukan ke dokter spesialis]
+
+**PERINGATAN PENTING:**
+[Hal-hal yang perlu diwaspadai]
+
+**SUMBER ILMIAH:**
+[Referensi medis yang digunakan]
+
+PENTING: Ini adalah informasi kesehatan umum, bukan pengganti konsultasi dokter langsung.`;
   }
 
-  // Inisial nama
-  const inisial = (a.nama || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  // Show loading
+  showLoadingAnalisis(a, tipe, mode);
 
-  // Foto profil atau inisial
-  const fotoHtml = a.foto
-    ? `<img src="${a.foto}" style="width:76px;height:76px;border-radius:50%;object-fit:cover;margin:0 auto 12px;display:block;border:3px solid #dbeafe;">`
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || 'Tidak ada hasil analisis.';
+
+    showHasilAnalisis(a, tipe, mode, text);
+
+  } catch (err) {
+    console.error('Analisis AI error:', err);
+    document.getElementById('modal-analisis-ai-content').innerHTML = `
+      <div style="text-align:center;padding:40px;color:#dc2626;">
+        <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Gagal terhubung ke AI</div>
+        <div style="font-size:13px;color:#64748b;">Periksa koneksi internet Anda dan coba lagi.</div>
+      </div>`;
+  }
+}
+
+function showLoadingAnalisis(a, tipe, mode) {
+  const inisial = (a.nama || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  const usia = hitungUsia(a.lahir);
+  document.getElementById('modal-analisis-ai-content').innerHTML = `
+    <div style="padding:16px 0 8px;border-bottom:0.5px solid #e2e8f0;margin-bottom:20px;display:flex;align-items:center;gap:14px;">
+      ${a.fotoProfil ? `<img src="${a.fotoProfil}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #dbeafe;">` :
+        `<div style="width:60px;height:60px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#1e40af;font-family:sans-serif;">${inisial}</div>`}
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#0f2544;">${a.nama || '-'}</div>
+        <div style="font-size:12px;color:#64748b;">${a.peran || ''} · ${a.kelamin || ''} · ${a.lahir ? new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : ''}</div>
+        <div style="font-size:12px;color:#64748b;">Usia: ${usia}</div>
+      </div>
+    </div>
+    <div style="text-align:center;padding:40px 20px;">
+      <div style="font-size:40px;margin-bottom:16px;animation:spin 1.5s linear infinite;display:inline-block;">🤖</div>
+      <div style="font-size:15px;font-weight:700;color:#0f2544;margin-bottom:8px;">AI sedang menganalisis data...</div>
+      <div style="font-size:13px;color:#64748b;">Mohon tunggu 5–15 detik</div>
+    </div>
+    <style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>`;
+  document.getElementById('modal-analisis-ai').style.display = 'flex';
+}
+
+function showHasilAnalisis(a, tipe, mode, text) {
+  const inisial = (a.nama || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  const usia = hitungUsia(a.lahir);
+  const tglAnalisis = new Date().toLocaleString('id-ID');
+
+  // Convert markdown-like text to HTML
+  const htmlText = text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^\*\*(.+?):\*\*$/gm, '<div style="font-size:13px;font-weight:700;color:#0f2544;text-transform:uppercase;letter-spacing:0.5px;margin:18px 0 8px;padding-bottom:5px;border-bottom:1.5px solid #e2e8f0;">$1</div>')
+    .replace(/^\* (.+)$/gm, '<div style="display:flex;gap:8px;margin-bottom:5px;font-size:13px;color:#1e293b;line-height:1.7;"><span style="color:#0f2544;font-weight:700;flex-shrink:0;">•</span><span>$1</span></div>')
+    .replace(/^- (.+)$/gm, '<div style="display:flex;gap:8px;margin-bottom:5px;font-size:13px;color:#1e293b;line-height:1.7;"><span style="color:#0f2544;font-weight:700;flex-shrink:0;">•</span><span>$1</span></div>')
+    .replace(/\n\n/g, '<br>')
+    .replace(/\n/g, '<br>');
+
+  const profilHTML = `
+    <div style="padding:16px 0 16px;border-bottom:1px solid #e2e8f0;margin-bottom:20px;display:flex;align-items:center;gap:14px;">
+      ${a.fotoProfil ? `<img src="${a.fotoProfil}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid #dbeafe;">` :
+        `<div style="width:64px;height:64px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#1e40af;font-family:sans-serif;">${inisial}</div>`}
+      <div style="flex:1;">
+        <div style="font-size:17px;font-weight:700;color:#0f2544;margin-bottom:3px;">${a.nama || '-'}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;">
+          <span style="font-size:11px;background:#dbeafe;color:#1e40af;padding:2px 9px;border-radius:20px;font-weight:600;">${a.peran || ''}</span>
+          <span style="font-size:11px;background:#dbeafe;color:#1e40af;padding:2px 9px;border-radius:20px;font-weight:600;">${a.kelamin || ''}</span>
+          ${a.lahir ? `<span style="font-size:11px;background:#dbeafe;color:#1e40af;padding:2px 9px;border-radius:20px;font-weight:600;">📅 ${new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}</span>` : ''}
+        </div>
+        <div style="font-size:12px;color:#64748b;font-family:sans-serif;">⏱ Usia: <strong style="color:#0f2544;">${usia}</strong></div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:10px;color:#94a3b8;font-family:sans-serif;">Dianalisis:</div>
+        <div style="font-size:11px;color:#64748b;font-family:sans-serif;">${tglAnalisis}</div>
+      </div>
+    </div>`;
+
+  const fullHTML = profilHTML + `<div style="font-family:sans-serif;font-size:13px;line-height:1.8;color:#1e293b;">${htmlText}</div>
+    <div style="margin-top:20px;padding-top:14px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;font-family:sans-serif;">
+      ⚠️ Informasi ini bersifat edukatif dan tidak menggantikan konsultasi dengan dokter atau tenaga medis profesional.
+    </div>`;
+
+  document.getElementById('modal-analisis-ai-content').innerHTML = fullHTML;
+
+  // Simpan untuk download
+  _lastAnalisisHTML = fullHTML;
+  _lastAnalisisText = `HASIL ANALISIS AI
+${'='.repeat(50)}
+Nama    : ${a.nama}
+Usia    : ${usia}
+Dianalisis: ${tglAnalisis}
+${'='.repeat(50)}
+
+${text}
+
+${'='.repeat(50)}
+⚠️ Informasi ini bersifat edukatif dan tidak menggantikan konsultasi dengan dokter.`;
+}
+
+function downloadAnalisisPDF() {
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  const nama = a ? a.nama : 'Anggota';
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Analisis AI - ${nama}</title>
+  <style>body{margin:30px 40px;font-family:sans-serif;color:#1e293b;line-height:1.8;} strong{color:#0f2544;} @media print{.no-print{display:none!important;}}</style>
+  </head><body>
+  <div class="no-print" style="margin-bottom:20px;">
+    <button onclick="window.print()" style="padding:9px 20px;background:#0f2544;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;">🖨️ Cetak / Simpan PDF</button>
+  </div>
+  <h2 style="color:#0f2544;border-bottom:2px solid #0f2544;padding-bottom:10px;">🤖 Hasil Analisis AI — ${nama}</h2>
+  ${_lastAnalisisHTML}
+  </body></html>`);
+  win.document.close();
+}
+
+function downloadAnalisisWord() {
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  const nama = a ? a.nama : 'Anggota';
+  const blob = new Blob(['\ufeff' + _lastAnalisisText], { type: 'application/msword;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `Analisis_AI_${nama.replace(/\s+/g,'_')}.doc`;
+  link.click();
+  URL.revokeObjectURL(url);
+  showToast('📝 Analisis berhasil didownload!');
+}
+
+// ─── LAPORAN PERKEMBANGAN ───────────────────────────────
+
+function buildLaporanHTML() {
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  if (!a) return '<p>Data tidak ditemukan</p>';
+  const perk = a.perkembangan || {};
+  const usia = hitungUsia(a.lahir);
+  const tglCetak = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
+  const inisial = (a.nama||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+
+  const semuaTanggal = new Set();
+  PERK_JENIS.forEach(j => { (perk[j.key]||[]).forEach(item => { if(item.tanggal) semuaTanggal.add(item.tanggal); }); });
+  const tanggalSorted = [...semuaTanggal].sort((a,b) => new Date(b)-new Date(a));
+
+  if (!tanggalSorted.length) return '<div style="text-align:center;padding:40px;color:#64748b;font-family:sans-serif;">Belum ada data perkembangan.</div>';
+
+  const fotoHtml = a.fotoProfil
+    ? `<img src="${a.fotoProfil}" style="width:76px;height:76px;border-radius:50%;object-fit:cover;margin:0 auto 12px;display:block;border:3px solid #dbeafe;">`
     : `<div style="width:76px;height:76px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#1e40af;margin:0 auto 12px;font-family:sans-serif;">${inisial}</div>`;
 
-  // Build setiap entry per tanggal
-  const entriesHTML = tanggalSorted.map((tgl, idx) => {
-    const tglFormatted = new Date(tgl).toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
-    const warna = idx === 0 ? '#0f2544' : '#1a3a6b';
-
-    // Kumpulkan data dari setiap jenis untuk tanggal ini
+  const entriesHTML = tanggalSorted.map((tgl,idx) => {
+    const tglFormatted = new Date(tgl).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
+    const warna = idx===0?'#0f2544':'#1a3a6b';
     let rows = '';
+    let rowBg = false;
     PERK_JENIS.forEach(j => {
-      const items = (perk[j.key] || []).filter(item => item.tanggal === tgl);
-      items.forEach(item => {
-        const nilai = item.nilai ? `<strong>${item.nilai}${j.satuan ? ' ' + j.satuan : ''}</strong>` : '';
-        const ket = item.keterangan ? item.keterangan : '';
-        const tampil = nilai && ket ? `${nilai} — ${ket}` : nilai || ket;
+      (perk[j.key]||[]).filter(item=>item.tanggal===tgl).forEach(item => {
+        const nilai = item.nilai ? `<strong>${item.nilai}${j.satuan?' '+j.satuan:''}</strong>` : '';
+        const ket = item.keterangan||'';
+        const tampil = nilai&&ket ? `${nilai} — ${ket}` : nilai||ket;
         if (tampil) {
-          rows += `
-          <tr style="background:${rows.split('<tr').length % 2 === 1 ? '#f8fafc' : '#ffffff'}">
-            <td style="padding:9px 12px;border:1px solid #e2e8f0;color:#64748b;width:36%;vertical-align:top;font-family:sans-serif;font-size:13px;">${j.label}</td>
-            <td style="padding:9px 12px;border:1px solid #e2e8f0;color:#1e293b;font-family:sans-serif;font-size:13px;line-height:1.6;">${tampil}</td>
+          rows += `<tr style="background:${rowBg?'#ffffff':'#f8fafc'}">
+            <td style="padding:9px 12px;border:1px solid #e2e8f0;color:#64748b;width:36%;font-family:sans-serif;font-size:13px;vertical-align:top;">${j.label}</td>
+            <td style="padding:9px 12px;border:1px solid #e2e8f0;color:#1e293b;font-family:sans-serif;font-size:13px;line-height:1.7;">${tampil}</td>
           </tr>`;
+          rowBg = !rowBg;
         }
       });
     });
-
     if (!rows) return '';
-
-    return `
-    <div style="margin-bottom:24px;">
-      <div style="background:${warna};color:white;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:700;margin-bottom:14px;font-family:sans-serif;display:flex;align-items:center;gap:8px;">
-        📅 Update: ${tglFormatted}
-      </div>
+    return `<div style="margin-bottom:24px;">
+      <div style="background:${warna};color:white;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:700;margin-bottom:14px;font-family:sans-serif;">📅 Update: ${tglFormatted}</div>
       <table style="width:100%;border-collapse:collapse;">${rows}</table>
     </div>`;
   }).filter(Boolean).join('');
@@ -6595,19 +6882,19 @@ function buildLaporanHTML(forPrint) {
   return `
   <div style="text-align:center;margin-bottom:24px;padding-bottom:20px;border-bottom:2px solid #0f2544;">
     ${fotoHtml}
-    <div style="font-size:22px;font-weight:700;color:#0f2544;margin-bottom:4px;font-family:sans-serif;">${a.nama || '-'}</div>
-    ${a.lahir ? `<div style="font-size:13px;color:#64748b;font-family:sans-serif;">Tanggal Lahir: ${new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}</div>` : ''}
-    ${usia ? `<div style="font-size:13px;color:#64748b;font-family:sans-serif;">Usia: ${usia}</div>` : ''}
+    <div style="font-size:22px;font-weight:700;color:#0f2544;margin-bottom:4px;font-family:sans-serif;">${a.nama||'-'}</div>
+    ${a.lahir?`<div style="font-size:13px;color:#64748b;font-family:sans-serif;">Tanggal Lahir: ${new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}</div>`:''}
+    ${usia?`<div style="font-size:13px;color:#64748b;font-family:sans-serif;">Usia: ${usia}</div>`:''}
     <div style="font-size:11px;color:#94a3b8;margin-top:6px;font-family:sans-serif;">Laporan dicetak: ${tglCetak}</div>
   </div>
   ${entriesHTML}
   <div style="text-align:center;margin-top:28px;padding-top:16px;border-top:1px solid #e2e8f0;font-family:sans-serif;font-size:11px;color:#94a3b8;">
-    Laporan Perkembangan — ${a.nama || ''} — Dicetak ${tglCetak}
+    Laporan Perkembangan — ${a.nama||''} — Dicetak ${tglCetak}
   </div>`;
 }
 
 function openLaporanPerkembangan() {
-  const html = buildLaporanHTML(false);
+  const html = buildLaporanHTML();
   document.getElementById('laporan-perkembangan-content').innerHTML = html;
   document.getElementById('modal-laporan-perkembangan').style.display = 'flex';
 }
@@ -6615,84 +6902,45 @@ function openLaporanPerkembangan() {
 function downloadLaporanPDF() {
   const a = anggotaList.find(x => x.id === activeAnggotaId);
   const nama = a ? a.nama : 'Anggota';
-  const html = buildLaporanHTML(true);
+  const html = buildLaporanHTML();
   const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html>
-<html><head>
-<meta charset="UTF-8">
-<title>Laporan Perkembangan - ${nama}</title>
-<style>
-  body { margin: 20px 40px; font-family: Georgia, serif; color: #1e293b; }
-  @media print {
-    body { margin: 15mm 20mm; }
-    button { display: none !important; }
-  }
-</style>
-</head><body>
-<div style="text-align:right;margin-bottom:16px;">
-  <button onclick="window.print()" style="padding:8px 20px;background:#0f2544;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:sans-serif;">🖨️ Cetak / Simpan PDF</button>
-</div>
-<h2 style="text-align:center;color:#0f2544;font-family:sans-serif;margin-bottom:24px;">LAPORAN PERKEMBANGAN</h2>
-${html}
-</body></html>`);
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Laporan Perkembangan - ${nama}</title>
+  <style>body{margin:20px 40px;font-family:Georgia,serif;} @media print{.no-print{display:none!important;}}</style>
+  </head><body>
+  <div class="no-print" style="margin-bottom:16px;">
+    <button onclick="window.print()" style="padding:8px 20px;background:#0f2544;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;">🖨️ Cetak / Simpan PDF</button>
+  </div>
+  ${html}</body></html>`);
   win.document.close();
 }
 
 function downloadLaporanWord() {
   const a = anggotaList.find(x => x.id === activeAnggotaId);
   if (!a) return;
-  const nama = a.nama || 'Anggota';
+  const nama = a.nama||'Anggota';
   const usia = hitungUsia(a.lahir);
-  const tglCetak = new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
-  const perk = a.perkembangan || {};
-
-  // Kumpulkan semua tanggal unik
+  const tglCetak = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
+  const perk = a.perkembangan||{};
   const semuaTanggal = new Set();
-  PERK_JENIS.forEach(j => { (perk[j.key] || []).forEach(item => { if (item.tanggal) semuaTanggal.add(item.tanggal); }); });
-  const tanggalSorted = [...semuaTanggal].sort((a, b) => new Date(b) - new Date(a));
-
-  let teks = `LAPORAN PERKEMBANGAN
-${'='.repeat(50)}
-
-`;
-  teks += `Nama        : ${nama}
-`;
-  if (a.lahir) teks += `Tgl Lahir   : ${new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}
-`;
-  if (usia) teks += `Usia        : ${usia}
-`;
-  teks += `Dicetak     : ${tglCetak}
-
-`;
-  teks += `${'='.repeat(50)}
-RIWAYAT PERKEMBANGAN
-${'='.repeat(50)}
-
-`;
-
+  PERK_JENIS.forEach(j => { (perk[j.key]||[]).forEach(item => { if(item.tanggal) semuaTanggal.add(item.tanggal); }); });
+  const tanggalSorted = [...semuaTanggal].sort((a,b) => new Date(b)-new Date(a));
+  let teks = `LAPORAN PERKEMBANGAN\n${'='.repeat(50)}\nNama: ${nama}\n`;
+  if (a.lahir) teks += `Tgl Lahir: ${new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}\n`;
+  if (usia) teks += `Usia: ${usia}\n`;
+  teks += `Dicetak: ${tglCetak}\n\n${'='.repeat(50)}\nRIWAYAT PERKEMBANGAN\n${'='.repeat(50)}\n\n`;
   tanggalSorted.forEach(tgl => {
-    const tglFormatted = new Date(tgl).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
-    teks += `📅 Update: ${tglFormatted}
-${'-'.repeat(40)}
-`;
+    teks += `Update: ${new Date(tgl).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}\n${'-'.repeat(40)}\n`;
     PERK_JENIS.forEach(j => {
-      const items = (perk[j.key] || []).filter(item => item.tanggal === tgl);
-      items.forEach(item => {
-        const nilai = item.nilai ? `${item.nilai}${j.satuan ? ' ' + j.satuan : ''}` : '';
-        const ket = item.keterangan || '';
-        const tampil = nilai && ket ? `${nilai} — ${ket}` : nilai || ket;
-        if (tampil) teks += `${j.label.replace(/[^\w\s]/gi, '').trim().padEnd(20)}: ${tampil}
-`;
+      (perk[j.key]||[]).filter(item=>item.tanggal===tgl).forEach(item => {
+        const nilai = item.nilai?`${item.nilai}${j.satuan?' '+j.satuan:''}`:'';
+        const ket = item.keterangan||'';
+        const tampil = nilai&&ket?`${nilai} — ${ket}`:nilai||ket;
+        if (tampil) teks += `${j.label.replace(/[^\w\s]/gi,'').trim().padEnd(20)}: ${tampil}\n`;
       });
     });
-    teks += '
-';
+    teks += '\n';
   });
-
-  teks += `${'='.repeat(50)}
-Laporan Perkembangan — ${nama} — Dicetak ${tglCetak}`;
-
-  const blob = new Blob(['﻿' + teks], { type: 'application/msword;charset=utf-8' });
+  const blob = new Blob(['\ufeff'+teks],{type:'application/msword;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -6702,13 +6950,6 @@ Laporan Perkembangan — ${nama} — Dicetak ${tglCetak}`;
   showToast('📝 Laporan Word berhasil didownload!');
 }
 
-function deleteKasTransaksi(id) {
-  if (!confirm('Hapus transaksi ini?')) return;
-  transaksiMap[activeBukuId] = (transaksiMap[activeBukuId]||[]).filter(t=>t.id!==id);
-  saveKasData();
-  renderDetailBuku();
-  showToast('🗑️ Transaksi dihapus');
-}
 </script>
 </body>
 </html>
