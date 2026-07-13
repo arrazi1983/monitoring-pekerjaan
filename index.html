@@ -3511,38 +3511,6 @@ function buildWordHTML(pList) {
       <hr style="border:1px solid #e8a020;margin-bottom:24px;">
       ${pagesHtml}
     
-<!-- MODAL ANALISIS AI -->
-<div id="modal-analisis-ai" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;" onclick="if(event.target===this)this.style.display='none'">
-  <div style="background:white;border-radius:14px;width:100%;max-width:660px;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,0.28);overflow:hidden;">
-    <div style="background:#0f2544;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;">
-      <div style="color:white;font-size:14px;font-weight:700;">🤖 Hasil Analisis AI</div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <button id="btn-dl-pdf-ai" onclick="downloadAnalisisPDF()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#16a34a;color:white;border:none;cursor:pointer;">📄 PDF</button>
-        <button id="btn-dl-word-ai" onclick="downloadAnalisisWord()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#2563eb;color:white;border:none;cursor:pointer;">📝 Word</button>
-        <button onclick="document.getElementById('modal-analisis-ai').style.display='none'" style="width:30px;height:30px;border:none;background:rgba(255,255,255,0.15);border-radius:7px;cursor:pointer;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
-      </div>
-    </div>
-    <div id="modal-analisis-ai-content" style="padding:24px;"></div>
-  </div>
-</div>
-
-<!-- MODAL LAPORAN PERKEMBANGAN -->
-<div id="modal-laporan-perkembangan" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;" onclick="if(event.target===this)this.style.display='none'">
-  <div style="background:white;border-radius:14px;width:100%;max-width:640px;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,0.28);overflow:hidden;">
-    <div style="background:#0f2544;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;">
-      <div style="color:white;font-size:14px;font-weight:700;">📋 Laporan Perkembangan</div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <button onclick="downloadLaporanPDF()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#16a34a;color:white;border:none;cursor:pointer;">📄 PDF</button>
-        <button onclick="downloadLaporanWord()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#2563eb;color:white;border:none;cursor:pointer;">📝 Word</button>
-        <button onclick="document.getElementById('modal-laporan-perkembangan').style.display='none'" style="width:30px;height:30px;border:none;background:rgba(255,255,255,0.15);border-radius:7px;cursor:pointer;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
-      </div>
-    </div>
-    <div id="laporan-perkembangan-content" style="padding:28px;background:#fff;font-family:Georgia,serif;"></div>
-  </div>
-</div>
-
-</body>
-    </html>`;
 }
 
 function downloadWordFile(htmlContent, filename) {
@@ -6869,5 +6837,36 @@ function downloadLaporanWord() {
 }
 
 </script>
+
+<!-- MODAL ANALISIS AI -->
+<div id="modal-analisis-ai" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:white;border-radius:14px;width:100%;max-width:660px;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,0.28);overflow:hidden;">
+    <div style="background:#0f2544;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;">
+      <div style="color:white;font-size:14px;font-weight:700;">&#129302; Hasil Analisis AI</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button onclick="downloadAnalisisPDF()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#16a34a;color:white;border:none;cursor:pointer;">&#128196; PDF</button>
+        <button onclick="downloadAnalisisWord()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#2563eb;color:white;border:none;cursor:pointer;">&#128221; Word</button>
+        <button onclick="document.getElementById('modal-analisis-ai').style.display='none'" style="width:30px;height:30px;border:none;background:rgba(255,255,255,0.15);border-radius:7px;cursor:pointer;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;">&#x2715;</button>
+      </div>
+    </div>
+    <div id="modal-analisis-ai-content" style="padding:24px;max-height:80vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- MODAL LAPORAN PERKEMBANGAN -->
+<div id="modal-laporan-perkembangan" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:white;border-radius:14px;width:100%;max-width:640px;margin:auto;box-shadow:0 8px 40px rgba(0,0,0,0.28);overflow:hidden;">
+    <div style="background:#0f2544;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;">
+      <div style="color:white;font-size:14px;font-weight:700;">&#128203; Laporan Perkembangan</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button onclick="downloadLaporanPDF()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#16a34a;color:white;border:none;cursor:pointer;">&#128196; PDF</button>
+        <button onclick="downloadLaporanWord()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#2563eb;color:white;border:none;cursor:pointer;">&#128221; Word</button>
+        <button onclick="document.getElementById('modal-laporan-perkembangan').style.display='none'" style="width:30px;height:30px;border:none;background:rgba(255,255,255,0.15);border-radius:7px;cursor:pointer;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;">&#x2715;</button>
+      </div>
+    </div>
+    <div id="laporan-perkembangan-content" style="padding:28px;background:#fff;font-family:Georgia,serif;max-height:80vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
 </body>
 </html>
