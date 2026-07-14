@@ -6635,7 +6635,7 @@ async function analisisAI(tipe, mode) {
       showInputAPIKey();
       return;
     }
-    const geminiURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=' + GEMINI_API_KEY;
+    const geminiURL = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=' + GEMINI_API_KEY;
 
     const response = await fetch(geminiURL, {
       method: 'POST',
