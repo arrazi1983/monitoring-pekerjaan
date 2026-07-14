@@ -6660,9 +6660,14 @@ async function analisisAI(tipe, mode) {
       + '<div style="font-size:40px;margin-bottom:12px;">⚠️</div>'
       + '<div style="font-size:15px;font-weight:700;color:#dc2626;margin-bottom:8px;">Gagal Analisis</div>'
       + '<div style="font-size:13px;color:#64748b;line-height:1.7;">Error: ' + (err.message || 'Koneksi gagal') + '<br>Pastikan koneksi internet aktif dan coba lagi.</div>'
-      + '<div style="margin-top:16px;"><button onclick="document.getElementById('modal-analisis-ai').style.display='none'" style="padding:8px 16px;background:#0f2544;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;">Tutup</button></div>'
+      + '<div style="margin-top:16px;"><button onclick="closeAnalisisModal()" style="padding:8px 16px;background:#0f2544;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;">Tutup</button></div>'
       + '</div>';
   }
+}
+
+function closeAnalisisModal() {
+  var m = document.getElementById('modal-analisis-ai');
+  if (m) m.style.display = 'none';
 }
 
 function showLoadingAnalisis(a, tipe, mode) {
