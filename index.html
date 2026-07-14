@@ -3306,13 +3306,15 @@ function deleteManageTag(idx) {
 // LAPORAN
 // ─────────────────────────────────────────
 function buildLaporan(p) {
+  if (!p) return '';
+  const subtasks = p.subtasks || [];
   const pct = Math.round(getProgres(p) * 100);
-  const done = p.subtasks.filter(s=>s.done).length;
-  const total = p.subtasks.length;
+  const done = subtasks.filter(s=>s.done).length;
+  const total = subtasks.length;
   const status = getStatus(p).label;
   const sisa = getSisaHari(p.deadline);
-  const sudah = p.subtasks.filter(s=>s.done).map(s=>s.nama).join(', ') || '-';
-  const belum = p.subtasks.filter(s=>!s.done).map(s=>s.nama).join(', ') || '-';
+  const sudah = subtasks.filter(s=>s.done).map(s=>s.nama).join(', ') || '-';
+  const belum = subtasks.filter(s=>!s.done).map(s=>s.nama).join(', ') || '-';
 
   const fotoInfo = (p.fotos && p.fotos.length > 0)
     ? p.fotos.map((f,i) => `  Foto ${i+1}: ${f.caption || '(tanpa keterangan)'}`).join('\n')
@@ -6633,7 +6635,7 @@ async function analisisAI(tipe, mode) {
       showInputAPIKey();
       return;
     }
-    const geminiURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_API_KEY;
+    const geminiURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=' + GEMINI_API_KEY;
 
     const response = await fetch(geminiURL, {
       method: 'POST',
