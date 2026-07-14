@@ -6626,59 +6626,43 @@ async function analisisAI(tipe, mode) {
   showLoadingAnalisis(a, tipe, mode);
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const GEMINI_API_KEY = 'AIzaSyAQ.Ab8RN6J7TfTW3hZHVb2SDsGtZO0qqMeTBEItcBqkIsMPWHGDSA';
+    const geminiURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_API_KEY;
+
+    const response = await fetch(geminiURL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': getAPIKey(),
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: prompt }]
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2048
+        }
       })
     });
+
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
-      throw new Error('API Error ' + response.status + ': ' + (errData.error && errData.error.message ? errData.error.message : response.statusText));
+      throw new Error('Gemini API Error ' + response.status + ': ' + JSON.stringify(errData));
     }
+
     const data = await response.json();
-    const text = data.content && data.content[0] ? data.content[0].text : 'Tidak ada hasil analisis.';
+    const text = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]
+      ? data.candidates[0].content.parts[0].text
+      : 'Tidak ada hasil analisis.';
+
     showHasilAnalisis(a, tipe, mode, text);
+
   } catch (err) {
     console.error('Analisis AI error:', err);
-    const errMsg = err.message || 'Koneksi gagal';
     document.getElementById('modal-analisis-ai-content').innerHTML =
       '<div style="text-align:center;padding:40px;">'
       + '<div style="font-size:40px;margin-bottom:12px;">⚠️</div>'
-      + '<div style="font-size:15px;font-weight:700;color:#dc2626;margin-bottom:8px;">Perlu API Key Claude</div>'
-      + '<div style="font-size:13px;color:#64748b;line-height:1.7;margin-bottom:16px;">Fitur Analisis AI memerlukan API Key dari Anthropic.<br>Masukkan API Key Anda di bawah untuk mengaktifkan fitur ini.</div>'
-      + '<div style="display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;">'
-      + '<input type="password" id="api-key-input" placeholder="sk-ant-api03-..." style="padding:9px 14px;border:1.5px solid #dde3ee;border-radius:8px;font-size:13px;width:280px;outline:none;">'
-      + '<button onclick="simpanAPIKey()" style="padding:9px 16px;background:#0f2544;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">Simpan & Coba Lagi</button>'
-      + '</div>'
-      + '<div style="font-size:11px;color:#94a3b8;margin-top:12px;">API Key tersimpan di browser Anda saja — tidak dikirim ke mana pun selain Anthropic.</div>'
+      + '<div style="font-size:15px;font-weight:700;color:#dc2626;margin-bottom:8px;">Gagal Analisis</div>'
+      + '<div style="font-size:13px;color:#64748b;line-height:1.7;">Error: ' + (err.message || 'Koneksi gagal') + '<br>Pastikan koneksi internet aktif dan coba lagi.</div>'
+      + '<div style="margin-top:16px;"><button onclick="document.getElementById('modal-analisis-ai').style.display='none'" style="padding:8px 16px;background:#0f2544;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer;">Tutup</button></div>'
       + '</div>';
   }
-}
-
-function simpanAPIKey() {
-  const key = document.getElementById('api-key-input') && document.getElementById('api-key-input').value.trim();
-  if (!key || !key.startsWith('sk-ant')) {
-    alert('API Key tidak valid. Pastikan dimulai dengan sk-ant-...');
-    return;
-  }
-  localStorage.setItem('claude_api_key', key);
-  showToast('✅ API Key tersimpan! Mencoba analisis ulang...');
-  // Retry the last analysis
-  const activeTab = document.querySelector('.kel-subtab.active');
-  if (activeTab) activeTab.click();
-}
-
-function getAPIKey() {
-  return localStorage.getItem('claude_api_key') || '';
 }
 
 function showLoadingAnalisis(a, tipe, mode) {
