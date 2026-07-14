@@ -6623,11 +6623,17 @@ async function analisisAI(tipe, mode) {
       + 'PENTING: Ini informasi kesehatan umum, bukan pengganti konsultasi dokter.';
   }
 
+  localStorage.setItem('last_analisis_tipe', tipe);
+  localStorage.setItem('last_analisis_mode', mode);
   showLoadingAnalisis(a, tipe, mode);
 
   try {
-    const GEMINI_API_KEY = 'AIzaSyAQ.Ab8RN6J7TfTW3hZHVb2SDsGtZO0qqMeTBEItcBqkIsMPWHGDSA';
-    const geminiURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_API_KEY;
+    const GEMINI_API_KEY = localStorage.getItem('gemini_api_key') || '';
+    if (!GEMINI_API_KEY) {
+      showInputAPIKey();
+      return;
+    }
+    const geminiURL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY;
 
     const response = await fetch(geminiURL, {
       method: 'POST',
@@ -6668,6 +6674,45 @@ async function analisisAI(tipe, mode) {
 function closeAnalisisModal() {
   var m = document.getElementById('modal-analisis-ai');
   if (m) m.style.display = 'none';
+}
+
+function showInputAPIKey() {
+  document.getElementById('modal-analisis-ai').style.display = 'flex';
+  document.getElementById('modal-analisis-ai-content').innerHTML =
+    '<div style="padding:20px 0;">'
+    + '<div style="text-align:center;margin-bottom:20px;">'
+    + '<div style="font-size:40px;margin-bottom:10px;">🔑</div>'
+    + '<div style="font-size:15px;font-weight:700;color:#0f2544;margin-bottom:8px;">Masukkan Gemini API Key</div>'
+    + '<div style="font-size:13px;color:#64748b;line-height:1.7;margin-bottom:16px;">API Key gratis dari Google AI Studio.<br>Hanya perlu dimasukkan sekali — tersimpan di browser Anda.</div>'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:10px;">'
+    + '<input type="text" id="gemini-key-input" placeholder="Paste API Key Anda di sini..." style="padding:10px 14px;border:1.5px solid #dde3ee;border-radius:8px;font-size:13px;outline:none;width:100%;">'
+    + '<button onclick="simpanGeminiKey()" style="padding:10px 16px;background:#0f2544;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;">✅ Simpan & Mulai Analisis</button>'
+    + '</div>'
+    + '<div style="font-size:11px;color:#94a3b8;margin-top:12px;text-align:center;">Key tersimpan di browser Anda saja — tidak diunggah ke mana pun.</div>'
+    + '<div style="margin-top:16px;padding:12px;background:#f8fafc;border-radius:8px;font-size:12px;color:#64748b;line-height:1.7;">'
+    + '<strong style="color:#0f2544;">Cara dapat API Key gratis:</strong><br>'
+    + '1. Buka aistudio.google.com/apikey<br>'
+    + '2. Klik "Create API Key"<br>'
+    + '3. Copy key yang muncul<br>'
+    + '4. Paste di kolom di atas'
+    + '</div>'
+    + '</div>';
+}
+
+function simpanGeminiKey() {
+  var key = document.getElementById('gemini-key-input') ? document.getElementById('gemini-key-input').value.trim() : '';
+  if (!key) { alert('Masukkan API Key terlebih dahulu!'); return; }
+  localStorage.setItem('gemini_api_key', key);
+  showToast('✅ API Key tersimpan! Memulai analisis...');
+  // Close modal and retry
+  setTimeout(function() {
+    closeAnalisisModal();
+    // Re-trigger last analysis
+    var lastTipe = localStorage.getItem('last_analisis_tipe') || 'perkembangan';
+    var lastMode = localStorage.getItem('last_analisis_mode') || 'terbaru';
+    analisisAI(lastTipe, lastMode);
+  }, 500);
 }
 
 function showLoadingAnalisis(a, tipe, mode) {
