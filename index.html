@@ -1363,27 +1363,70 @@ if ('serviceWorker' in navigator) {
 
       <!-- TAB KESEHATAN -->
       <div id="kel-tab-kesehatan">
-        <div class="section-header" style="margin-bottom:16px;">
-          <div class="section-title">🏥 Riwayat Kesehatan</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-sm" style="background:#7c3aed;color:white;font-weight:700;" onclick="analisisAI('kesehatan','semua')">🤖 Analisis AI Semua</button>
-            <button class="btn btn-primary btn-sm" onclick="openKesehatanModal()">+ Tambah Catatan Kesehatan</button>
+
+        <!-- BAGIAN 1: RIWAYAT PENYAKIT -->
+        <div style="background:white;border-radius:12px;box-shadow:var(--shadow);border:1.5px solid var(--border);margin-bottom:16px;overflow:hidden;">
+          <div style="background:var(--red-light);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div style="font-size:14px;font-weight:800;color:var(--red);">📋 Riwayat Penyakit</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-sm" style="background:#7c3aed;color:white;font-weight:700;" onclick="analisisAI('kesehatan','penyakit')">🤖 Analisis Penyakit</button>
+              <button class="btn btn-primary btn-sm" onclick="openKesehatanModal()">+ Tambah Penyakit Baru</button>
+            </div>
+          </div>
+          <div style="padding:16px 18px;">
+            <div id="kel-kesehatan-list"></div>
+            <div id="kel-kesehatan-empty" style="display:none;text-align:center;padding:32px 20px;color:var(--text-muted);">
+              <div style="font-size:36px;margin-bottom:8px;">🏥</div>
+              <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px;">Belum ada riwayat penyakit</div>
+              <div style="font-size:12px;">Klik "+ Tambah Penyakit Baru" untuk mulai mencatat.</div>
+            </div>
           </div>
         </div>
-        <div id="kel-kesehatan-list"></div>
-        <div id="kel-kesehatan-empty" style="display:none;text-align:center;padding:48px 20px;color:var(--text-muted);">
-          <div style="font-size:40px;margin-bottom:10px;">🏥</div>
-          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px;">Belum ada catatan kesehatan</div>
-          <div style="font-size:12px;">Klik "+ Tambah Catatan Kesehatan" untuk mulai mencatat.</div>
+
+        <!-- BAGIAN 2: DATA PERTUMBUHAN FISIK -->
+        <div style="background:white;border-radius:12px;box-shadow:var(--shadow);border:1.5px solid var(--border);margin-bottom:16px;overflow:hidden;">
+          <div style="background:#dbeafe;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div style="font-size:14px;font-weight:800;color:#1e40af;">📊 Data Pertumbuhan Fisik</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-sm" style="background:#7c3aed;color:white;font-weight:700;" onclick="analisisAI('kesehatan','pertumbuhan')">🤖 Analisis Pertumbuhan</button>
+              <button class="btn btn-sm" style="background:#1e40af;color:white;font-weight:700;" onclick="openFisikModal()">+ Tambah Data Fisik</button>
+            </div>
+          </div>
+          <div style="padding:16px 18px;">
+            <div id="kel-fisik-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <!-- BB Card -->
+              <div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;">
+                <div style="background:#f0fdf4;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+                  <div style="font-size:13px;font-weight:700;color:#16a34a;">⚖️ Berat Badan</div>
+                  <button class="btn btn-sm" style="background:#16a34a;color:white;" onclick="openFisikModal('berat')">+ Tambah</button>
+                </div>
+                <div id="fisik-berat-list" style="padding:10px 14px;max-height:200px;overflow-y:auto;"></div>
+              </div>
+              <!-- TB Card -->
+              <div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;">
+                <div style="background:#eff6ff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+                  <div style="font-size:13px;font-weight:700;color:#2563eb;">📏 Tinggi Badan</div>
+                  <button class="btn btn-sm" style="background:#2563eb;color:white;" onclick="openFisikModal('tinggi')">+ Tambah</button>
+                </div>
+                <div id="fisik-tinggi-list" style="padding:10px 14px;max-height:200px;overflow-y:auto;"></div>
+              </div>
+            </div>
+            <!-- IMT Info -->
+            <div id="fisik-imt-info" style="margin-top:12px;padding:10px 14px;background:#fef3dc;border-radius:8px;border-left:3px solid var(--gold);display:none;">
+              <div style="font-size:12px;font-weight:700;color:var(--navy);">📊 IMT/BMI Terkini</div>
+              <div id="fisik-imt-value" style="font-size:14px;color:var(--text);margin-top:4px;"></div>
+            </div>
+          </div>
         </div>
+
       </div>
 
       <!-- TAB PERKEMBANGAN -->
       <div id="kel-tab-perkembangan" style="display:none;">
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:16px;flex-wrap:wrap;">
-          <button onclick="analisisAI('perkembangan','terbaru')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#7c3aed;color:white;border:none;cursor:pointer;">🤖 Analisis Data Terbaru</button>
-          <button onclick="analisisAI('perkembangan','semua')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#5b21b6;color:white;border:none;cursor:pointer;">🤖 Analisis Semua Riwayat</button>
-          <button onclick="openLaporanPerkembangan()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:var(--navy);color:white;border:none;cursor:pointer;">👁 Buka Laporan</button>
+          <button onclick="analisisAI('perkembangan','terbaru')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#7c3aed;color:white;border:none;cursor:pointer;">🤖 Analisis Terbaru</button>
+          <button onclick="analisisAI('perkembangan','semua')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#5b21b6;color:white;border:none;cursor:pointer;">🤖 Analisis Semua</button>
+          <button onclick="openLaporanPerkembangan()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:var(--navy);color:white;border:none;cursor:pointer;">👁 Laporan</button>
           <button onclick="downloadLaporanPDF()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#16a34a;color:white;border:none;cursor:pointer;">📄 PDF</button>
           <button onclick="downloadLaporanWord()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#2563eb;color:white;border:none;cursor:pointer;">📝 Word</button>
         </div>
@@ -3512,7 +3555,36 @@ function buildWordHTML(pList) {
       <p style="text-align:center;color:#666;font-size:10pt;margin-bottom:24px;">Dibuat: ${now}</p>
       <hr style="border:1px solid #e8a020;margin-bottom:24px;">
       ${pagesHtml}
-    </body>
+    
+<!-- MODAL DATA FISIK (BB & TB) -->
+<div class="modal-overlay" id="fisik-modal-overlay" onclick="if(event.target===this)closeFisikModal()">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title" id="fisik-modal-title">⚖️ Tambah Berat Badan</div>
+      <button class="modal-close" onclick="closeFisikModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Tanggal *</label>
+        <input type="date" id="fisik-tanggal" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nilai * (<span id="fisik-satuan">kg</span>)</label>
+        <input type="number" id="fisik-nilai" class="form-input" placeholder="Contoh: 12.5" step="0.1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Keterangan (opsional)</label>
+        <input type="text" id="fisik-keterangan" class="form-input" placeholder="Cth: Setelah sembuh sakit">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeFisikModal()">Batal</button>
+      <button class="btn btn-primary" onclick="saveFisikData()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+</body>
     </html>`;
 }
 
@@ -5402,12 +5474,21 @@ const KES_STATUS_OPTIONS = [
   { v: 'sembuh',  label: '✅ Sembuh Total' },
 ];
 
+// Perkembangan: fokus kognitif, motorik, sosial, prestasi
 const PERK_JENIS = [
-  { key: 'berat',    label: '⚖️ Berat Badan',    satuan: 'kg',   placeholder: 'Cth: 12.5' },
-  { key: 'tinggi',   label: '📏 Tinggi Badan',    satuan: 'cm',   placeholder: 'Cth: 95' },
-  { key: 'prestasi', label: '🏆 Prestasi',        satuan: '',     placeholder: 'Cth: Juara 1 lomba mewarnai' },
-  { key: 'kemampuan',label: '⭐ Kemampuan Baru',  satuan: '',     placeholder: 'Cth: Sudah bisa berjalan' },
-  { key: 'lainnya',  label: '📝 Catatan Lainnya', satuan: '',     placeholder: 'Catatan bebas...' },
+  { key: 'kognitif',  label: '🧠 Perkembangan Kognitif',     satuan: '', placeholder: 'Cth: Bisa berhitung 1-20, mengenal huruf A-Z' },
+  { key: 'motorik',   label: '🏃 Perkembangan Motorik',      satuan: '', placeholder: 'Cth: Bisa berlari, melompat, memegang pensil' },
+  { key: 'sosial',    label: '🤝 Perkembangan Sosial/Emosi', satuan: '', placeholder: 'Cth: Sudah bisa berbagi mainan dengan teman' },
+  { key: 'kemampuan', label: '⭐ Kemampuan Baru',            satuan: '', placeholder: 'Cth: Bisa bersepeda, berenang' },
+  { key: 'prestasi',  label: '🏆 Prestasi',                  satuan: '', placeholder: 'Cth: Juara 1 lomba mewarnai tingkat kecamatan' },
+  { key: 'lainnya',   label: '📝 Catatan Lainnya',           satuan: '', placeholder: 'Catatan bebas dari orang tua...' },
+];
+
+// Data fisik (BB & TB) tetap di perkembangan untuk backward compatibility
+// tapi ditampilkan di Tab Kesehatan
+const FISIK_JENIS = [
+  { key: 'berat',  label: '⚖️ Berat Badan', satuan: 'kg', placeholder: 'Cth: 12.5' },
+  { key: 'tinggi', label: '📏 Tinggi Badan', satuan: 'cm', placeholder: 'Cth: 95' },
 ];
 
 function loadKelData() {
@@ -6538,53 +6619,50 @@ async function analisisAI(tipe, mode) {
 
   if (tipe === 'perkembangan') {
     const perk = a.perkembangan || {};
-    const beratList = (perk.berat || []).sort((x,y) => new Date(y.tanggal) - new Date(x.tanggal));
-    const tinggiList = (perk.tinggi || []).sort((x,y) => new Date(y.tanggal) - new Date(x.tanggal));
-    const prestasiList = perk.prestasi || [];
+    const kognitifList = perk.kognitif || [];
+    const motorikList = perk.motorik || [];
+    const sosialList = perk.sosial || [];
     const kemampuanList = perk.kemampuan || [];
+    const prestasiList = perk.prestasi || [];
     const lainnyaList = perk.lainnya || [];
 
-    const beratData = mode === 'terbaru' ? beratList.slice(0,1) : beratList;
-    const tinggiData = mode === 'terbaru' ? tinggiList.slice(0,1) : tinggiList;
+    const ambilData = function(list) {
+      return mode === 'terbaru' ? list.slice(-1) : list;
+    };
 
-    const beratTeks = beratData.map(x => '- ' + x.tanggal + ': ' + x.nilai + ' kg' + (x.keterangan ? ' (' + x.keterangan + ')' : '')).join('\n') || 'Tidak ada data';
-    const tinggiTeks = tinggiData.map(x => '- ' + x.tanggal + ': ' + x.nilai + ' cm' + (x.keterangan ? ' (' + x.keterangan + ')' : '')).join('\n') || 'Tidak ada data';
-    const prestasiTeks = prestasiList.length ? 'PRESTASI:\n' + prestasiList.map(x => '- ' + x.tanggal + ': ' + x.nilai).join('\n') : '';
-    const kemampuanTeks = kemampuanList.length ? 'KEMAMPUAN BARU:\n' + kemampuanList.map(x => '- ' + x.tanggal + ': ' + x.nilai).join('\n') : '';
-    const lainnyaTeks = lainnyaList.length ? 'CATATAN LAINNYA:\n' + lainnyaList.map(x => '- ' + x.tanggal + ': ' + x.nilai).join('\n') : '';
+    const buatTeks = function(list, label) {
+      var data = ambilData(list);
+      return data.length ? label + ':\n' + data.map(function(x){ return '- ' + x.tanggal + ': ' + x.nilai + (x.keterangan ? ' (' + x.keterangan + ')' : ''); }).join('\n') : '';
+    };
 
-    prompt = 'Kamu adalah dokter anak dan ahli gizi berpengalaman. Analisis data perkembangan berikut berdasarkan standar WHO Child Growth Standards 2006, Kemenkes RI, dan IDAI.\n\n'
+    const bagianData = [
+      buatTeks(kognitifList, 'PERKEMBANGAN KOGNITIF'),
+      buatTeks(motorikList, 'PERKEMBANGAN MOTORIK'),
+      buatTeks(sosialList, 'PERKEMBANGAN SOSIAL & EMOSI'),
+      buatTeks(kemampuanList, 'KEMAMPUAN BARU'),
+      buatTeks(prestasiList, 'PRESTASI'),
+      buatTeks(lainnyaList, 'CATATAN LAINNYA')
+    ].filter(Boolean).join('\n\n');
+
+    if (!bagianData) { showToast('⚠️ Belum ada data perkembangan'); return; }
+
+    prompt = 'Kamu adalah psikolog anak dan ahli tumbuh kembang berpengalaman. Analisis data perkembangan anak berikut.\n\n'
       + 'IDENTITAS:\n'
-      + '- Nama: ' + (a.nama || '-') + '\n'
-      + '- Hubungan: ' + (a.peran || '-') + '\n'
-      + '- Jenis Kelamin: ' + (a.kelamin || '-') + '\n'
-      + '- Tanggal Lahir: ' + (a.lahir || '-') + '\n'
-      + '- Usia Saat Ini: ' + usia + '\n\n'
-      + 'DATA BERAT BADAN:\n' + beratTeks + '\n\n'
-      + 'DATA TINGGI BADAN:\n' + tinggiTeks + '\n\n'
-      + (prestasiTeks ? prestasiTeks + '\n' : '')
-      + (kemampuanTeks ? kemampuanTeks + '\n' : '')
-      + (lainnyaTeks ? lainnyaTeks + '\n' : '')
-      + '\nBerikan analisis LENGKAP dalam format berikut (gunakan bahasa Indonesia yang jelas):\n\n'
-      + '**STATUS GIZI:**\n'
-      + '[Status: Normal/Gizi Kurang/Gizi Buruk/Overweight]\n'
-      + '[Z-score BB/U: ... SD]\n'
-      + '[Z-score TB/U: ... SD]\n'
-      + '[Z-score BB/TB: ... SD]\n'
-      + '[Berat normal untuk usia ini: ... kg]\n'
-      + '[Tinggi normal untuk usia ini: ... cm]\n\n'
-      + '**ANALISIS TREN:**\n'
-      + '[Penjelasan tren pertumbuhan dari data yang ada]\n\n'
-      + '**KESIMPULAN:**\n'
-      + '[Kesimpulan status gizi dan kondisi]\n\n'
-      + '**SARAN & REKOMENDASI:**\n'
-      + '[Saran asupan makanan spesifik]\n'
-      + '[Jadwal timbang ulang]\n'
-      + '[Aktivitas yang disarankan]\n\n'
-      + '**KAPAN PERLU KE DOKTER:**\n'
-      + '[Kondisi yang memerlukan pemeriksaan segera]\n\n'
-      + '**SUMBER ILMIAH:**\n'
-      + '[Standar/referensi yang digunakan]';
+      + 'Nama: ' + (a.nama||'-') + '\n'
+      + 'Jenis Kelamin: ' + (a.kelamin||'-') + '\n'
+      + 'Tanggal Lahir: ' + (a.lahir||'-') + '\n'
+      + 'Usia: ' + usia + '\n\n'
+      + 'DATA PERKEMBANGAN:\n' + bagianData + '\n\n'
+      + 'Berikan analisis LENGKAP (bahasa Indonesia):\n\n'
+      + '**ANALISIS PERKEMBANGAN KOGNITIF:**\n[Apakah sesuai usia? Apa yang perlu distimulasi?]\n\n'
+      + '**ANALISIS PERKEMBANGAN MOTORIK:**\n[Perkembangan gerak & koordinasi — sesuai usia?]\n\n'
+      + '**ANALISIS PERKEMBANGAN SOSIAL & EMOSI:**\n[Kemampuan berinteraksi dan mengelola emosi]\n\n'
+      + '**ANALISIS KEMAMPUAN & PRESTASI:**\n[Evaluasi kemampuan dan pencapaian yang diraih]\n\n'
+      + '**KESIMPULAN MENYELURUH:**\n[Kondisi perkembangan secara keseluruhan]\n\n'
+      + '**SARAN STIMULASI:**\n[Kegiatan dan permainan yang disarankan untuk stimulasi]\n\n'
+      + '**KAPAN PERLU KE AHLI TUMBUH KEMBANG:**\n[Tanda yang memerlukan konsultasi spesialis]\n\n'
+      + '**REFERENSI ILMIAH:**\n[IDAI, WHO, Denver Developmental Screening Test, referensi tumbuh kembang lainnya]\n\n'
+      + 'PENTING: Ini informasi edukatif, bukan pengganti konsultasi dokter/psikolog anak.';
 
   } else if (tipe === 'kesehatan') {
     const kesList = a.kesehatan || [];
@@ -13682,6 +13760,354 @@ function downloadLaporanWord() {
   link.click();
   URL.revokeObjectURL(url);
   showToast('Laporan Word berhasil didownload!');
+}
+
+
+// ═══════════════════════════════════════════
+// DATA FISIK (BB & TB) — di Tab Kesehatan
+// ═══════════════════════════════════════════
+
+let fisikModalJenis = 'berat';
+
+function openFisikModal(jenis) {
+  fisikModalJenis = jenis || 'berat';
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  if (!a) return;
+  document.getElementById('fisik-modal-title').textContent = jenis === 'tinggi' ? '📏 Tambah Tinggi Badan' : '⚖️ Tambah Berat Badan';
+  document.getElementById('fisik-satuan').textContent = jenis === 'tinggi' ? 'cm' : 'kg';
+  document.getElementById('fisik-nilai').value = '';
+  document.getElementById('fisik-tanggal').value = todayLocalISO();
+  document.getElementById('fisik-keterangan').value = '';
+  document.getElementById('fisik-modal-overlay').classList.add('open');
+  setTimeout(function(){ document.getElementById('fisik-nilai').focus(); }, 100);
+}
+
+function closeFisikModal() {
+  document.getElementById('fisik-modal-overlay').classList.remove('open');
+}
+
+function saveFisikData() {
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  if (!a) return;
+  const nilai = document.getElementById('fisik-nilai').value.trim();
+  const tanggal = document.getElementById('fisik-tanggal').value;
+  const keterangan = document.getElementById('fisik-keterangan').value.trim();
+  if (!nilai) { alert('Nilai wajib diisi!'); return; }
+  if (!tanggal) { alert('Tanggal wajib diisi!'); return; }
+  if (!a.perkembangan) a.perkembangan = {};
+  if (!a.perkembangan[fisikModalJenis]) a.perkembangan[fisikModalJenis] = [];
+  a.perkembangan[fisikModalJenis].push({ tanggal, nilai, keterangan });
+  saveKelData();
+  closeFisikModal();
+  renderFisikData();
+  showToast('✅ Data ' + (fisikModalJenis === 'tinggi' ? 'tinggi badan' : 'berat badan') + ' ditambahkan!');
+}
+
+function hapusFisikData(jenis, idx) {
+  if (!confirm('Hapus data ini?')) return;
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  if (!a || !a.perkembangan || !a.perkembangan[jenis]) return;
+  a.perkembangan[jenis].splice(idx, 1);
+  saveKelData();
+  renderFisikData();
+  showToast('🗑️ Data dihapus');
+}
+
+function renderFisikData() {
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  if (!a) return;
+  const perk = a.perkembangan || {};
+
+  // Render BB
+  const beratList = [...(perk.berat || [])].sort(function(x,y){ return new Date(y.tanggal) - new Date(x.tanggal); });
+  const beratEl = document.getElementById('fisik-berat-list');
+  if (beratEl) {
+    if (!beratList.length) {
+      beratEl.innerHTML = '<div style="font-size:12px;color:var(--text-muted);font-style:italic;text-align:center;padding:12px 0;">Belum ada data</div>';
+    } else {
+      beratEl.innerHTML = beratList.map(function(item, i) {
+        var origIdx = (perk.berat||[]).indexOf(item);
+        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">'
+          + '<div style="font-size:11px;color:var(--text-muted);min-width:80px;">' + formatDate(item.tanggal) + '</div>'
+          + '<div style="flex:1;"><span style="font-size:15px;font-weight:700;color:#16a34a;">' + item.nilai + ' kg</span>'
+          + (item.keterangan ? '<div style="font-size:11px;color:var(--text-muted);">' + esc(item.keterangan) + '</div>' : '')
+          + '</div>'
+          + '<button onclick="hapusFisikData('berat',' + origIdx + ')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;">✕</button>'
+          + '</div>';
+      }).join('');
+    }
+  }
+
+  // Render TB
+  const tinggiList = [...(perk.tinggi || [])].sort(function(x,y){ return new Date(y.tanggal) - new Date(x.tanggal); });
+  const tinggiEl = document.getElementById('fisik-tinggi-list');
+  if (tinggiEl) {
+    if (!tinggiList.length) {
+      tinggiEl.innerHTML = '<div style="font-size:12px;color:var(--text-muted);font-style:italic;text-align:center;padding:12px 0;">Belum ada data</div>';
+    } else {
+      tinggiEl.innerHTML = tinggiList.map(function(item, i) {
+        var origIdx = (perk.tinggi||[]).indexOf(item);
+        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">'
+          + '<div style="font-size:11px;color:var(--text-muted);min-width:80px;">' + formatDate(item.tanggal) + '</div>'
+          + '<div style="flex:1;"><span style="font-size:15px;font-weight:700;color:#2563eb;">' + item.nilai + ' cm</span>'
+          + (item.keterangan ? '<div style="font-size:11px;color:var(--text-muted);">' + esc(item.keterangan) + '</div>' : '')
+          + '</div>'
+          + '<button onclick="hapusFisikData('tinggi',' + origIdx + ')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;">✕</button>'
+          + '</div>';
+      }).join('');
+    }
+  }
+
+  // Hitung & tampilkan IMT
+  const imtEl = document.getElementById('fisik-imt-info');
+  const imtVal = document.getElementById('fisik-imt-value');
+  if (imtEl && beratList.length && tinggiList.length) {
+    const bb = parseFloat(beratList[0].nilai);
+    const tb = parseFloat(tinggiList[0].nilai) / 100;
+    if (bb && tb) {
+      const imt = (bb / (tb * tb)).toFixed(1);
+      var status = '';
+      var warna = '';
+      const usia = hitungUsiaAngka(a.lahir);
+      if (usia < 5) {
+        status = 'Lihat kurva WHO untuk anak';
+        warna = '#0f2544';
+      } else if (imt < 18.5) { status = 'Berat Badan Kurang'; warna = '#dc2626'; }
+      else if (imt < 25) { status = 'Normal'; warna = '#16a34a'; }
+      else if (imt < 30) { status = 'Kelebihan Berat Badan'; warna = '#e8a020'; }
+      else { status = 'Obesitas'; warna = '#dc2626'; }
+      imtEl.style.display = 'block';
+      imtVal.innerHTML = 'IMT: <strong style="color:' + warna + ';">' + imt + ' kg/m²</strong> — <span style="color:' + warna + ';font-weight:700;">' + status + '</span>'
+        + '<br><span style="font-size:11px;color:var(--text-muted);">BB terbaru: ' + beratList[0].nilai + ' kg | TB terbaru: ' + tinggiList[0].nilai + ' cm</span>';
+    }
+  } else if (imtEl) {
+    imtEl.style.display = 'none';
+  }
+}
+
+function hitungUsiaAngka(tglLahir) {
+  if (!tglLahir) return 0;
+  var lahir = new Date(tglLahir);
+  var now = new Date();
+  return (now - lahir) / (365.25 * 24 * 3600 * 1000);
+}
+
+// Override renderKesehatan to also render fisik data
+var _origRenderKesehatan = renderKesehatan;
+function renderKesehatan() {
+  _origRenderKesehatan();
+  renderFisikData();
+}
+
+// Update analisisAI to handle new types
+var _origAnalisisAI = analisisAI;
+async function analisisAI(tipe, mode) {
+  if (tipe === 'kesehatan' && mode === 'penyakit') {
+    await _analisisPenyakit();
+  } else if (tipe === 'kesehatan' && mode === 'pertumbuhan') {
+    await _analisisPertumbuhan();
+  } else {
+    await _origAnalisisAI(tipe, mode);
+  }
+}
+
+async function _analisisPenyakit() {
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  if (!a) return;
+  const kesList = a.kesehatan || [];
+  if (!kesList.length) { showToast('⚠️ Belum ada riwayat penyakit'); return; }
+
+  const usia = hitungUsia(a.lahir);
+  const dataKes = kesList.map(function(k) {
+    var pen = (k.penanganan||[]).map(function(p) {
+      return '  - ' + (p.tanggal||'-') + ': ' + (p.tempat||'') + ' | Status: ' + (p.status||'') + ' | Obat: ' + (p.obat||'-') + (p.catatan ? ' | Catatan: ' + p.catatan : '');
+    }).join('
+');
+    return 'Penyakit: ' + (k.penyakit||'-') + '
+Mulai: ' + (k.tanggal||'-') + '
+Penanganan:
+' + (pen||'  Belum ada') + '
+Keterangan akhir: ' + (k.keterangan||'-');
+  }).join('
+
+---
+
+');
+
+  var prompt = 'Kamu adalah dokter umum berpengalaman. Analisis riwayat penyakit berikut dan berikan informasi medis yang berguna.
+
+'
+    + 'IDENTITAS PASIEN:
+'
+    + 'Nama: ' + (a.nama||'-') + '
+Jenis Kelamin: ' + (a.kelamin||'-') + '
+Usia: ' + usia + '
+
+'
+    + 'RIWAYAT PENYAKIT:
+' + dataKes + '
+
+'
+    + 'Berikan analisis lengkap dalam format berikut (bahasa Indonesia):
+
+'
+    + '**RINGKASAN POLA PENYAKIT:**
+[Pola penyakit yang sering muncul dan kemungkinan penyebabnya]
+
+'
+    + '**ANALISIS EFEKTIVITAS PENGOBATAN:**
+[Evaluasi obat yang sudah digunakan]
+
+'
+    + '**REKOMENDASI OBAT HERBAL:**
+[Saran obat herbal alami beserta cara pemakaiannya]
+
+'
+    + '**REKOMENDASI OBAT APOTEK:**
+[Saran obat apotek yang sesuai]
+
+'
+    + '**TINDAK LANJUT YANG DISARANKAN:**
+[Langkah selanjutnya yang harus dilakukan]
+
+'
+    + '**KAPAN PERLU KE DOKTER SPESIALIS:**
+[Kondisi yang memerlukan rujukan spesialis]
+
+'
+    + '**SARAN PENCEGAHAN:**
+[Cara mencegah penyakit serupa kambuh]
+
+'
+    + '**REFERENSI ILMIAH:**
+[Cantumkan sumber: WHO, Kemenkes RI, IDAI, jurnal medis yang relevan]
+
+'
+    + 'PENTING: Ini informasi kesehatan umum, bukan pengganti konsultasi dokter langsung.';
+
+  localStorage.setItem('last_analisis_tipe', 'kesehatan');
+  localStorage.setItem('last_analisis_mode', 'penyakit');
+  showLoadingAnalisis(a, 'kesehatan', 'penyakit');
+
+  try {
+    var GROQ_API_KEY = localStorage.getItem('groq_api_key') || '';
+    if (!GROQ_API_KEY) { showInputGroqKey(); return; }
+    var response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_API_KEY },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          { role: 'system', content: 'Kamu adalah dokter dan ahli kesehatan berpengalaman. Berikan analisis yang akurat dan informatif dalam bahasa Indonesia. Selalu cantumkan referensi ilmiah yang kredibel.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7, max_tokens: 2048
+      })
+    });
+    if (!response.ok) throw new Error('Groq Error ' + response.status);
+    var data = await response.json();
+    var text = data.choices && data.choices[0] ? data.choices[0].message.content : 'Tidak ada hasil.';
+    showHasilAnalisis(a, 'kesehatan', 'penyakit', text);
+  } catch(err) {
+    console.error(err);
+    document.getElementById('modal-analisis-ai-content').innerHTML = '<div style="text-align:center;padding:40px;"><div style="font-size:40px;">⚠️</div><div style="font-size:14px;font-weight:700;color:#dc2626;margin-top:10px;">Gagal Analisis</div><div style="font-size:13px;color:#64748b;margin-top:6px;">' + err.message + '</div></div>';
+  }
+}
+
+async function _analisisPertumbuhan() {
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  if (!a) return;
+  const perk = a.perkembangan || {};
+  const beratList = [...(perk.berat||[])].sort(function(x,y){ return new Date(y.tanggal)-new Date(x.tanggal); });
+  const tinggiList = [...(perk.tinggi||[])].sort(function(x,y){ return new Date(y.tanggal)-new Date(x.tanggal); });
+
+  if (!beratList.length && !tinggiList.length) { showToast('⚠️ Belum ada data pertumbuhan fisik'); return; }
+
+  const usia = hitungUsia(a.lahir);
+  const beratTeks = beratList.map(function(x){ return '- ' + x.tanggal + ': ' + x.nilai + ' kg' + (x.keterangan ? ' (' + x.keterangan + ')' : ''); }).join('
+') || 'Tidak ada data';
+  const tinggiTeks = tinggiList.map(function(x){ return '- ' + x.tanggal + ': ' + x.nilai + ' cm' + (x.keterangan ? ' (' + x.keterangan + ')' : ''); }).join('
+') || 'Tidak ada data';
+
+  var prompt = 'Kamu adalah dokter anak dan ahli gizi berpengalaman. Analisis data pertumbuhan fisik berikut berdasarkan standar WHO Child Growth Standards 2006, Kemenkes RI, dan IDAI.
+
+'
+    + 'IDENTITAS:
+Nama: ' + (a.nama||'-') + '
+Jenis Kelamin: ' + (a.kelamin||'-') + '
+Tanggal Lahir: ' + (a.lahir||'-') + '
+Usia: ' + usia + '
+
+'
+    + 'RIWAYAT BERAT BADAN:
+' + beratTeks + '
+
+RIWAYAT TINGGI BADAN:
+' + tinggiTeks + '
+
+'
+    + 'Berikan analisis LENGKAP (bahasa Indonesia):
+
+'
+    + '**STATUS GIZI SAAT INI:**
+[Status berdasarkan Z-score WHO: BB/U, TB/U, BB/TB]
+[Berat normal untuk usia ini: ... kg]
+[Tinggi normal untuk usia ini: ... cm]
+
+'
+    + '**ANALISIS TREN PERTUMBUHAN:**
+[Kenaikan/penurunan BB dan TB dari waktu ke waktu]
+
+'
+    + '**KEMUNGKINAN HAMBATAN PERTUMBUHAN:**
+[Apa yang mungkin menyebabkan pertumbuhan terhambat jika ada]
+
+'
+    + '**SARAN NUTRISI & GIZI:**
+[Makanan dan asupan yang disarankan untuk meningkatkan pertumbuhan]
+
+'
+    + '**TARGET PERTUMBUHAN:**
+[BB dan TB yang seharusnya dicapai dalam 1-3 bulan ke depan]
+
+'
+    + '**KAPAN PERLU KE DOKTER:**
+[Kondisi yang memerlukan pemeriksaan medis]
+
+'
+    + '**REFERENSI ILMIAH:**
+[WHO Child Growth Standards 2006, Kemenkes RI, IDAI, CDC Growth Charts]
+
+'
+    + 'PENTING: Ini informasi edukatif, bukan pengganti konsultasi dokter.';
+
+  localStorage.setItem('last_analisis_tipe', 'kesehatan');
+  localStorage.setItem('last_analisis_mode', 'pertumbuhan');
+  showLoadingAnalisis(a, 'kesehatan', 'pertumbuhan');
+
+  try {
+    var GROQ_API_KEY = localStorage.getItem('groq_api_key') || '';
+    if (!GROQ_API_KEY) { showInputGroqKey(); return; }
+    var response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_API_KEY },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          { role: 'system', content: 'Kamu adalah dokter anak dan ahli gizi. Berikan analisis pertumbuhan yang akurat berdasarkan standar WHO. Gunakan bahasa Indonesia yang mudah dipahami. Selalu cantumkan referensi ilmiah.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7, max_tokens: 2048
+      })
+    });
+    if (!response.ok) throw new Error('Groq Error ' + response.status);
+    var data = await response.json();
+    var text = data.choices && data.choices[0] ? data.choices[0].message.content : 'Tidak ada hasil.';
+    showHasilAnalisis(a, 'kesehatan', 'pertumbuhan', text);
+  } catch(err) {
+    console.error(err);
+    document.getElementById('modal-analisis-ai-content').innerHTML = '<div style="text-align:center;padding:40px;"><div style="font-size:40px;">⚠️</div><div style="font-size:14px;font-weight:700;color:#dc2626;margin-top:10px;">Gagal Analisis</div><div style="font-size:13px;color:#64748b;margin-top:6px;">' + err.message + '</div></div>';
+  }
 }
 
 </script>
