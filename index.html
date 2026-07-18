@@ -1363,27 +1363,70 @@ if ('serviceWorker' in navigator) {
 
       <!-- TAB KESEHATAN -->
       <div id="kel-tab-kesehatan">
-        <div class="section-header" style="margin-bottom:16px;">
-          <div class="section-title">🏥 Riwayat Kesehatan</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-sm" style="background:#7c3aed;color:white;font-weight:700;" onclick="analisisAI('kesehatan','semua')">🤖 Analisis AI Semua</button>
-            <button class="btn btn-primary btn-sm" onclick="openKesehatanModal()">+ Tambah Catatan Kesehatan</button>
+
+        <!-- BAGIAN 1: RIWAYAT PENYAKIT -->
+        <div style="background:white;border-radius:12px;box-shadow:var(--shadow);border:1.5px solid var(--border);margin-bottom:16px;overflow:hidden;">
+          <div style="background:var(--red-light);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div style="font-size:14px;font-weight:800;color:var(--red);">📋 Riwayat Penyakit</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-sm" style="background:#7c3aed;color:white;font-weight:700;" onclick="analisisAI('kesehatan','penyakit')">🤖 Analisis Penyakit</button>
+              <button class="btn btn-primary btn-sm" onclick="openKesehatanModal()">+ Tambah Penyakit Baru</button>
+            </div>
+          </div>
+          <div style="padding:16px 18px;">
+            <div id="kel-kesehatan-list"></div>
+            <div id="kel-kesehatan-empty" style="display:none;text-align:center;padding:32px 20px;color:var(--text-muted);">
+              <div style="font-size:36px;margin-bottom:8px;">🏥</div>
+              <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px;">Belum ada riwayat penyakit</div>
+              <div style="font-size:12px;">Klik "+ Tambah Penyakit Baru" untuk mulai mencatat.</div>
+            </div>
           </div>
         </div>
-        <div id="kel-kesehatan-list"></div>
-        <div id="kel-kesehatan-empty" style="display:none;text-align:center;padding:48px 20px;color:var(--text-muted);">
-          <div style="font-size:40px;margin-bottom:10px;">🏥</div>
-          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px;">Belum ada catatan kesehatan</div>
-          <div style="font-size:12px;">Klik "+ Tambah Catatan Kesehatan" untuk mulai mencatat.</div>
+
+        <!-- BAGIAN 2: DATA PERTUMBUHAN FISIK -->
+        <div style="background:white;border-radius:12px;box-shadow:var(--shadow);border:1.5px solid var(--border);margin-bottom:16px;overflow:hidden;">
+          <div style="background:#dbeafe;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <div style="font-size:14px;font-weight:800;color:#1e40af;">📊 Data Pertumbuhan Fisik</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-sm" style="background:#7c3aed;color:white;font-weight:700;" onclick="analisisAI('kesehatan','pertumbuhan')">🤖 Analisis Pertumbuhan</button>
+              <button class="btn btn-sm" style="background:#1e40af;color:white;font-weight:700;" onclick="openFisikModal()">+ Tambah Data Fisik</button>
+            </div>
+          </div>
+          <div style="padding:16px 18px;">
+            <div id="kel-fisik-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <!-- BB Card -->
+              <div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;">
+                <div style="background:#f0fdf4;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+                  <div style="font-size:13px;font-weight:700;color:#16a34a;">⚖️ Berat Badan</div>
+                  <button class="btn btn-sm" style="background:#16a34a;color:white;" onclick="openFisikModal('berat')">+ Tambah</button>
+                </div>
+                <div id="fisik-berat-list" style="padding:10px 14px;max-height:200px;overflow-y:auto;"></div>
+              </div>
+              <!-- TB Card -->
+              <div style="border:1.5px solid var(--border);border-radius:10px;overflow:hidden;">
+                <div style="background:#eff6ff;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+                  <div style="font-size:13px;font-weight:700;color:#2563eb;">📏 Tinggi Badan</div>
+                  <button class="btn btn-sm" style="background:#2563eb;color:white;" onclick="openFisikModal('tinggi')">+ Tambah</button>
+                </div>
+                <div id="fisik-tinggi-list" style="padding:10px 14px;max-height:200px;overflow-y:auto;"></div>
+              </div>
+            </div>
+            <!-- IMT Info -->
+            <div id="fisik-imt-info" style="margin-top:12px;padding:10px 14px;background:#fef3dc;border-radius:8px;border-left:3px solid var(--gold);display:none;">
+              <div style="font-size:12px;font-weight:700;color:var(--navy);">📊 IMT/BMI Terkini</div>
+              <div id="fisik-imt-value" style="font-size:14px;color:var(--text);margin-top:4px;"></div>
+            </div>
+          </div>
         </div>
+
       </div>
 
       <!-- TAB PERKEMBANGAN -->
       <div id="kel-tab-perkembangan" style="display:none;">
         <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:16px;flex-wrap:wrap;">
-          <button onclick="analisisAI('perkembangan','terbaru')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#7c3aed;color:white;border:none;cursor:pointer;">🤖 Analisis Data Terbaru</button>
-          <button onclick="analisisAI('perkembangan','semua')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#5b21b6;color:white;border:none;cursor:pointer;">🤖 Analisis Semua Riwayat</button>
-          <button onclick="openLaporanPerkembangan()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:var(--navy);color:white;border:none;cursor:pointer;">👁 Buka Laporan</button>
+          <button onclick="analisisAI('perkembangan','terbaru')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#7c3aed;color:white;border:none;cursor:pointer;">🤖 Analisis Terbaru</button>
+          <button onclick="analisisAI('perkembangan','semua')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#5b21b6;color:white;border:none;cursor:pointer;">🤖 Analisis Semua</button>
+          <button onclick="openLaporanPerkembangan()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:var(--navy);color:white;border:none;cursor:pointer;">👁 Laporan</button>
           <button onclick="downloadLaporanPDF()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#16a34a;color:white;border:none;cursor:pointer;">📄 PDF</button>
           <button onclick="downloadLaporanWord()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#2563eb;color:white;border:none;cursor:pointer;">📝 Word</button>
         </div>
@@ -3512,7 +3555,36 @@ function buildWordHTML(pList) {
       <p style="text-align:center;color:#666;font-size:10pt;margin-bottom:24px;">Dibuat: ${now}</p>
       <hr style="border:1px solid #e8a020;margin-bottom:24px;">
       ${pagesHtml}
-    </body>
+    
+<!-- MODAL DATA FISIK (BB & TB) -->
+<div class="modal-overlay" id="fisik-modal-overlay" onclick="if(event.target===this)closeFisikModal()">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title" id="fisik-modal-title">⚖️ Tambah Berat Badan</div>
+      <button class="modal-close" onclick="closeFisikModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Tanggal *</label>
+        <input type="date" id="fisik-tanggal" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nilai * (<span id="fisik-satuan">kg</span>)</label>
+        <input type="number" id="fisik-nilai" class="form-input" placeholder="Contoh: 12.5" step="0.1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Keterangan (opsional)</label>
+        <input type="text" id="fisik-keterangan" class="form-input" placeholder="Cth: Setelah sembuh sakit">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeFisikModal()">Batal</button>
+      <button class="btn btn-primary" onclick="saveFisikData()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+</body>
     </html>`;
 }
 
@@ -5402,12 +5474,21 @@ const KES_STATUS_OPTIONS = [
   { v: 'sembuh',  label: '✅ Sembuh Total' },
 ];
 
+// Perkembangan: fokus kognitif, motorik, sosial, prestasi
 const PERK_JENIS = [
-  { key: 'berat',    label: '⚖️ Berat Badan',    satuan: 'kg',   placeholder: 'Cth: 12.5' },
-  { key: 'tinggi',   label: '📏 Tinggi Badan',    satuan: 'cm',   placeholder: 'Cth: 95' },
-  { key: 'prestasi', label: '🏆 Prestasi',        satuan: '',     placeholder: 'Cth: Juara 1 lomba mewarnai' },
-  { key: 'kemampuan',label: '⭐ Kemampuan Baru',  satuan: '',     placeholder: 'Cth: Sudah bisa berjalan' },
-  { key: 'lainnya',  label: '📝 Catatan Lainnya', satuan: '',     placeholder: 'Catatan bebas...' },
+  { key: 'kognitif',  label: '🧠 Perkembangan Kognitif',     satuan: '', placeholder: 'Cth: Bisa berhitung 1-20, mengenal huruf A-Z' },
+  { key: 'motorik',   label: '🏃 Perkembangan Motorik',      satuan: '', placeholder: 'Cth: Bisa berlari, melompat, memegang pensil' },
+  { key: 'sosial',    label: '🤝 Perkembangan Sosial/Emosi', satuan: '', placeholder: 'Cth: Sudah bisa berbagi mainan dengan teman' },
+  { key: 'kemampuan', label: '⭐ Kemampuan Baru',            satuan: '', placeholder: 'Cth: Bisa bersepeda, berenang' },
+  { key: 'prestasi',  label: '🏆 Prestasi',                  satuan: '', placeholder: 'Cth: Juara 1 lomba mewarnai tingkat kecamatan' },
+  { key: 'lainnya',   label: '📝 Catatan Lainnya',           satuan: '', placeholder: 'Catatan bebas dari orang tua...' },
+];
+
+// Data fisik (BB & TB) tetap di perkembangan untuk backward compatibility
+// tapi ditampilkan di Tab Kesehatan
+const FISIK_JENIS = [
+  { key: 'berat',  label: '⚖️ Berat Badan', satuan: 'kg', placeholder: 'Cth: 12.5' },
+  { key: 'tinggi', label: '📏 Tinggi Badan', satuan: 'cm', placeholder: 'Cth: 95' },
 ];
 
 function loadKelData() {
@@ -6538,53 +6619,50 @@ async function analisisAI(tipe, mode) {
 
   if (tipe === 'perkembangan') {
     const perk = a.perkembangan || {};
-    const beratList = (perk.berat || []).sort((x,y) => new Date(y.tanggal) - new Date(x.tanggal));
-    const tinggiList = (perk.tinggi || []).sort((x,y) => new Date(y.tanggal) - new Date(x.tanggal));
-    const prestasiList = perk.prestasi || [];
+    const kognitifList = perk.kognitif || [];
+    const motorikList = perk.motorik || [];
+    const sosialList = perk.sosial || [];
     const kemampuanList = perk.kemampuan || [];
+    const prestasiList = perk.prestasi || [];
     const lainnyaList = perk.lainnya || [];
 
-    const beratData = mode === 'terbaru' ? beratList.slice(0,1) : beratList;
-    const tinggiData = mode === 'terbaru' ? tinggiList.slice(0,1) : tinggiList;
+    const ambilData = function(list) {
+      return mode === 'terbaru' ? list.slice(-1) : list;
+    };
 
-    const beratTeks = beratData.map(x => '- ' + x.tanggal + ': ' + x.nilai + ' kg' + (x.keterangan ? ' (' + x.keterangan + ')' : '')).join('\n') || 'Tidak ada data';
-    const tinggiTeks = tinggiData.map(x => '- ' + x.tanggal + ': ' + x.nilai + ' cm' + (x.keterangan ? ' (' + x.keterangan + ')' : '')).join('\n') || 'Tidak ada data';
-    const prestasiTeks = prestasiList.length ? 'PRESTASI:\n' + prestasiList.map(x => '- ' + x.tanggal + ': ' + x.nilai).join('\n') : '';
-    const kemampuanTeks = kemampuanList.length ? 'KEMAMPUAN BARU:\n' + kemampuanList.map(x => '- ' + x.tanggal + ': ' + x.nilai).join('\n') : '';
-    const lainnyaTeks = lainnyaList.length ? 'CATATAN LAINNYA:\n' + lainnyaList.map(x => '- ' + x.tanggal + ': ' + x.nilai).join('\n') : '';
+    const buatTeks = function(list, label) {
+      var data = ambilData(list);
+      return data.length ? label + ':\n' + data.map(function(x){ return '- ' + x.tanggal + ': ' + x.nilai + (x.keterangan ? ' (' + x.keterangan + ')' : ''); }).join('\n') : '';
+    };
 
-    prompt = 'Kamu adalah dokter anak dan ahli gizi berpengalaman. Analisis data perkembangan berikut berdasarkan standar WHO Child Growth Standards 2006, Kemenkes RI, dan IDAI.\n\n'
+    const bagianData = [
+      buatTeks(kognitifList, 'PERKEMBANGAN KOGNITIF'),
+      buatTeks(motorikList, 'PERKEMBANGAN MOTORIK'),
+      buatTeks(sosialList, 'PERKEMBANGAN SOSIAL & EMOSI'),
+      buatTeks(kemampuanList, 'KEMAMPUAN BARU'),
+      buatTeks(prestasiList, 'PRESTASI'),
+      buatTeks(lainnyaList, 'CATATAN LAINNYA')
+    ].filter(Boolean).join('\n\n');
+
+    if (!bagianData) { showToast('⚠️ Belum ada data perkembangan'); return; }
+
+    prompt = 'Kamu adalah psikolog anak dan ahli tumbuh kembang berpengalaman. Analisis data perkembangan anak berikut.\n\n'
       + 'IDENTITAS:\n'
-      + '- Nama: ' + (a.nama || '-') + '\n'
-      + '- Hubungan: ' + (a.peran || '-') + '\n'
-      + '- Jenis Kelamin: ' + (a.kelamin || '-') + '\n'
-      + '- Tanggal Lahir: ' + (a.lahir || '-') + '\n'
-      + '- Usia Saat Ini: ' + usia + '\n\n'
-      + 'DATA BERAT BADAN:\n' + beratTeks + '\n\n'
-      + 'DATA TINGGI BADAN:\n' + tinggiTeks + '\n\n'
-      + (prestasiTeks ? prestasiTeks + '\n' : '')
-      + (kemampuanTeks ? kemampuanTeks + '\n' : '')
-      + (lainnyaTeks ? lainnyaTeks + '\n' : '')
-      + '\nBerikan analisis LENGKAP dalam format berikut (gunakan bahasa Indonesia yang jelas):\n\n'
-      + '**STATUS GIZI:**\n'
-      + '[Status: Normal/Gizi Kurang/Gizi Buruk/Overweight]\n'
-      + '[Z-score BB/U: ... SD]\n'
-      + '[Z-score TB/U: ... SD]\n'
-      + '[Z-score BB/TB: ... SD]\n'
-      + '[Berat normal untuk usia ini: ... kg]\n'
-      + '[Tinggi normal untuk usia ini: ... cm]\n\n'
-      + '**ANALISIS TREN:**\n'
-      + '[Penjelasan tren pertumbuhan dari data yang ada]\n\n'
-      + '**KESIMPULAN:**\n'
-      + '[Kesimpulan status gizi dan kondisi]\n\n'
-      + '**SARAN & REKOMENDASI:**\n'
-      + '[Saran asupan makanan spesifik]\n'
-      + '[Jadwal timbang ulang]\n'
-      + '[Aktivitas yang disarankan]\n\n'
-      + '**KAPAN PERLU KE DOKTER:**\n'
-      + '[Kondisi yang memerlukan pemeriksaan segera]\n\n'
-      + '**SUMBER ILMIAH:**\n'
-      + '[Standar/referensi yang digunakan]';
+      + 'Nama: ' + (a.nama||'-') + '\n'
+      + 'Jenis Kelamin: ' + (a.kelamin||'-') + '\n'
+      + 'Tanggal Lahir: ' + (a.lahir||'-') + '\n'
+      + 'Usia: ' + usia + '\n\n'
+      + 'DATA PERKEMBANGAN:\n' + bagianData + '\n\n'
+      + 'Berikan analisis LENGKAP (bahasa Indonesia):\n\n'
+      + '**ANALISIS PERKEMBANGAN KOGNITIF:**\n[Apakah sesuai usia? Apa yang perlu distimulasi?]\n\n'
+      + '**ANALISIS PERKEMBANGAN MOTORIK:**\n[Perkembangan gerak & koordinasi — sesuai usia?]\n\n'
+      + '**ANALISIS PERKEMBANGAN SOSIAL & EMOSI:**\n[Kemampuan berinteraksi dan mengelola emosi]\n\n'
+      + '**ANALISIS KEMAMPUAN & PRESTASI:**\n[Evaluasi kemampuan dan pencapaian yang diraih]\n\n'
+      + '**KESIMPULAN MENYELURUH:**\n[Kondisi perkembangan secara keseluruhan]\n\n'
+      + '**SARAN STIMULASI:**\n[Kegiatan dan permainan yang disarankan untuk stimulasi]\n\n'
+      + '**KAPAN PERLU KE AHLI TUMBUH KEMBANG:**\n[Tanda yang memerlukan konsultasi spesialis]\n\n'
+      + '**REFERENSI ILMIAH:**\n[IDAI, WHO, Denver Developmental Screening Test, referensi tumbuh kembang lainnya]\n\n'
+      + 'PENTING: Ini informasi edukatif, bukan pengganti konsultasi dokter/psikolog anak.';
 
   } else if (tipe === 'kesehatan') {
     const kesList = a.kesehatan || [];
@@ -6718,3523 +6796,7 @@ function closeAnalisisModal() {
   var m = document.getElementById('modal-analisis-ai');
   if (m) m.style.display = 'none';
 }
-
-DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monitoring Pekerjaan</title>
-
-<!-- PWA: manifest & ikon -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f2544">
-<link rel="icon" href="icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Monitoring">
-
-<script>
-// ── SERVICE WORKER REGISTRATION ──
-// Daftarkan sw.js sebagai file asli (BUKAN blob) — wajib untuk memenuhi
-// kriteria "Install App"/Add to Home Screen di Chrome/Android.
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js', { scope: './' })
-      .then(reg => {
-        console.log('✅ Service Worker terdaftar:', reg.scope);
-        if (navigator.onLine && reg.active) {
-          reg.active.postMessage({ type: 'PRELOAD' });
-        }
-      })
-      .catch(err => console.warn('SW gagal:', err));
-  });
-}
-</script>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-
-  /* ── OFFLINE BANNER ── */
-  #offline-banner {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 9999;
-    background: #b45309;
-    color: white;
-    text-align: center;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: .3px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.3);
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
-  #offline-banner.show { display: block; }
-  body.offline-mode .header { margin-top: 37px; }
-
-  :root {
-    --navy: #0f2544;
-    --navy-mid: #1a3a6b;
-    --navy-light: #e8eef7;
-    --gold: #e8a020;
-    --gold-light: #fef3dc;
-    --green: #16a34a;
-    --green-light: #dcfce7;
-    --red: #dc2626;
-    --red-light: #fee2e2;
-    --blue: #2563eb;
-    --blue-light: #dbeafe;
-    --orange: #ea580c;
-    --orange-light: #ffedd5;
-    --gray: #64748b;
-    --gray-light: #f1f5f9;
-    --white: #ffffff;
-    --border: #dde3ee;
-    --text: #1e293b;
-    --text-muted: #64748b;
-    --shadow: 0 2px 12px rgba(15,37,68,0.10);
-    --shadow-lg: 0 8px 32px rgba(15,37,68,0.16);
-    --radius: 14px;
-    --radius-sm: 8px;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html, body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background: #f0f4fb;
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-    max-width: 100vw;
-  }
-
-  /* ── HEADER ── */
-  .header {
-    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
-    padding: 0 32px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 16px rgba(15,37,68,0.25);
-  }
-  .header-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 64px;
-    gap: 16px;
-  }
-  .header-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-    flex: 1 1 auto;
-    overflow: hidden;
-  }
-  .header-icon {
-    width: 36px; height: 36px; min-width: 36px;
-    background: var(--gold);
-    border-radius: 9px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-  }
-  .header-text { min-width: 0; overflow: hidden; }
-  .header-title { color: white; font-weight: 700; font-size: 16px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .header-sub { color: rgba(255,255,255,0.55); font-size: 11px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  .header-actions { display: flex; gap: 10px; align-items: center; flex: 0 0 auto; }
-
-  .btn {
-    display: inline-flex; align-items: center; gap: 7px;
-    padding: 8px 16px; border-radius: var(--radius-sm);
-    font-family: inherit; font-size: 13px; font-weight: 600;
-    cursor: pointer; border: none; transition: all .15s;
-    white-space: nowrap;
-  }
-  .btn-primary {
-    background: var(--gold); color: var(--navy);
-  }
-  .btn-primary:hover { background: #d4901a; transform: translateY(-1px); }
-  .btn-outline {
-    background: rgba(255,255,255,0.12); color: white;
-    border: 1.5px solid rgba(255,255,255,0.25);
-  }
-  .btn-outline:hover { background: rgba(255,255,255,0.22); }
-  .btn-danger { background: var(--red-light); color: var(--red); }
-  .btn-danger:hover { background: #fca5a5; }
-  .btn-green { background: var(--green-light); color: var(--green); }
-  .btn-green:hover { background: #bbf7d0; }
-  .btn-sm { padding: 5px 11px; font-size: 12px; }
-
-  /* ── TABS ── */
-  .tabs {
-    background: white;
-    border-bottom: 1.5px solid var(--border);
-    padding: 0 32px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tabs-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    gap: 4px;
-    width: max-content;
-    min-width: 100%;
-  }
-  .tab {
-    padding: 14px 20px;
-    font-size: 13px; font-weight: 600;
-    color: var(--text-muted);
-    cursor: pointer;
-    border-bottom: 2.5px solid transparent;
-    transition: all .15s;
-    display: flex; align-items: center; gap: 7px;
-    white-space: nowrap;
-  }
-  .tab:hover { color: var(--navy); }
-  .tab.active { color: var(--navy); border-bottom-color: var(--gold); }
-
-  /* ── NOTIF TAB BADGE ── */
-  .tab-badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 18px; height: 18px; padding: 0 5px;
-    border-radius: 20px; font-size: 10px; font-weight: 800;
-    background: var(--red); color: white;
-    line-height: 1;
-  }
-  .tab-badge.hidden { display: none; }
-
-  /* ── NOTIF PAGE ── */
-  .notif-empty {
-    text-align: center; padding: 60px 20px;
-    color: var(--text-muted);
-  }
-  .notif-empty-icon { font-size: 52px; margin-bottom: 12px; }
-  .notif-empty-title { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
-  .notif-empty-sub { font-size: 13px; }
-
-  .notif-group { margin-bottom: 20px; }
-  .notif-group-label {
-    font-size: 11px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: .7px; color: var(--text-muted);
-    margin-bottom: 8px; padding-left: 4px;
-  }
-
-  .notif-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 16px;
-    background: white; border-radius: var(--radius-sm);
-    border: 1.5px solid var(--border);
-    margin-bottom: 6px;
-    cursor: pointer;
-    transition: box-shadow .15s, border-color .15s;
-    box-shadow: var(--shadow);
-    position: relative; overflow: hidden;
-  }
-  .notif-row:hover { box-shadow: var(--shadow-lg); border-color: var(--navy-mid); }
-  .notif-row::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-    width: 5px;
-  }
-  .notif-row.level-danger::before  { background: var(--red); }
-  .notif-row.level-warning::before { background: #d97706; }
-  .notif-row.level-info::before    { background: var(--blue); }
-
-  .notif-color-dot {
-    width: 12px; height: 12px; border-radius: 50%; min-width: 12px;
-    margin-left: 4px;
-  }
-  .level-danger  .notif-color-dot { background: var(--red); }
-  .level-warning .notif-color-dot { background: #d97706; }
-  .level-info    .notif-color-dot { background: var(--blue); }
-
-  .notif-row-info { flex: 1; min-width: 0; }
-  .notif-row-nama {
-    font-size: 13px; font-weight: 700; color: var(--navy);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .notif-row-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
-
-  .notif-row-badge {
-    font-size: 11px; font-weight: 800;
-    padding: 4px 12px; border-radius: 20px;
-    white-space: nowrap;
-  }
-  .level-danger  .notif-row-badge { background: var(--red-light);    color: var(--red); }
-  .level-warning .notif-row-badge { background: #fef3dc;              color: #b45309; }
-  .level-info    .notif-row-badge { background: var(--blue-light);    color: var(--blue); }
-
-  .notif-row-deadline {
-    font-size: 11px; color: var(--text-muted); margin-top: 2px;
-  }
-
-  /* ── MAIN ── */
-  .main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 28px 32px;
-  }
-
-  /* ── SUMMARY CARDS ── */
-  .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 28px;
-  }
-  .summary-card {
-    background: white;
-    border-radius: var(--radius);
-    padding: 20px 22px;
-    box-shadow: var(--shadow);
-    border: 1.5px solid var(--border);
-    display: flex; flex-direction: column; gap: 6px;
-  }
-  .summary-card .label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; }
-  .summary-card .value { font-size: 28px; font-weight: 800; color: var(--navy); line-height: 1; }
-  .summary-card .sub { font-size: 12px; color: var(--text-muted); font-weight: 500; }
-  .summary-card.gold { border-top: 3px solid var(--gold); }
-  .summary-card.green { border-top: 3px solid var(--green); }
-  .summary-card.red { border-top: 3px solid var(--red); }
-  .summary-card.blue { border-top: 3px solid var(--blue); }
-
-  /* ── SECTION HEADER ── */
-  .section-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 16px;
-  }
-  .section-title { font-size: 16px; font-weight: 700; color: var(--navy); }
-
-  /* ── PEKERJAAN CARD ── */
-  .pekerjaan-list { display: flex; flex-direction: column; gap: 16px; }
-
-  .pekerjaan-card {
-    background: white;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    border: 1.5px solid var(--border);
-    overflow: hidden;
-    transition: box-shadow .2s;
-  }
-  .pekerjaan-card:hover { box-shadow: var(--shadow-lg); }
-
-  .card-header {
-    padding: 18px 22px 14px;
-    display: flex; align-items: flex-start; gap: 14px;
-    cursor: pointer;
-    user-select: none;
-  }
-  .card-no {
-    width: 32px; height: 32px; min-width: 32px;
-    background: var(--navy-light);
-    color: var(--navy);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 800;
-    margin-top: 1px;
-  }
-  .card-info { flex: 1; min-width: 0; }
-  .card-kategori {
-    font-size: 11px; font-weight: 700; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: .5px;
-    margin-bottom: 3px;
-  }
-  .card-nama {
-    font-size: 15px; font-weight: 700; color: var(--navy);
-    margin-bottom: 8px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .card-meta {
-    display: flex; flex-wrap: wrap; gap: 12px;
-  }
-  .meta-item {
-    display: flex; align-items: center; gap: 5px;
-    font-size: 12px; color: var(--text-muted); font-weight: 500;
-  }
-
-  .card-right {
-    display: flex; flex-direction: column; align-items: flex-end; gap: 8px;
-    min-width: 160px;
-  }
-  .status-badge {
-    padding: 4px 10px; border-radius: 20px;
-    font-size: 11px; font-weight: 700;
-    white-space: nowrap;
-  }
-  .status-selesai { background: var(--green-light); color: var(--green); }
-  .status-terlambat { background: var(--red-light); color: var(--red); }
-  .status-berjalan { background: var(--blue-light); color: var(--blue); }
-  .status-baru { background: var(--gray-light); color: var(--gray); }
-  .status-menunggu { background: var(--orange-light); color: var(--orange); }
-
-  /* Progress bar */
-  .progress-wrap { width: 100%; }
-  .progress-label {
-    display: flex; justify-content: space-between;
-    font-size: 11px; font-weight: 600;
-    color: var(--text-muted); margin-bottom: 5px;
-  }
-  .progress-pct { color: var(--navy); font-weight: 800; font-size: 13px; }
-  .progress-bar-bg {
-    height: 8px; background: var(--gray-light);
-    border-radius: 4px; overflow: hidden;
-  }
-  .progress-bar-fill {
-    height: 100%; border-radius: 4px;
-    background: linear-gradient(90deg, var(--navy-mid), var(--gold));
-    transition: width .4s ease;
-  }
-
-  .chevron {
-    font-size: 16px; color: var(--text-muted);
-    transition: transform .2s;
-    margin-left: 4px;
-  }
-  .chevron.open { transform: rotate(180deg); }
-
-  /* ── FOTO UPLOAD ── */
-  .foto-section { margin-top: 20px; }
-  .foto-section .detail-label { margin-bottom: 12px; }
-
-  .foto-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-  .foto-item {
-    position: relative;
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    border: 1.5px solid var(--border);
-    background: var(--gray-light);
-    cursor: pointer;
-    transition: box-shadow .15s;
-  }
-  .foto-item:hover { box-shadow: var(--shadow); }
-  .foto-img {
-    width: 100%; height: 110px;
-    object-fit: cover; display: block;
-  }
-  .foto-caption-wrap {
-    padding: 6px 8px;
-    background: white;
-  }
-  .foto-caption-input {
-    width: 100%; border: none; outline: none;
-    font-family: inherit; font-size: 11px;
-    color: var(--text); background: transparent;
-    resize: none; padding: 0;
-  }
-  .foto-caption-input::placeholder { color: #aaa; }
-  .foto-del {
-    position: absolute; top: 5px; right: 5px;
-    width: 22px; height: 22px;
-    background: rgba(220,38,38,0.85); color: white;
-    border: none; border-radius: 50%;
-    cursor: pointer; font-size: 12px;
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; transition: opacity .15s;
-  }
-  .foto-item:hover .foto-del { opacity: 1; }
-
-  .foto-upload-btn {
-    display: flex; align-items: center; justify-content: center;
-    gap: 8px; width: 100%;
-    padding: 10px; border-radius: var(--radius-sm);
-    border: 2px dashed var(--border);
-    background: var(--gray-light);
-    color: var(--text-muted); font-size: 13px; font-weight: 600;
-    cursor: pointer; transition: all .15s;
-    font-family: inherit;
-  }
-  .foto-upload-btn:hover { border-color: var(--navy-mid); color: var(--navy); background: var(--navy-light); }
-  .foto-count { font-size: 11px; color: var(--text-muted); margin-top: 6px; text-align: right; }
-
-  /* ── DOKUMEN & LINK ── */
-  .dokumen-section { margin-top: 20px; }
-  .dokumen-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-
-  .dokumen-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 14px;
-    background: var(--gray-light);
-    border-radius: var(--radius-sm);
-    border: 1.5px solid var(--border);
-    transition: border-color .15s;
-  }
-  .dokumen-item:hover { border-color: var(--navy-mid); }
-
-  .dokumen-icon {
-    font-size: 20px; min-width: 28px; text-align: center;
-  }
-  .dokumen-info { flex: 1; min-width: 0; }
-  .dokumen-nama {
-    font-size: 13px; font-weight: 600; color: var(--navy);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .dokumen-meta {
-    font-size: 11px; color: var(--text-muted); margin-top: 2px;
-  }
-  .dokumen-actions { display: flex; gap: 6px; }
-  .dokumen-btn {
-    padding: 4px 10px; border-radius: 6px;
-    font-size: 11px; font-weight: 600;
-    border: 1.5px solid var(--border);
-    background: white; color: var(--navy);
-    cursor: pointer; transition: all .15s; white-space: nowrap;
-  }
-  .dokumen-btn:hover { background: var(--navy-light); border-color: var(--navy-mid); }
-  .dokumen-btn.del { color: var(--red); }
-  .dokumen-btn.del:hover { background: var(--red-light); border-color: var(--red); }
-
-  .dokumen-add-row {
-    display: grid; gap: 8px;
-    margin-top: 8px;
-  }
-  .dokumen-add-row input {
-    padding: 8px 12px;
-    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-    font-family: inherit; font-size: 13px; color: var(--text);
-    outline: none; background: white; width: 100%;
-  }
-  .dokumen-add-row input:focus { border-color: var(--navy-mid); }
-  .dokumen-tabs {
-    display: flex; gap: 8px; margin-bottom: 10px;
-  }
-  .dokumen-tab {
-    padding: 6px 16px; border-radius: 20px;
-    font-size: 12px; font-weight: 700;
-    border: 1.5px solid var(--border);
-    background: white; color: var(--text-muted);
-    cursor: pointer; transition: all .15s;
-  }
-  .dokumen-tab.active { background: var(--navy); color: white; border-color: var(--navy); }
-  .dokumen-count { font-size: 11px; color: var(--text-muted); margin-top: 6px; text-align: right; }
-  .dokumen-upload-zone {
-    border: 2px dashed var(--border);
-    border-radius: 10px;
-    padding: 16px 12px;
-    text-align: center;
-    margin-top: 8px;
-    cursor: pointer;
-    transition: border-color .2s, background .2s;
-    background: var(--bg);
-  }
-  .dokumen-upload-zone:hover, .dokumen-upload-zone.drag-active {
-    border-color: var(--navy);
-    background: var(--navy-light);
-  }
-  .dok-preview-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    background: var(--navy-light);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 12px;
-  }
-  .dok-preview-item .dok-preview-size { color: var(--text-muted); font-size: 11px; margin-left: auto; }
-  .dok-preview-item .dok-preview-remove { cursor: pointer; color: var(--red); font-size: 13px; margin-left: 4px; }
-
-  /* ── LIGHTBOX ── */
-  .lightbox {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.88);
-    z-index: 500; display: none;
-    align-items: center; justify-content: center;
-    flex-direction: column; gap: 12px;
-  }
-  .lightbox.open { display: flex; }
-  .lightbox img { max-width: 90vw; max-height: 75vh; border-radius: 8px; box-shadow: 0 8px 40px rgba(0,0,0,.5); }
-  .lightbox-caption { color: white; font-size: 14px; font-weight: 500; max-width: 600px; text-align: center; }
-  .lightbox-close {
-    position: fixed; top: 20px; right: 24px;
-    background: rgba(255,255,255,0.15); color: white;
-    border: none; border-radius: 50%; width: 36px; height: 36px;
-    font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  }
-  .lightbox-close:hover { background: rgba(255,255,255,0.28); }
-
-  /* ── CARD BODY (detail) ── */
-  .card-body {
-    border-top: 1.5px solid var(--border);
-    padding: 20px 22px;
-    display: none;
-  }
-  .card-body.open { display: block; }
-
-  .detail-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 20px;
-  }
-
-  .detail-section { }
-  .detail-label {
-    font-size: 11px; font-weight: 700; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: .5px;
-    margin-bottom: 10px;
-    padding-bottom: 6px;
-    border-bottom: 1.5px solid var(--border);
-  }
-
-  /* ── DRAG & DROP ── */
-  .drag-handle {
-    cursor: grab;
-    color: #cbd5e1;
-    font-size: 16px;
-    padding: 0 4px;
-    user-select: none;
-    line-height: 1;
-    transition: color .15s;
-    display: flex; align-items: center;
-  }
-  .drag-handle:hover { color: var(--navy-mid); }
-  .drag-handle:active { cursor: grabbing; }
-
-  .pekerjaan-card.dragging {
-    opacity: 0.4;
-    border: 2px dashed var(--navy-mid) !important;
-  }
-  .pekerjaan-card.drag-over {
-    border-top: 3px solid var(--gold) !important;
-  }
-
-  .checklist-item.dragging {
-    opacity: 0.4;
-    border: 2px dashed var(--navy-mid);
-  }
-  .checklist-item.drag-over {
-    border-top: 3px solid var(--gold);
-  }
-
-  /* ── CHECKLIST ── */
-  .checklist { display: flex; flex-direction: column; gap: 6px; }
-  .checklist-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 9px 12px;
-    background: var(--gray-light);
-    border-radius: var(--radius-sm);
-    transition: background .15s;
-  }
-  .checklist-item:hover { background: #e2e8f0; }
-  .checklist-item.done { background: var(--green-light); }
-
-  .check-box {
-    width: 20px; height: 20px; min-width: 20px;
-    border: 2px solid #cbd5e1;
-    border-radius: 5px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px;
-    transition: all .15s;
-    background: white;
-  }
-  .check-box.checked {
-    background: var(--green);
-    border-color: var(--green);
-    color: white;
-  }
-  .check-label {
-    font-size: 13px; font-weight: 500; color: var(--text);
-    flex: 1;
-    cursor: pointer;
-  }
-  .check-label.done-text {
-    text-decoration: line-through;
-    color: var(--text-muted);
-  }
-  .check-delete {
-    width: 22px; height: 22px;
-    border: none; background: none; cursor: pointer;
-    color: #cbd5e1; font-size: 15px;
-    border-radius: 4px;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .15s;
-    opacity: 0;
-  }
-  .checklist-item:hover .check-delete { opacity: 1; }
-  .check-delete:hover { color: var(--red); background: var(--red-light); }
-
-  .add-subtask {
-    display: flex; gap: 8px; margin-top: 8px;
-  }
-  .add-subtask input {
-    flex: 1; padding: 8px 12px;
-    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-    font-family: inherit; font-size: 13px; color: var(--text);
-    outline: none;
-    transition: border-color .15s;
-  }
-  .add-subtask input:focus { border-color: var(--navy-mid); }
-
-  /* ── INFO FIELDS ── */
-  .info-field { margin-bottom: 12px; }
-  .info-field label {
-    font-size: 11px; font-weight: 600; color: var(--text-muted);
-    display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .4px;
-  }
-  .info-field input, .info-field textarea, .info-field select {
-    width: 100%; padding: 8px 11px;
-    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-    font-family: inherit; font-size: 13px; color: var(--text);
-    outline: none; background: white;
-    transition: border-color .15s;
-    resize: vertical;
-  }
-  .info-field input:focus, .info-field textarea:focus, .info-field select:focus {
-    border-color: var(--navy-mid);
-  }
-
-  .card-actions {
-    display: flex; gap: 8px; justify-content: flex-end;
-    padding-top: 16px;
-    border-top: 1.5px solid var(--border);
-    margin-top: 16px;
-  }
-
-  /* ── LAPORAN VIEW ── */
-  .laporan-header {
-    background: white; border-radius: var(--radius);
-    padding: 20px 24px; margin-bottom: 20px;
-    box-shadow: var(--shadow); border: 1.5px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .laporan-title { font-size: 16px; font-weight: 700; color: var(--navy); }
-  .laporan-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
-  .laporan-box {
-    background: white; border-radius: var(--radius);
-    box-shadow: var(--shadow); border: 1.5px solid var(--border);
-    margin-bottom: 16px; overflow: hidden;
-  }
-  .laporan-box-header {
-    padding: 14px 20px;
-    background: var(--navy-light);
-    display: flex; align-items: center; gap: 12px;
-  }
-  .laporan-box-header .lh-title { font-size: 14px; font-weight: 700; color: var(--navy); flex: 1; }
-  .laporan-content {
-    padding: 16px 20px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px; line-height: 1.8;
-    color: var(--text);
-    white-space: pre-wrap;
-    border-bottom: 1.5px solid var(--border);
-  }
-  .laporan-copy-row {
-    padding: 10px 20px;
-    display: flex; justify-content: flex-end;
-  }
-
-  /* ── MODAL ── */
-  .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(15,37,68,0.55);
-    z-index: 200;
-    display: none; align-items: center; justify-content: center;
-    padding: 20px;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: white; border-radius: var(--radius);
-    width: 100%; max-width: 560px;
-    box-shadow: var(--shadow-lg);
-    max-height: 90vh; overflow-y: auto;
-  }
-  .modal-header {
-    padding: 20px 24px 16px;
-    border-bottom: 1.5px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .modal-title { font-size: 16px; font-weight: 700; color: var(--navy); }
-  .modal-close {
-    width: 30px; height: 30px; border: none; background: var(--gray-light);
-    border-radius: 7px; cursor: pointer; font-size: 16px;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-muted); transition: all .15s;
-  }
-  .modal-close:hover { background: var(--red-light); color: var(--red); }
-  .modal-body { padding: 20px 24px; }
-  .modal-footer {
-    padding: 14px 24px 20px;
-    display: flex; gap: 10px; justify-content: flex-end;
-    border-top: 1.5px solid var(--border);
-  }
-
-  /* ── CHECKLIST HARIAN ── */
-  .chk-summary { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
-  .chk-sum-card {
-    flex:1; min-width:120px;
-    background:white; border-radius:var(--radius-sm);
-    border:1.5px solid var(--border); box-shadow:var(--shadow);
-    padding:14px 16px; border-top:3px solid var(--gray);
-  }
-  .chk-sum-card .chk-sum-val { font-size:24px; font-weight:800; color:var(--navy); line-height:1; }
-  .chk-sum-card .chk-sum-lbl { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.5px; margin-top:4px; }
-  .chk-sum-card.pending { border-top-color:var(--orange); }
-  .chk-sum-card.selesai { border-top-color:var(--green); }
-  .chk-sum-card.gagal { border-top-color:var(--red); }
-
-  .chk-add-bar {
-    display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;
-    background:white; border:1.5px solid var(--border); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:14px 16px;
-  }
-  .chk-add-bar input[type="text"] {
-    flex:2 1 200px; padding:9px 12px; border:1.5px solid var(--border);
-    border-radius:var(--radius-sm); font-family:inherit; font-size:13px; outline:none;
-  }
-  .chk-add-bar input[type="date"], .chk-add-bar input[type="time"] {
-    flex:1 1 120px; padding:9px 12px; border:1.5px solid var(--border);
-    border-radius:var(--radius-sm); font-family:inherit; font-size:13px; outline:none;
-  }
-  .chk-add-bar input:focus { border-color:var(--gold); }
-
-  .chk-list { display:flex; flex-direction:column; gap:10px; }
-  .chk-row {
-    display:flex; align-items:center; gap:14px;
-    background:white; border:1.5px solid var(--border); border-radius:var(--radius-sm);
-    box-shadow:var(--shadow); padding:14px 16px;
-    transition: all .25s ease;
-  }
-  .chk-row.is-selesai { opacity:.65; }
-  .chk-row.is-gagal { border-left:4px solid var(--red); }
-  .chk-row.is-pending { border-left:4px solid var(--orange); }
-  .chk-row.is-selesai { border-left:4px solid var(--green); }
-  .chk-row-info { flex:1; min-width:0; }
-  .chk-row-nama {
-    font-size:14px; font-weight:700; color:var(--navy);
-    word-break:break-word;
-  }
-  .chk-row-nama.done-text { text-decoration:line-through; color:var(--text-muted); }
-  .chk-row-ket { font-size:12px; color:var(--text-muted); margin-top:3px; word-break:break-word; }
-  .chk-row-meta { display:flex; gap:12px; margin-top:6px; flex-wrap:wrap; }
-  .chk-row-meta span { font-size:11px; color:var(--text-muted); font-weight:600; display:flex; align-items:center; gap:4px; }
-
-  .chk-status-group { display:flex; gap:6px; flex-wrap:wrap; }
-  .chk-status-btn {
-    padding:6px 12px; border-radius:20px; font-size:11px; font-weight:700;
-    cursor:pointer; border:1.5px solid var(--border); background:white; color:var(--text-muted);
-    transition:all .15s; white-space:nowrap;
-  }
-  .chk-status-btn:hover { transform:translateY(-1px); }
-  .chk-status-btn.active-pending { background:var(--orange-light); color:var(--orange); border-color:var(--orange); }
-  .chk-status-btn.active-selesai { background:var(--green-light); color:var(--green); border-color:var(--green); }
-  .chk-status-btn.active-gagal { background:var(--red-light); color:var(--red); border-color:var(--red); }
-
-  .chk-row-delete {
-    width:30px; height:30px; min-width:30px; border:none; background:var(--gray-light);
-    border-radius:7px; cursor:pointer; font-size:13px; color:var(--text-muted);
-    display:flex; align-items:center; justify-content:center; transition:all .15s;
-  }
-  .chk-row-delete:hover { background:var(--red-light); color:var(--red); }
-
-  .chk-empty {
-    text-align:center; padding:40px 20px; color:var(--text-muted);
-    background:white; border-radius:var(--radius); border:1.5px dashed var(--border);
-  }
-  .chk-empty .chk-empty-icon { font-size:36px; margin-bottom:10px; }
-
-  @media (max-width: 640px) {
-    .chk-row { flex-wrap:wrap; }
-    .chk-status-group { width:100%; order:3; }
-    .chk-row-delete { order:2; }
-
-    /* Supaya baris tombol aksi (Export, Edit, Hapus, Tambah, dll) di semua halaman
-       tidak terpotong di layar HP — otomatis pindah ke baris baru, bukan hilang
-       ke samping tanpa bisa digeser. */
-    .section-header { flex-wrap: wrap; row-gap: 10px; }
-    .section-header > div { flex-wrap: wrap; row-gap: 8px; }
-    .section-header .btn, .section-header button { flex: 0 0 auto; }
-  }
-
-  /* ── GROUP SECTION ── */
-  .group-section { margin-bottom: 28px; }
-  .group-header {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 12px;
-    padding: 10px 16px;
-    background: white;
-    border-radius: var(--radius-sm);
-    border: 1.5px solid var(--border);
-    border-left: 4px solid var(--navy-mid);
-    box-shadow: var(--shadow);
-  }
-  .group-header.grup-ummah { border-left-color: #7c3aed; }
-  .group-header.grup-suluh { border-left-color: #0891b2; }
-  .group-header.grup-akademik { border-left-color: #16a34a; }
-  .group-header.grup-lainnya { border-left-color: #64748b; }
-  .group-label {
-    font-size: 12px; font-weight: 800; color: var(--navy);
-    text-transform: uppercase; letter-spacing: .8px; flex: 1;
-  }
-  .group-count {
-    font-size: 11px; font-weight: 600; color: var(--text-muted);
-    background: var(--gray-light); padding: 2px 10px; border-radius: 20px;
-  }
-
-  /* ── GROUP BADGE on card ── */
-  .grup-badge {
-    display: inline-flex; align-items: center;
-    padding: 2px 8px; border-radius: 20px;
-    font-size: 10px; font-weight: 700;
-    background: var(--navy-light); color: var(--navy-mid);
-    margin-left: 6px;
-  }
-
-  /* ── ALERT BANNER DEADLINE ── */
-  .alert-banner {
-    margin-bottom: 16px;
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    animation: slideDown .3s ease;
-  }
-  @keyframes slideDown {
-    from { opacity:0; transform:translateY(-12px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-  .alert-banner-header {
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 18px;
-    cursor: pointer; user-select: none;
-  }
-  .alert-banner-header .ab-icon { font-size: 20px; }
-  .alert-banner-header .ab-title { font-size: 13px; font-weight: 800; flex: 1; }
-  .alert-banner-header .ab-count {
-    font-size: 11px; font-weight: 700;
-    padding: 2px 10px; border-radius: 20px;
-    background: rgba(255,255,255,0.3);
-  }
-  .alert-banner-header .ab-toggle { font-size: 14px; transition: transform .2s; }
-  .alert-banner-header .ab-toggle.open { transform: rotate(180deg); }
-
-  .alert-banner-body { padding: 0 18px 14px; }
-  .alert-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 12px; margin-bottom: 6px;
-    border-radius: var(--radius-sm);
-    background: rgba(255,255,255,0.22);
-    cursor: pointer; transition: background .15s;
-  }
-  .alert-row:hover { background: rgba(255,255,255,0.35); }
-  .alert-row:last-child { margin-bottom: 0; }
-  .alert-row-icon { font-size: 16px; min-width: 22px; }
-  .alert-row-info { flex: 1; min-width: 0; }
-  .alert-row-nama {
-    font-size: 12px; font-weight: 700;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .alert-row-meta { font-size: 11px; opacity: .85; margin-top: 1px; }
-  .alert-row-badge {
-    font-size: 10px; font-weight: 800;
-    padding: 3px 9px; border-radius: 20px;
-    background: rgba(255,255,255,0.3);
-    white-space: nowrap;
-  }
-
-  /* warna per level */
-  .alert-danger  { background: linear-gradient(135deg,#dc2626,#b91c1c); color:white; }
-  .alert-warning { background: linear-gradient(135deg,#d97706,#b45309); color:white; }
-  .alert-info    { background: linear-gradient(135deg,#2563eb,#1d4ed8); color:white; }
-
-  /* ── NOTIF BELL ── */
-  .notif-bell {
-    position: relative; cursor: pointer;
-    background: rgba(255,255,255,0.15);
-    border: none; color: white;
-    width: 36px; height: 36px; border-radius: 50%;
-    font-size: 18px; display: flex; align-items: center; justify-content: center;
-    transition: background .15s;
-  }
-  .notif-bell:hover { background: rgba(255,255,255,0.28); }
-  .notif-dot {
-    position: absolute; top: 4px; right: 4px;
-    width: 10px; height: 10px; border-radius: 50%;
-    background: #f59e0b; border: 2px solid var(--navy);
-    display: none;
-  }
-  .notif-dot.show { display: block; }
-
-  /* ── FILTER BAR ── */
-  .filter-bar {
-    display: flex; gap: 8px; align-items: center;
-    flex-wrap: wrap;
-  }
-  .filter-group-btn {
-    padding: 6px 14px; border-radius: 20px;
-    font-size: 12px; font-weight: 700;
-    border: 1.5px solid var(--border);
-    background: white; color: var(--text-muted);
-    cursor: pointer; transition: all .15s;
-  }
-  .filter-group-btn:hover { border-color: var(--navy-mid); color: var(--navy); }
-  .filter-group-btn.active { background: var(--navy); color: white; border-color: var(--navy); }
-
-  /* ── MANAGE MODALS ── */
-  .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-  .tag-item {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 12px; border-radius: 20px;
-    background: var(--navy-light); color: var(--navy);
-    font-size: 12px; font-weight: 600;
-  }
-  .tag-del {
-    cursor: pointer; color: var(--text-muted); font-size: 13px;
-    background: none; border: none; padding: 0; line-height: 1;
-    transition: color .15s;
-  }
-  .tag-del:hover { color: var(--red); }
-  .add-tag-row { display: flex; gap: 8px; }
-  .add-tag-row input {
-    flex: 1; padding: 8px 12px;
-    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-    font-family: inherit; font-size: 13px; color: var(--text);
-    outline: none;
-  }
-  .add-tag-row input:focus { border-color: var(--navy-mid); }
-
-  /* ── EMPTY STATE ── */
-  .empty {
-    text-align: center; padding: 60px 20px;
-    color: var(--text-muted);
-  }
-  .empty-icon { font-size: 48px; margin-bottom: 12px; }
-  .empty-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-  .empty-sub { font-size: 13px; }
-
-  /* ── TOAST ── */
-  .toast {
-    position: fixed; bottom: 24px; right: 24px;
-    background: var(--navy); color: white;
-    padding: 12px 20px; border-radius: var(--radius-sm);
-    font-size: 13px; font-weight: 600;
-    box-shadow: var(--shadow-lg);
-    transform: translateY(80px); opacity: 0;
-    transition: all .25s;
-    z-index: 999;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .toast.show { transform: translateY(0); opacity: 1; }
-
-  /* ── PAGE SECTIONS ── */
-  .page { display: none; }
-  .page.active { display: block; }
-
-
-  /* ── KAS TABLE ── */
-  #kas-table tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; }
-  #kas-table tbody tr:last-child { border-bottom: none; }
-  #kas-table tbody tr:hover { background: var(--gray-light); }
-  #kas-table td { padding: 10px 16px; vertical-align: middle; }
-  #kas-table tfoot td { padding: 12px 16px; font-weight: 800; font-size: 13px; border-top: 2px solid var(--border); background: var(--navy-light); }
-  .kas-masuk-val { color: var(--green); font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
-  .kas-keluar-val { color: var(--red); font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
-  .kas-saldo-pos { color: var(--navy); font-weight: 800; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
-  .kas-saldo-neg { color: var(--red); font-weight: 800; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 768px) {
-    .main { padding: 16px; }
-    .summary-grid { grid-template-columns: repeat(2,1fr); }
-    .detail-grid { grid-template-columns: 1fr; }
-    .header-inner { padding: 0 16px; }
-    .header-sub { max-width: 140px; }
-    .tabs { padding: 0 8px; }
-    .tab { padding: 14px 14px; }
-    .card-right { min-width: 110px; }
-    .header-actions .btn span { display: none; }
-  }
-
-  @media (max-width: 380px) {
-    .header-text { display: none; }
-    .card-right { min-width: 96px; }
-    .card-header { gap: 10px; }
-  }
-</style>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-</head>
-<body>
-
-<!-- OFFLINE BANNER -->
-<div id="offline-banner">
-  📡 Kamu sedang OFFLINE — data ditampilkan dari cache lokal. Perubahan akan disinkron otomatis saat online kembali.
-</div>
-
-<!-- HEADER -->
-<div class="header">
-  <div class="header-inner">
-    <div class="header-brand">
-      <div class="header-icon">🎓</div>
-      <div class="header-text">
-        <div class="header-title">Monitoring Pekerjaan</div>
-        <div class="header-sub" id="header-date"></div>
-      </div>
-    </div>
-    <div class="header-actions">
-      <button class="notif-bell" id="notif-bell" onclick="switchTab('notif', document.getElementById('tab-notif'))" title="Notifikasi Deadline">
-        🔔
-        <span class="notif-dot" id="notif-dot"></span>
-      </button>
-      <button class="btn btn-outline btn-sm" onclick="syncSekarangDariHeader()">🔄 <span>Sync</span></button>
-      <button class="btn btn-outline btn-sm" onclick="openManageModal('kategori')">🗂️ <span>Kategori</span></button>
-      <button class="btn btn-outline btn-sm" onclick="openManageModal('grup')">🏷️ <span>Grup</span></button>
-      <button class="btn btn-outline btn-sm" onclick="exportLaporan()">📋 <span>Laporan</span></button>
-      <button class="btn btn-primary btn-sm" onclick="openModal()">+ <span>Tambah Pekerjaan</span></button>
-    </div>
-  </div>
-</div>
-
-<!-- TABS -->
-<div class="tabs">
-  <div class="tabs-inner">
-    <div class="tab active" id="tab-monitoring" onclick="switchTab('monitoring',this)">📊 Monitoring</div>
-    <div class="tab" id="tab-notif" onclick="switchTab('notif',this)">
-      🔔 Notifikasi
-      <span class="tab-badge hidden" id="notif-badge">0</span>
-    </div>
-    <div class="tab" id="tab-keuangan" onclick="switchTab('keuangan',this)">
-      💰 Pembukuan
-    </div>
-    <div class="tab" id="tab-keluarga" onclick="switchTab('keluarga',this)">
-      👨‍👩‍👧‍👦 Rekam Keluarga
-    </div>
-    <div class="tab" id="tab-checklist" onclick="switchTab('checklist',this)">
-      ✅ Checklist Harian
-    </div>
-  </div>
-</div>
-
-
-<!-- MAIN -->
-<div class="main">
-
-  <!-- PAGE: MONITORING -->
-  <div class="page active" id="page-monitoring">
-
-    <!-- Summary -->
-    <div class="summary-grid" id="summary-grid"></div>
-
-    <!-- List -->
-    <div class="section-header">
-      <div class="section-title">Daftar Pekerjaan</div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <select id="filter-status" onchange="renderAll()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;color:var(--text);outline:none;cursor:pointer;">
-          <option value="">Semua Status</option>
-          <option value="selesai">✅ Selesai</option>
-          <option value="berjalan">🔄 Sedang Berjalan</option>
-          <option value="terlambat">🚨 Terlambat</option>
-          <option value="baru">📌 Baru Mulai</option>
-        </select>
-      </div>
-    </div>
-    <div id="grup-filter-bar" style="margin-bottom:16px;"></div>
-    <div class="pekerjaan-list" id="pekerjaan-list"></div>
-
-  </div>
-
-  <!-- PAGE: LAPORAN -->
-  <div class="page" id="page-laporan">
-    <div class="laporan-header">
-      <div>
-        <div class="laporan-title">📄 Laporan Otomatis</div>
-        <div class="laporan-sub">Diperbarui otomatis setiap ada perubahan checklist</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-primary" onclick="copyAllLaporan()">📋 Salin Semua</button>
-        <button class="btn btn-primary" style="background:var(--green);color:white;" onclick="exportAllWord()">📝 Export Semua ke Word</button>
-      </div>
-    </div>
-    <div id="laporan-list"></div>
-  </div>
-
-  <!-- PAGE: NOTIFIKASI -->
-  <div class="page" id="page-notif">
-    <div id="notif-page-content"></div>
-  </div>
-
-  <!-- PAGE: PEMBUKUAN KEUANGAN -->
-  <div class="page" id="page-keuangan">
-
-    <!-- VIEW 1: DAFTAR SEMUA BUKU -->
-    <div id="kas-view-list">
-      <!-- Filter bulan untuk total gabungan semua buku -->
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-        <span style="font-size:12px;font-weight:700;color:var(--text-muted);">📅 Filter Total Berdasarkan Bulan:</span>
-        <select id="kas-list-filter-bulan" onchange="showListView()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;color:var(--text);outline:none;cursor:pointer;">
-          <option value="">Semua Bulan</option>
-        </select>
-      </div>
-
-      <!-- Summary semua buku -->
-      <div class="summary-grid" id="kas-all-summary" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:24px;"></div>
-
-      <!-- Alert Banner Anggaran & Saldo Minus -->
-      <div id="kas-alert-banner" style="display:none;margin-bottom:16px;"></div>
-
-      <!-- Header daftar buku -->
-      <div class="section-header" style="margin-bottom:16px;">
-        <div class="section-title">📚 Daftar Buku Kas</div>
-        <button class="btn btn-primary btn-sm" onclick="openBukuModal()">+ Buku Kas Baru</button>
-      </div>
-
-      <!-- Grid kartu buku -->
-      <div id="kas-buku-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;"></div>
-
-      <!-- Empty state -->
-      <div id="kas-buku-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--text-muted);">
-        <div style="font-size:52px;margin-bottom:12px;">📒</div>
-        <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:6px;">Belum ada Buku Kas</div>
-        <div style="font-size:13px;margin-bottom:20px;">Buat buku kas pertama Anda. Contoh: Pembangunan Rumah, Seminar, Pengeluaran Bulanan...</div>
-        <button class="btn btn-primary" onclick="openBukuModal()">+ Buat Buku Kas Baru</button>
-      </div>
-    </div>
-
-    <!-- VIEW 2: DETAIL SATU BUKU -->
-    <div id="kas-view-detail" style="display:none;">
-
-      <!-- Breadcrumb -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
-        <button class="btn btn-sm" style="background:var(--navy-light);color:var(--navy);" onclick="backToBukuList()">← Kembali</button>
-        <span style="font-size:13px;color:var(--text-muted);">Pembukuan</span>
-        <span style="font-size:13px;color:var(--text-muted);">/</span>
-        <span id="kas-detail-breadcrumb" style="font-size:13px;font-weight:700;color:var(--navy);"></span>
-      </div>
-
-      <!-- Summary kartu buku ini -->
-      <div class="summary-grid" id="kas-detail-summary" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:24px;"></div>
-
-      <!-- Action bar -->
-      <div class="section-header" style="margin-bottom:16px;">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <div class="section-title" id="kas-detail-title"></div>
-          <select id="kas-filter-bulan" onchange="renderDetailBuku()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;color:var(--text);outline:none;cursor:pointer;">
-            <option value="">Semua Bulan</option>
-          </select>
-          <select id="kas-filter-jenis" onchange="renderDetailBuku()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;color:var(--text);outline:none;cursor:pointer;">
-            <option value="">Semua Jenis</option>
-            <option value="masuk">💚 Pemasukan</option>
-            <option value="keluar">❤️ Pengeluaran</option>
-          </select>
-        </div>
-        <div style="display:flex;gap:8px;position:relative;">
-          <div style="position:relative;">
-            <button class="btn btn-sm" style="background:#dcfce7;color:var(--green);" onclick="toggleKasExportMenu()">📤 Export</button>
-            <div id="kas-export-menu" style="display:none;position:absolute;right:0;top:110%;background:#fff;border:1.5px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:50;min-width:230px;padding:14px;">
-              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Format</label>
-              <select id="kas-export-format" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;margin-bottom:12px;">
-                <option value="excel">📊 Excel (.xlsx)</option>
-                <option value="pdf">📄 PDF</option>
-                <option value="word">📝 Word (.doc)</option>
-              </select>
-              <label style="display:block;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Periode</label>
-              <select id="kas-export-scope" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;margin-bottom:12px;">
-                <option value="bulan">📅 Bulan yang dipilih</option>
-                <option value="tahun">🗓️ Tahun ini</option>
-                <option value="semua" selected>📚 Semua data</option>
-              </select>
-              <button class="btn btn-primary btn-sm" style="width:100%;" onclick="exportPembukuan()">⬇️ Export Sekarang</button>
-            </div>
-          </div>
-          <button class="btn btn-sm" style="background:var(--blue-light);color:var(--blue);" onclick="editCurrentBuku()">✏️ Edit Buku</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteCurrentBuku()">🗑️ Hapus Buku</button>
-          <button class="btn btn-primary btn-sm" onclick="openKasModal()">+ Tambah Transaksi</button>
-        </div>
-      </div>
-
-      <!-- Tabel transaksi -->
-      <div class="laporan-box">
-        <div class="laporan-box-header">
-          <div class="lh-title">📋 Riwayat Transaksi</div>
-          <span id="kas-count-label" style="font-size:12px;color:var(--text-muted);"></span>
-        </div>
-        <div style="overflow-x:auto;">
-          <table id="kas-table" style="width:100%;border-collapse:collapse;font-size:13px;">
-            <thead>
-              <tr style="background:var(--navy-light);">
-                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">Tanggal</th>
-                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;">Keterangan</th>
-                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;">Kategori</th>
-                <th style="padding:10px 16px;text-align:right;font-size:11px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.5px;">Pemasukan</th>
-                <th style="padding:10px 16px;text-align:right;font-size:11px;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:.5px;">Pengeluaran</th>
-                <th style="padding:10px 16px;text-align:right;font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;">Saldo</th>
-                <th style="padding:10px 16px;text-align:center;font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="kas-tbody"></tbody>
-            <tfoot id="kas-tfoot"></tfoot>
-          </table>
-        </div>
-        <div id="kas-empty" style="display:none;text-align:center;padding:48px 20px;color:var(--text-muted);">
-          <div style="font-size:40px;margin-bottom:10px;">💳</div>
-          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px;">Belum ada transaksi</div>
-          <div style="font-size:12px;">Klik "+ Tambah Transaksi" untuk mulai mencatat.</div>
-        </div>
-      </div>
-
-      <!-- Panel Rekap Per Bulan -->
-      <div class="laporan-box" style="margin-top:20px;">
-        <div class="laporan-box-header">
-          <div class="lh-title">🗓️ Rekap Pemasukan &amp; Pengeluaran Per Bulan</div>
-          <span style="font-size:11px;color:var(--text-muted);">Klik salah satu baris untuk filter tabel di atas ke bulan itu</span>
-        </div>
-        <div style="overflow-x:auto;">
-          <table style="width:100%;border-collapse:collapse;font-size:13px;">
-            <thead>
-              <tr style="background:var(--navy-light);">
-                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;">Bulan</th>
-                <th style="padding:10px 16px;text-align:right;font-size:11px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.5px;">Pemasukan</th>
-                <th style="padding:10px 16px;text-align:right;font-size:11px;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:.5px;">Pengeluaran</th>
-                <th style="padding:10px 16px;text-align:right;font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;">Saldo Bulan</th>
-              </tr>
-            </thead>
-            <tbody id="kas-rekap-bulanan-tbody"></tbody>
-          </table>
-        </div>
-        <div id="kas-rekap-bulanan-empty" style="display:none;text-align:center;padding:24px 20px;color:var(--text-muted);font-size:12px;">Belum ada transaksi untuk direkap.</div>
-      </div>
-
-      <!-- Panel Analisis Pengeluaran per Item -->
-      <div class="laporan-box" style="margin-top:20px;">
-        <div class="laporan-box-header" style="flex-wrap:wrap;gap:10px;">
-          <div class="lh-title">📊 Analisis Pengeluaran per Item / Keterangan</div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <select id="analisis-periode" onchange="renderAnalisisPengeluaran()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;color:var(--text);outline:none;cursor:pointer;">
-              <option value="mingguan">Mingguan (7 hari terakhir)</option>
-              <option value="bulanan" selected>Bulanan (bulan ini)</option>
-              <option value="tahunan">Tahunan (tahun ini)</option>
-              <option value="semua">Semua Waktu</option>
-            </select>
-            <select id="analisis-urutkan" onchange="renderAnalisisPengeluaran()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;color:var(--text);outline:none;cursor:pointer;">
-              <option value="terbesar">⬆️ Terbesar dulu</option>
-              <option value="terkecil">⬇️ Terkecil dulu</option>
-            </select>
-          </div>
-        </div>
-        <div id="analisis-pengeluaran-content" style="padding:4px 0 8px;"></div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- PAGE: REKAM KELUARGA -->
-  <div class="page" id="page-keluarga">
-    <div id="kel-view-list">
-      <div class="section-header" style="margin-bottom:20px;">
-        <div>
-          <div class="section-title">👨‍👩‍👧‍👦 Rekam Keluarga</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">Profil, kesehatan, perkembangan & galeri foto anggota keluarga</div>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="openAnggotaModal()">+ Tambah Anggota</button>
-      </div>
-      <div id="kel-anggota-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;"></div>
-      <div id="kel-anggota-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--text-muted);">
-        <div style="font-size:52px;margin-bottom:12px;">👨‍👩‍👧‍👦</div>
-        <div style="font-size:16px;font-weight:700;color:var(--navy);margin-bottom:6px;">Belum ada anggota keluarga</div>
-        <div style="font-size:13px;margin-bottom:20px;">Tambahkan profil anggota keluarga pertama Anda.</div>
-        <button class="btn btn-primary" onclick="openAnggotaModal()">+ Tambah Anggota Keluarga</button>
-      </div>
-    </div>
-
-    <!-- DETAIL ANGGOTA -->
-    <div id="kel-view-detail" style="display:none;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
-        <button class="btn btn-sm" style="background:var(--navy-light);color:var(--navy);" onclick="backToAnggotaList()">← Kembali</button>
-        <span style="font-size:13px;color:var(--text-muted);">Rekam Keluarga /</span>
-        <span id="kel-detail-name" style="font-size:13px;font-weight:700;color:var(--navy);"></span>
-      </div>
-
-      <!-- Profil Card -->
-      <div id="kel-profil-card" style="background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1.5px solid var(--border);padding:24px;margin-bottom:20px;">
-        <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
-          <div style="position:relative;">
-            <div id="kel-foto-profil" style="width:100px;height:100px;border-radius:50%;background:var(--navy-light);display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden;border:3px solid var(--border);">👤</div>
-            <label style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;border:2px solid white;" title="Ganti foto profil">
-              📷<input type="file" accept="image/*" style="display:none" onchange="uploadFotoProfil(event)">
-            </label>
-          </div>
-          <div style="flex:1;min-width:200px;">
-            <div style="font-size:22px;font-weight:800;color:var(--navy);" id="kel-profil-nama"></div>
-            <div style="font-size:13px;color:var(--text-muted);margin-top:4px;" id="kel-profil-meta"></div>
-            <div id="kel-profil-catatan" style="margin-top:10px;padding:10px 14px;background:var(--gold-light);border-radius:8px;border-left:3px solid var(--gold);font-size:13px;color:var(--text);line-height:1.6;display:none;"></div>
-            <button class="btn btn-sm" style="background:var(--navy-light);color:var(--navy);margin-top:10px;" onclick="openAnggotaModal(activeAnggotaId)">✏️ Edit Profil</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Sub-tabs -->
-      <div style="display:flex;gap:4px;background:white;border-radius:10px;padding:6px;box-shadow:var(--shadow);border:1.5px solid var(--border);margin-bottom:20px;flex-wrap:wrap;">
-        <button class="kel-subtab active" onclick="switchKelTab('kesehatan',this)" style="flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;border:none;cursor:pointer;background:var(--navy);color:white;transition:all .15s;min-width:120px;">🏥 Kesehatan</button>
-        <button class="kel-subtab" onclick="switchKelTab('perkembangan',this)" style="flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--text-muted);transition:all .15s;min-width:120px;">📈 Perkembangan</button>
-        <button class="kel-subtab" onclick="switchKelTab('galeri',this)" style="flex:1;padding:10px;border-radius:8px;font-size:13px;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--text-muted);transition:all .15s;min-width:120px;">📸 Galeri Foto</button>
-      </div>
-
-      <!-- TAB KESEHATAN -->
-      <div id="kel-tab-kesehatan">
-        <div class="section-header" style="margin-bottom:16px;">
-          <div class="section-title">🏥 Riwayat Kesehatan</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-sm" style="background:#7c3aed;color:white;font-weight:700;" onclick="analisisAI('kesehatan','semua')">🤖 Analisis AI Semua</button>
-            <button class="btn btn-primary btn-sm" onclick="openKesehatanModal()">+ Tambah Catatan Kesehatan</button>
-          </div>
-        </div>
-        <div id="kel-kesehatan-list"></div>
-        <div id="kel-kesehatan-empty" style="display:none;text-align:center;padding:48px 20px;color:var(--text-muted);">
-          <div style="font-size:40px;margin-bottom:10px;">🏥</div>
-          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px;">Belum ada catatan kesehatan</div>
-          <div style="font-size:12px;">Klik "+ Tambah Catatan Kesehatan" untuk mulai mencatat.</div>
-        </div>
-      </div>
-
-      <!-- TAB PERKEMBANGAN -->
-      <div id="kel-tab-perkembangan" style="display:none;">
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:16px;flex-wrap:wrap;">
-          <button onclick="analisisAI('perkembangan','terbaru')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#7c3aed;color:white;border:none;cursor:pointer;">🤖 Analisis Data Terbaru</button>
-          <button onclick="analisisAI('perkembangan','semua')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#5b21b6;color:white;border:none;cursor:pointer;">🤖 Analisis Semua Riwayat</button>
-          <button onclick="openLaporanPerkembangan()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:var(--navy);color:white;border:none;cursor:pointer;">👁 Buka Laporan</button>
-          <button onclick="downloadLaporanPDF()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#16a34a;color:white;border:none;cursor:pointer;">📄 PDF</button>
-          <button onclick="downloadLaporanWord()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#2563eb;color:white;border:none;cursor:pointer;">📝 Word</button>
-        </div>
-        <div id="kel-analisis-result" style="display:none;margin-bottom:20px;"></div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;" id="kel-perkembangan-grid"></div>
-      </div>
-
-      <!-- TAB GALERI -->
-      <div id="kel-tab-galeri" style="display:none;">
-        <div class="section-header" style="margin-bottom:16px;">
-          <div class="section-title">📸 Galeri Foto Perkembangan</div>
-          <label class="btn btn-primary btn-sm" style="cursor:pointer;">
-            + Tambah Foto
-            <input type="file" accept="image/*" multiple style="display:none" onchange="uploadGaleriFoto(event)">
-          </label>
-        </div>
-        <div style="margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <input type="date" id="galeri-tanggal-input" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;width:170px;outline:none;">
-          <input type="text" id="galeri-ket-input" placeholder="Keterangan foto (opsional)" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;flex:1;min-width:200px;outline:none;">
-        </div>
-        <div id="kel-galeri-list"></div>
-        <div id="kel-galeri-empty" style="display:none;text-align:center;padding:48px 20px;color:var(--text-muted);">
-          <div style="font-size:40px;margin-bottom:10px;">📸</div>
-          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px;">Belum ada foto</div>
-          <div style="font-size:12px;">Upload foto dan isi tahun untuk memulai dokumentasi.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- PAGE: CHECKLIST HARIAN -->
-  <div class="page" id="page-checklist">
-    <div class="section-header">
-      <div>
-        <div class="section-title">✅ Checklist Harian</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">Pengingat tugas & pekerjaan kecil rutin — service mobil, bayar listrik, bayar SPP, dsb.</div>
-      </div>
-      <button class="btn btn-outline btn-sm" onclick="bersihkanChecklistSelesai()">🧹 <span>Bersihkan Selesai</span></button>
-    </div>
-
-    <div class="chk-summary">
-      <div class="chk-sum-card pending">
-        <div class="chk-sum-val" id="chk-sum-pending">0</div>
-        <div class="chk-sum-lbl">⏳ Pending</div>
-      </div>
-      <div class="chk-sum-card gagal">
-        <div class="chk-sum-val" id="chk-sum-gagal">0</div>
-        <div class="chk-sum-lbl">❌ Gagal</div>
-      </div>
-      <div class="chk-sum-card selesai">
-        <div class="chk-sum-val" id="chk-sum-selesai">0</div>
-        <div class="chk-sum-lbl">✅ Selesai</div>
-      </div>
-      <div class="chk-sum-card">
-        <div class="chk-sum-val" id="chk-sum-total">0</div>
-        <div class="chk-sum-lbl">📋 Total</div>
-      </div>
-    </div>
-
-    <div class="chk-add-bar">
-      <input type="text" id="chk-input-nama" placeholder="Nama tugas... (Cth: Bayar listrik)" onkeydown="if(event.key==='Enter')document.getElementById('chk-input-ket').focus()">
-      <input type="text" id="chk-input-ket" placeholder="Keterangan (opsional)" onkeydown="if(event.key==='Enter')tambahChecklist()">
-      <input type="date" id="chk-input-tanggal">
-      <input type="time" id="chk-input-jam">
-      <button class="btn btn-primary btn-sm" onclick="tambahChecklist()">+ Tambah</button>
-    </div>
-
-    <div class="chk-list" id="chk-list"></div>
-    <div class="chk-empty" id="chk-empty" style="display:none;">
-      <div class="chk-empty-icon">📝</div>
-      <div style="font-weight:700;color:var(--navy);margin-bottom:4px;">Belum ada checklist</div>
-      <div style="font-size:13px;">Tambahkan tugas harian pertama Anda di atas.</div>
-    </div>
-  </div>
-
-</div>
-
-<!-- MODAL: BUAT/EDIT BUKU KAS -->
-<div class="modal-overlay" id="buku-modal-overlay" onclick="if(event.target===this)closeBukuModal()">
-  <div class="modal" style="max-width:460px;">
-    <div class="modal-header">
-      <div class="modal-title" id="buku-modal-title">Buat Buku Kas Baru</div>
-      <button class="modal-close" onclick="closeBukuModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="buku-edit-id">
-      <div class="info-field">
-        <label>Nama Buku Kas *</label>
-        <input type="text" id="buku-nama" placeholder="Cth: Pembangunan Rumah, Seminar 2025, Pengeluaran Bulanan...">
-      </div>
-      <div class="info-field">
-        <label>Ikon / Emoji</label>
-        <input type="text" id="buku-ikon" placeholder="Cth: 🏠 🎓 💼 📅" maxlength="4">
-        <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:11px;color:var(--text-muted);">Pilih cepat:</span>
-          <span style="cursor:pointer;font-size:18px;" onclick="document.getElementById('buku-ikon').value=this.textContent">🏠</span>
-          <span style="cursor:pointer;font-size:18px;" onclick="document.getElementById('buku-ikon').value=this.textContent">🎓</span>
-          <span style="cursor:pointer;font-size:18px;" onclick="document.getElementById('buku-ikon').value=this.textContent">💼</span>
-          <span style="cursor:pointer;font-size:18px;" onclick="document.getElementById('buku-ikon').value=this.textContent">📅</span>
-          <span style="cursor:pointer;font-size:18px;" onclick="document.getElementById('buku-ikon').value=this.textContent">🛒</span>
-          <span style="cursor:pointer;font-size:18px;" onclick="document.getElementById('buku-ikon').value=this.textContent">🚗</span>
-          <span style="cursor:pointer;font-size:18px;" onclick="document.getElementById('buku-ikon').value=this.textContent">🏥</span>
-          <span style="cursor:pointer;font-size:18px;" onclick="document.getElementById('buku-ikon').value=this.textContent">🎉</span>
-          <span style="cursor:pointer;font-size:18px;" onclick="document.getElementById('buku-ikon').value=this.textContent">💰</span>
-          <span style="cursor:pointer;font-size:18px;" onclick="document.getElementById('buku-ikon').value=this.textContent">📊</span>
-        </div>
-      </div>
-      <div class="info-field">
-        <label>Deskripsi <span style="font-size:10px;font-weight:400;color:var(--text-muted);">(opsional)</span></label>
-        <textarea id="buku-deskripsi" rows="2" placeholder="Cth: Mencatat semua pengeluaran pembangunan rumah tahap 1..."></textarea>
-      </div>
-      <div class="info-field">
-        <label>Warna Label</label>
-        <div id="buku-warna-picker" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;"></div>
-        <input type="hidden" id="buku-warna" value="#2563eb">
-      </div>
-      <div class="info-field">
-        <label>🔔 Batas Anggaran <span style="font-size:10px;font-weight:400;color:var(--text-muted);">(opsional — muncul peringatan jika mendekati/habis)</span></label>
-        <div style="position:relative;">
-          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-muted);">Rp</span>
-          <input type="number" id="buku-anggaran" placeholder="0 = tidak ada batas" min="0"
-            style="padding-left:30px;">
-        </div>
-        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-sm" style="font-size:11px;padding:3px 8px;" onclick="setAnggaranCepat(1000000)">1 Jt</button>
-          <button type="button" class="btn btn-sm" style="font-size:11px;padding:3px 8px;" onclick="setAnggaranCepat(5000000)">5 Jt</button>
-          <button type="button" class="btn btn-sm" style="font-size:11px;padding:3px 8px;" onclick="setAnggaranCepat(10000000)">10 Jt</button>
-          <button type="button" class="btn btn-sm" style="font-size:11px;padding:3px 8px;" onclick="setAnggaranCepat(50000000)">50 Jt</button>
-          <button type="button" class="btn btn-sm" style="font-size:11px;padding:3px 8px;" onclick="setAnggaranCepat(100000000)">100 Jt</button>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" style="background:var(--gray-light);color:var(--text);" onclick="closeBukuModal()">Batal</button>
-      <button class="btn btn-primary" onclick="saveBuku()">Simpan</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: TAMBAH/EDIT TRANSAKSI KAS -->
-<div class="modal-overlay" id="kas-modal-overlay" onclick="if(event.target===this)closeKasModal()">
-  <div class="modal" style="max-width:500px;">
-    <div class="modal-header">
-      <div class="modal-title" id="kas-modal-title">Tambah Transaksi</div>
-      <button class="modal-close" onclick="closeKasModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="kas-edit-id">
-      <div class="info-field">
-        <label>Jenis Transaksi *</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;">
-          <div id="kas-jenis-masuk" onclick="setKasJenis('masuk')" style="padding:12px;border-radius:10px;border:2px solid var(--green);background:var(--green-light);cursor:pointer;text-align:center;">
-            <div style="font-size:22px;">💚</div>
-            <div style="font-size:13px;font-weight:700;color:var(--green);">Pemasukan</div>
-          </div>
-          <div id="kas-jenis-keluar" onclick="setKasJenis('keluar')" style="padding:12px;border-radius:10px;border:2px solid var(--border);background:white;cursor:pointer;text-align:center;opacity:.5;">
-            <div style="font-size:22px;">❤️</div>
-            <div style="font-size:13px;font-weight:700;color:var(--red);">Pengeluaran</div>
-          </div>
-        </div>
-        <input type="hidden" id="kas-jenis" value="masuk">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="info-field">
-          <label>Tanggal *</label>
-          <input type="date" id="kas-tanggal">
-        </div>
-        <div class="info-field">
-          <label>Jumlah (Rp) *</label>
-          <input type="number" id="kas-jumlah" placeholder="Contoh: 500000" min="0" step="1000">
-        </div>
-      </div>
-      <div class="info-field">
-        <label>Keterangan *</label>
-        <input type="text" id="kas-keterangan" placeholder="Contoh: Beli bahan bangunan, bayar tukang...">
-      </div>
-      <div class="info-field">
-        <label>Kategori</label>
-        <input type="text" id="kas-kategori" list="list-kas-kategori" placeholder="Cth: Material, Konsumsi, Honor..." autocomplete="off">
-        <datalist id="list-kas-kategori">
-          <option value="Material/Bahan">
-          <option value="Upah/Tukang">
-          <option value="Konsumsi">
-          <option value="Transportasi">
-          <option value="Perlengkapan">
-          <option value="Honor/Gaji">
-          <option value="Dana Kegiatan">
-          <option value="Pendaftaran">
-          <option value="Sponsorship">
-          <option value="Hibah/Dana">
-          <option value="Operasional">
-          <option value="Lain-lain">
-        </datalist>
-      </div>
-      <div class="info-field">
-        <label>Catatan <span style="font-size:10px;font-weight:400;color:var(--text-muted);">(opsional)</span></label>
-        <textarea id="kas-catatan" rows="2" placeholder="Informasi tambahan..."></textarea>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" style="background:var(--gray-light);color:var(--text);" onclick="closeKasModal()">Batal</button>
-      <button class="btn btn-primary" onclick="saveKasTransaksi()">Simpan Transaksi</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: TAMBAH/EDIT PEKERJAAN -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="modal-title">Tambah Pekerjaan Baru</div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="modal-edit-id">
-      <div class="info-field">
-        <label>Nama Pekerjaan *</label>
-        <input type="text" id="m-nama" placeholder="Contoh: Seminar Internasional 2025">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="info-field">
-          <label>Grup <span style="font-size:10px;color:var(--text-muted);font-weight:500;">(ketik bebas atau pilih)</span></label>
-          <input type="text" id="m-grup" list="list-grups" placeholder="Cth: UMMAH, SULUH..." autocomplete="off">
-          <datalist id="list-grups"></datalist>
-        </div>
-        <div class="info-field">
-          <label>Kategori <span style="font-size:10px;color:var(--text-muted);font-weight:500;">(ketik bebas atau pilih)</span></label>
-          <input type="text" id="m-kategori" list="list-kategoris" placeholder="Cth: Seminar, MoU..." autocomplete="off">
-          <datalist id="list-kategoris"></datalist>
-        </div>
-      </div>
-      <div class="info-field">
-        <label>Prioritas</label>
-        <select id="m-prioritas">
-          <option>Tinggi</option>
-          <option>Sedang</option>
-          <option>Rendah</option>
-        </select>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="info-field">
-          <label>Tanggal Mulai</label>
-          <input type="date" id="m-mulai">
-        </div>
-        <div class="info-field">
-          <label>Deadline <span style="font-size:10px;color:var(--text-muted);font-weight:400;">(opsional)</span></label>
-          <input type="date" id="m-deadline">
-        </div>
-      </div>
-      <div class="info-field">
-        <label>PIC (Penanggung Jawab)</label>
-        <input type="text" id="m-pic" placeholder="Nama PIC">
-      </div>
-      <div class="info-field">
-        <label>Catatan / Keterangan</label>
-        <textarea id="m-catatan" rows="2" placeholder="Informasi tambahan..."></textarea>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" style="background:var(--gray-light);color:var(--text);" onclick="closeModal()">Batal</button>
-      <button class="btn btn-primary" onclick="savePekerjaan()">Simpan Pekerjaan</button>
-    </div>
-  </div>
-</div>
-
-<!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-  <img id="lightbox-img" src="" alt="">
-  <div class="lightbox-caption" id="lightbox-caption"></div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<!-- MODAL: KELOLA GRUP / KATEGORI -->
-<!-- MODAL: BACKUP & RESTORE -->
-<div class="modal-overlay" id="backup-modal-overlay" onclick="if(event.target===this)closeBackupModal()">
-  <div class="modal" style="max-width:480px;">
-    <div class="modal-header">
-      <div class="modal-title">💾 Backup &amp; Restore Data</div>
-      <button class="modal-close" onclick="closeBackupModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin:0 0 16px;">
-        Backup menyimpan SEMUA data aplikasi ini (pekerjaan, pembukuan, checklist, rekam keluarga, & foto) ke folder <b>"Monitoring Pekerjaan"</b> di Google Drive Anda — aman kalau penyimpanan HP/browser penuh atau HP hilang/ganti.
-      </p>
-
-      <div style="border:1.5px solid var(--blue);border-radius:10px;padding:16px;margin-bottom:14px;background:#f0f7ff;">
-        <div style="font-weight:800;font-size:14px;color:var(--navy);margin-bottom:4px;">🔄 Sync ke Google Drive</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px;" id="gdrive-status">Belum login Google.</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Klik sekali untuk login &amp; langsung simpan data terkini ke Drive. Setelah login, ini juga otomatis jalan sendiri 1x/hari tiap Anda buka app (tanpa popup) — tinggal klik lagi kalau sesi habis atau mau sync manual kapan saja.</div>
-        <button class="btn btn-primary" id="gdrive-signin-btn" onclick="signInGoogleDrive()" style="width:100%;">🔄 Sync Sekarang</button>
-      </div>
-
-      <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
-        <div style="font-weight:800;font-size:13px;color:var(--navy);margin-bottom:8px;">📊 Pemakaian Penyimpanan</div>
-        <div id="storage-info-content" style="font-size:12px;color:var(--text-muted);">Menghitung...</div>
-      </div>
-
-      <div style="border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
-        <div style="font-weight:800;font-size:13px;color:var(--navy);margin-bottom:4px;">🧹 Bersihkan Foto Galeri Lokal yang Lama</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Hanya membersihkan foto galeri Rekam Keluarga yang tersimpan LOKAL di perangkat ini (bukan yang sudah ada di Drive) dan lebih lama dari batas di bawah. <b style="color:var(--red);">Pastikan sudah Sync dulu</b> sebelum membersihkan.</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <select id="cleanup-hari-batas" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;outline:none;">
-            <option value="30">Lebih dari 30 hari</option>
-            <option value="60">Lebih dari 60 hari</option>
-            <option value="90" selected>Lebih dari 90 hari</option>
-            <option value="180">Lebih dari 180 hari</option>
-          </select>
-          <button class="btn btn-outline btn-sm" onclick="bersihkanFotoLokalLama()">🧹 Bersihkan Sekarang</button>
-        </div>
-      </div>
-
-      <details style="border:1.5px solid var(--border);border-radius:10px;padding:14px;">
-        <summary style="font-weight:800;font-size:13px;color:var(--navy);cursor:pointer;">⚙️ Opsi manual (download/upload file sendiri)</summary>
-        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-          <div style="font-weight:700;font-size:12.5px;color:var(--navy);margin-bottom:4px;">⬇️ Download File Backup</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Untuk disimpan manual sendiri (tanpa lewat Google Drive/login).</div>
-          <button class="btn btn-outline btn-sm" onclick="exportBackupData()">⬇️ Download File Backup</button>
-        </div>
-        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
-          <div style="font-weight:700;font-size:12.5px;color:var(--navy);margin-bottom:4px;">⬆️ Pulihkan dari File Backup</div>
-          <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Pilih file backup (.json) yang pernah didownload. <b style="color:var(--red);">Ini akan menimpa semua data yang ada sekarang.</b></div>
-          <input type="file" id="backup-import-input" accept=".json,application/json" style="display:none" onchange="importBackupData(event)">
-          <button class="btn btn-outline btn-sm" onclick="document.getElementById('backup-import-input').click()">⬆️ Pilih File Backup</button>
-        </div>
-      </details>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeBackupModal()">Tutup</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: BACKUP & RESTORE (end) -->
-<div class="modal-overlay" id="manage-modal-overlay" onclick="if(event.target===this)closeManageModal()">
-  <div class="modal" style="max-width:420px;">
-    <div class="modal-header">
-      <div class="modal-title" id="manage-modal-title">Kelola Grup</div>
-      <button class="modal-close" onclick="closeManageModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="tag-list" id="manage-tag-list"></div>
-      <div class="add-tag-row">
-        <input type="text" id="manage-new-tag" placeholder="Nama baru..." onkeydown="if(event.key==='Enter')addManageTag()">
-        <button class="btn btn-primary btn-sm" onclick="addManageTag()">+ Tambah</button>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" onclick="closeManageModal()">Selesai</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: TAMBAH/EDIT ANGGOTA KELUARGA -->
-<div class="modal-overlay" id="anggota-modal-overlay" onclick="if(event.target===this)closeAnggotaModal()">
-  <div class="modal" style="max-width:500px;">
-    <div class="modal-header">
-      <div class="modal-title" id="anggota-modal-title">Tambah Anggota Keluarga</div>
-      <button class="modal-close" onclick="closeAnggotaModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="anggota-edit-id">
-      <div class="info-field">
-        <label>Nama Lengkap *</label>
-        <input type="text" id="anggota-nama" placeholder="Nama anggota keluarga">
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="info-field">
-          <label>Hubungan</label>
-          <select id="anggota-hubungan">
-            <option>Ayah</option><option>Ibu</option><option>Anak</option><option>Kakek</option><option>Nenek</option><option>Lainnya</option>
-          </select>
-        </div>
-        <div class="info-field">
-          <label>Jenis Kelamin</label>
-          <select id="anggota-jk">
-            <option value="L">Laki-laki</option>
-            <option value="P">Perempuan</option>
-          </select>
-        </div>
-      </div>
-      <div class="info-field">
-        <label>Tanggal Lahir</label>
-        <input type="date" id="anggota-lahir">
-      </div>
-      <div class="info-field">
-        <label>Catatan Singkat <span style="font-size:10px;color:var(--text-muted);font-weight:400;">(kepribadian, gaya belajar, kelebihan, dll)</span></label>
-        <textarea id="anggota-catatan" rows="3" placeholder="Cth: Memiliki kecerdasan visual, suka menggambar, gaya belajar kinestetik..."></textarea>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" style="background:var(--gray-light);color:var(--text);" onclick="closeAnggotaModal()">Batal</button>
-      <button class="btn btn-primary" onclick="saveAnggota()">Simpan</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: CATATAN KESEHATAN -->
-<div class="modal-overlay" id="kesehatan-modal-overlay" onclick="if(event.target===this)closeKesehatanModal()">
-  <div class="modal" style="max-width:560px;">
-    <div class="modal-header">
-      <div class="modal-title" id="kesehatan-modal-title">Tambah Catatan Kesehatan</div>
-      <button class="modal-close" onclick="closeKesehatanModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="kes-edit-id">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="info-field">
-          <label>Tanggal Mulai Sakit *</label>
-          <input type="date" id="kes-tanggal">
-        </div>
-        <div class="info-field">
-          <label>Jenis Penyakit / Sakit Apa *</label>
-          <input type="text" id="kes-penyakit" placeholder="Cth: Demam, Batuk, Tipes...">
-        </div>
-      </div>
-      <div class="info-field">
-        <label>🩹 Riwayat Penanganan (bisa ditambah berkali-kali)</label>
-        <div id="kes-perkembangan-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
-        <button class="btn btn-sm" style="background:var(--navy-light);color:var(--navy);" onclick="tambahBarisKesehatan()">+ Tambah Riwayat Penanganan</button>
-      </div>
-      <div class="info-field">
-        <label>Keterangan Akhir / Kesimpulan</label>
-        <textarea id="kes-keterangan" rows="2" placeholder="Cth: Berobat 2x, baru sembuh setelah ganti obat. Obat X tidak cocok."></textarea>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" style="background:var(--gray-light);color:var(--text);" onclick="closeKesehatanModal()">Batal</button>
-      <button class="btn btn-primary" onclick="saveKesehatan()">Simpan Catatan</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: TAMBAH ITEM PERKEMBANGAN -->
-<div class="modal-overlay" id="perkembangan-item-modal" onclick="if(event.target===this)closePerkembanganItemModal()">
-  <div class="modal" style="max-width:440px;">
-    <div class="modal-header">
-      <div class="modal-title" id="perk-item-modal-title">Tambah Catatan</div>
-      <button class="modal-close" onclick="closePerkembanganItemModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="perk-item-jenis">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="info-field">
-          <label>Tanggal *</label>
-          <input type="date" id="perk-item-tanggal">
-        </div>
-        <div class="info-field" id="perk-item-nilai-wrap">
-          <label id="perk-item-nilai-label">Nilai *</label>
-          <input type="text" id="perk-item-nilai" placeholder="">
-        </div>
-      </div>
-      <div class="info-field">
-        <label>Keterangan <span style="font-size:10px;color:var(--text-muted);font-weight:400;">(opsional)</span></label>
-        <textarea id="perk-item-ket" rows="2" placeholder="Keterangan tambahan..."></textarea>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" style="background:var(--gray-light);color:var(--text);" onclick="closePerkembanganItemModal()">Batal</button>
-      <button class="btn btn-primary" onclick="savePerkembanganItem()">Simpan</button>
-    </div>
-  </div>
-</div>
-
-<!-- Firebase SDK -->
-<script type="module">
-  // Jika offline dan SDK tidak ada di cache, tangkap error dengan graceful
-  async function initFirebase() {
-    try {
-      const [
-        { initializeApp },
-        { getDatabase, ref, set, get, onValue, off },
-        { getStorage, ref: sRef, uploadBytes, getDownloadURL, deleteObject }
-      ] = await Promise.all([
-        import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"),
-        import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js"),
-        import("https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js"),
-      ]);
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyB-D2191Uv-6DGffRtaTidXo6xqrnbN_-8",
-        authDomain: "mmonitoring-pekerjaan.firebaseapp.com",
-        databaseURL: "https://mmonitoring-pekerjaan-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "mmonitoring-pekerjaan",
-        storageBucket: "mmonitoring-pekerjaan.firebasestorage.app",
-        messagingSenderId: "607729195090",
-        appId: "1:607729195090:web:1303c88314e7f13c81e78b",
-        measurementId: "G-ZNT74HF78W"
-      };
-
-      const app = initializeApp(firebaseConfig);
-      window._fbDb = getDatabase(app);
-      window._fbStorage = getStorage(app);
-      window._fbRef = ref;
-      window._fbSet = set;
-      window._fbGet = get;
-      window._fbOnValue = onValue;
-      window._fbOff = off;
-      window._fbSRef = sRef;
-      window._fbUploadBytes = uploadBytes;
-      window._fbGetDownloadURL = getDownloadURL;
-      window._fbDeleteObject = deleteObject;
-      window._firebaseReady = true;
-      console.log('✅ Firebase connected!');
-
-      // Trigger load setelah Firebase siap
-      if (window._pendingLoad) window._pendingLoad();
-
-    } catch (err) {
-      // Firebase SDK tidak bisa dimuat (offline & belum di-cache Service Worker)
-      console.warn('⚠️ Firebase SDK gagal dimuat (mungkin offline):', err.message);
-      window._firebaseReady = false;
-      // Trigger fallback ke localStorage
-      if (window._pendingLoad) window._pendingLoad();
-      // Tampilkan banner offline
-      const banner = document.getElementById('offline-banner');
-      if (banner) { banner.classList.add('show'); document.body.classList.add('offline-mode'); }
-    }
-  }
-
-  initFirebase();
-</script>
-
-<script>
-// ─────────────────────────────────────────
-// DATA
-// ─────────────────────────────────────────
-const STORAGE_KEY = 'monitoring_akademik_v4';
-
-// ─────────────────────────────────────────
-// GRUP & KATEGORI (dynamic)
-// ─────────────────────────────────────────
-const DEFAULT_GRUPS = ['UMMAH', 'SULUH', 'AKADEMIK', 'Lainnya'];
-const DEFAULT_KATEGORIS = [
-  '🎓 Magang LN', '📋 Seminar/Konferensi', '🤝 MoU/Kerjasama',
-  '📝 Disertasi/Tesis', '📄 Jurnal/Publikasi', '🗂️ Administrasi',
-  '🏫 Program Akademik', '📌 Lainnya'
-];
-let grups = [];
-let kategoris = [];
-let activeGrupFilter = ''; // '' = semua
-let manageMode = ''; // 'grup' | 'kategori'
-
-const DEFAULT_DATA = [
-  {
-    id: 1, no: 1,
-    grup: 'UMMAH',
-    kategori: '🎓 Magang LN',
-    nama: 'Program Magang Mahasiswa ke Jepang 2025',
-    mulai: '2025-03-01', deadline: '2025-08-30',
-    pic: 'Dr. Hendra / Bag. Kemahasiswaan',
-    prioritas: 'Tinggi',
-    catatan: 'Peserta 12 orang, mitra: Osaka University',
-    kendala: '1 peserta terkendala visa, sedang proses revisi dokumen',
-    subtasks: [
-      { id: 101, nama: 'Seleksi calon peserta', done: true },
-      { id: 102, nama: 'Pengurusan visa', done: true },
-      { id: 103, nama: 'Koordinasi mitra Jepang', done: true },
-      { id: 104, nama: 'MoU pendamping', done: true },
-      { id: 105, nama: 'Pembekalan peserta', done: true },
-      { id: 106, nama: 'Keberangkatan peserta', done: false },
-      { id: 107, nama: 'Monitoring di lapangan', done: false },
-      { id: 108, nama: 'Laporan akhir magang', done: false },
-    ]
-  },
-  {
-    id: 2, no: 2,
-    grup: 'UMMAH',
-    kategori: '📋 Seminar/Konferensi',
-    nama: 'Seminar Internasional Pendidikan Asia 2025',
-    mulai: '2025-04-10', deadline: '2025-07-15',
-    pic: 'Prof. Sari / Panitia',
-    prioritas: 'Tinggi',
-    catatan: 'Target 200 peserta, tema: Digitalisasi Pendidikan',
-    kendala: '2 dari 4 keynote speaker belum konfirmasi',
-    subtasks: [
-      { id: 201, nama: 'Pembentukan panitia', done: true },
-      { id: 202, nama: 'Pembuatan proposal', done: true },
-      { id: 203, nama: 'Undangan pembicara dikirim', done: true },
-      { id: 204, nama: 'Konfirmasi keynote speaker', done: false },
-      { id: 205, nama: 'Desain banner & publikasi', done: false },
-      { id: 206, nama: 'Pendaftaran peserta', done: false },
-      { id: 207, nama: 'Persiapan teknis ruangan', done: false },
-      { id: 208, nama: 'Pelaksanaan seminar', done: false },
-      { id: 209, nama: 'Laporan kegiatan', done: false },
-      { id: 210, nama: 'Publikasi prosiding', done: false },
-    ]
-  },
-  {
-    id: 3, no: 3,
-    grup: 'UMMAH',
-    kategori: '🤝 MoU/Kerjasama',
-    nama: 'MoU dengan Universiti Malaya (UM) Malaysia',
-    mulai: '2025-02-15', deadline: '2025-06-30',
-    pic: 'Wakil Rektor Bid. Kerjasama',
-    prioritas: 'Sedang',
-    catatan: 'MoU berlaku 5 tahun, cakupan: riset & pertukaran mahasiswa',
-    kendala: '-',
-    subtasks: [
-      { id: 301, nama: 'Draft MoU dibuat', done: true },
-      { id: 302, nama: 'Review legal', done: true },
-      { id: 303, nama: 'Revisi bersama', done: true },
-      { id: 304, nama: 'Penandatanganan daring', done: true },
-      { id: 305, nama: 'Legalisasi dokumen', done: true },
-      { id: 306, nama: 'Pengarsipan', done: true },
-    ]
-  },
-  {
-    id: 4, no: 4,
-    grup: 'AKADEMIK',
-    kategori: '📝 Disertasi/Tesis',
-    nama: 'Disertasi S3: Transformasi Digital Tata Kelola PT',
-    mulai: '2024-09-01', deadline: '2025-12-31',
-    pic: 'Dr. Rina (Mahasiswa S3)',
-    prioritas: 'Tinggi',
-    catatan: 'Promotor: Prof. Dr. Ahmad, target ujian Q4 2025',
-    kendala: 'Akses data instansi pemerintah butuh izin tambahan',
-    subtasks: [
-      { id: 401, nama: 'BAB I Pendahuluan', done: true },
-      { id: 402, nama: 'BAB II Kajian Pustaka', done: true },
-      { id: 403, nama: 'Instrumen Penelitian', done: true },
-      { id: 404, nama: 'BAB III Metodologi', done: false },
-      { id: 405, nama: 'Pengambilan data lapangan', done: false },
-      { id: 406, nama: 'Analisis data & pembahasan', done: false },
-      { id: 407, nama: 'Sidang & revisi', done: false },
-    ]
-  },
-  {
-    id: 5, no: 5,
-    grup: 'AKADEMIK',
-    kategori: '📄 Jurnal/Publikasi',
-    nama: 'Submit Jurnal Scopus Q2: AI dalam Pembelajaran',
-    mulai: '2025-05-01', deadline: '2025-07-31',
-    pic: 'Dr. Budi & Tim Riset',
-    prioritas: 'Tinggi',
-    catatan: 'Target jurnal: Journal of Educational Technology (Scopus Q2)',
-    kendala: 'Proofreader bahasa Inggris profesional perlu dijadwalkan',
-    subtasks: [
-      { id: 501, nama: 'Penulisan draf artikel', done: true },
-      { id: 502, nama: 'Review internal tim', done: true },
-      { id: 503, nama: 'Revisi bahasa (proofreading)', done: false },
-      { id: 504, nama: 'Submit ke jurnal', done: false },
-      { id: 505, nama: 'Menunggu reviewer', done: false },
-    ]
-  },
-  {
-    id: 6, no: 6,
-    grup: 'SULUH',
-    kategori: '🗂️ Administrasi',
-    nama: 'Akreditasi Program Studi Informatika BAN-PT',
-    mulai: '2025-04-01', deadline: '2025-09-30',
-    pic: 'Ka. Prodi & Tim Gugus Mutu',
-    prioritas: 'Tinggi',
-    catatan: 'Target nilai Unggul, visitasi perkiraan Oktober 2025',
-    kendala: 'Data alumni 5 tahun terakhir belum lengkap',
-    subtasks: [
-      { id: 601, nama: 'Pembentukan tim', done: true },
-      { id: 602, nama: 'Pengumpulan data evaluasi diri', done: true },
-      { id: 603, nama: 'Penyusunan Laporan Evaluasi Diri', done: true },
-      { id: 604, nama: 'Pengisian borang LED', done: true },
-      { id: 605, nama: 'Finalisasi borang', done: false },
-      { id: 606, nama: 'Simulasi visitasi', done: false },
-      { id: 607, nama: 'Upload ke SAPTO', done: false },
-      { id: 608, nama: 'Visitasi asesor', done: false },
-      { id: 609, nama: 'Tindak lanjut hasil visitasi', done: false },
-    ]
-  },
-  {
-    id: 7, no: 7,
-    grup: 'SULUH',
-    kategori: '🏫 Program Akademik',
-    nama: 'Kuliah Tamu: Pakar AI dari Stanford University',
-    mulai: '2025-06-20', deadline: '2025-07-10',
-    pic: 'Koordinator Akademik',
-    prioritas: 'Sedang',
-    catatan: 'Estimasi 300 peserta, hybrid (offline + online)',
-    kendala: 'Jadwal narasumber masih tentatif',
-    subtasks: [
-      { id: 701, nama: 'Konfirmasi narasumber', done: true },
-      { id: 702, nama: 'Kirim surat undangan resmi', done: false },
-      { id: 703, nama: 'Persiapan ruang & live streaming', done: false },
-      { id: 704, nama: 'Publikasi ke mahasiswa', done: false },
-    ]
-  }
-];
-
-let data = [];
-let nextId = 100;
-let nextSubId = 10000;
-
-// ─────────────────────────────────────────
-// FIREBASE LOAD & SAVE
-// ─────────────────────────────────────────
-let _fbListener = null;
-
-function loadData() {
-  // Cek apakah Firebase sudah siap
-  if (!window._firebaseReady) {
-    // Simpan fungsi load untuk dipanggil nanti
-    window._pendingLoad = () => loadData();
-    // Sementara pakai localStorage sebagai fallback
-    _loadFromLocal();
-    return;
-  }
-  _loadFromFirebase();
-}
-
-function _loadFromLocal() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      data = parsed.data || DEFAULT_DATA;
-      nextId = parsed.nextId || 100;
-      nextSubId = parsed.nextSubId || 10000;
-      grups = parsed.grups || DEFAULT_GRUPS.slice();
-      kategoris = parsed.kategoris || DEFAULT_KATEGORIS.slice();
-    } else {
-      data = DEFAULT_DATA;
-      nextId = 100;
-      nextSubId = 10000;
-      grups = DEFAULT_GRUPS.slice();
-      kategoris = DEFAULT_KATEGORIS.slice();
-    }
-  } catch(e) {
-    data = DEFAULT_DATA;
-    grups = DEFAULT_GRUPS.slice();
-    kategoris = DEFAULT_KATEGORIS.slice();
-  }
-  renderAll();
-}
-
-function _loadFromFirebase() {
-  const db = window._fbDb;
-  const dbRef = window._fbRef(db, 'monitoring');
-
-  // Realtime listener — otomatis update saat data berubah dari perangkat lain
-  if (_fbListener) window._fbOff(dbRef, 'value', _fbListener);
-
-  _fbListener = window._fbOnValue(dbRef, (snapshot) => {
-    // Jika kita yang baru simpan, skip re-render agar card tidak collapse
-    if (_isSavingToFirebase) {
-      console.log('⏭️ Skip renderAll — kita yang simpan');
-      return;
-    }
-    const val = snapshot.val();
-    if (val) {
-      data = val.data || DEFAULT_DATA;
-      nextId = val.nextId || 100;
-      nextSubId = val.nextSubId || 10000;
-      grups = val.grups || DEFAULT_GRUPS.slice();
-      kategoris = val.kategoris || DEFAULT_KATEGORIS.slice();
-      // Simpan juga ke localStorage sebagai cache offline
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, nextId, nextSubId, grups, kategoris }));
-    } else {
-      // Pertama kali — tidak ada data di Firebase, pakai default
-      data = DEFAULT_DATA;
-      nextId = 100;
-      nextSubId = 10000;
-      grups = DEFAULT_GRUPS.slice();
-      kategoris = DEFAULT_KATEGORIS.slice();
-    }
-    renderAll();
-    showToast('🔄 Data tersinkron dari Firebase');
-  }, (error) => {
-    console.warn('Firebase offline, pakai cache lokal:', error);
-    _loadFromLocal();
-  });
-}
-
-let _isSavingToFirebase = false;
-
-function saveData() {
-  // Simpan ke localStorage dulu (offline cache)
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, nextId, nextSubId, grups, kategoris }));
-
-  // Simpan ke Firebase jika online
-  if (window._firebaseReady && window._fbDb) {
-    _isSavingToFirebase = true; // tandai: kita yang simpan, jangan re-render
-    const db = window._fbDb;
-    const dbRef = window._fbRef(db, 'monitoring');
-    window._fbSet(dbRef, { data, nextId, nextSubId, grups, kategoris })
-      .then(() => {
-        console.log('✅ Tersimpan ke Firebase');
-        setTimeout(() => { _isSavingToFirebase = false; }, 2000);
-      })
-      .catch(e => {
-        console.warn('⚠️ Gagal simpan ke Firebase:', e);
-        _isSavingToFirebase = false;
-      });
-  }
-}
-
-// ─────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────
-function getProgres(p) {
-  if (!p.subtasks || p.subtasks.length === 0) return 0;
-  return p.subtasks.filter(s => s.done).length / p.subtasks.length;
-}
-
-function getStatus(p) {
-  const pct = getProgres(p);
-  const today = new Date(); today.setHours(0,0,0,0);
-  if (pct === 1) return { label: '✅ Selesai', cls: 'status-selesai', key: 'selesai' };
-  if (p.deadline) {
-    const deadline = new Date(p.deadline);
-    if (!isNaN(deadline) && deadline < today && pct < 1)
-      return { label: '🚨 Terlambat', cls: 'status-terlambat', key: 'terlambat' };
-  }
-  if (pct >= 0.5) return { label: '🔄 Sedang Berjalan', cls: 'status-berjalan', key: 'berjalan' };
-  if (pct === 0) return { label: '📌 Baru Mulai', cls: 'status-baru', key: 'baru' };
-  return { label: '⏳ Menunggu', cls: 'status-menunggu', key: 'menunggu' };
-}
-
-function getSisaHari(deadline) {
-  if (!deadline) return 'Tanpa deadline';
-  const today = new Date(); today.setHours(0,0,0,0);
-  const dl = new Date(deadline);
-  if (isNaN(dl)) return 'Tanpa deadline';
-  const diff = Math.round((dl - today) / 86400000);
-  if (diff < 0) return `${Math.abs(diff)} hari lewat`;
-  if (diff === 0) return 'Hari ini!';
-  return `${diff} hari lagi`;
-}
-
-function formatDate(d) {
-  if (!d) return '-';
-  const dt = new Date(d);
-  return dt.toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
-}
-
-function getPrioritasBadge(p) {
-  if (p === 'Tinggi') return `<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;">🔴 ${p}</span>`;
-  if (p === 'Sedang') return `<span style="background:#fef3dc;color:#e8a020;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;">🟡 ${p}</span>`;
-  return `<span style="background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;">🟢 ${p}</span>`;
-}
-
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ─────────────────────────────────────────
-// RENDER SUMMARY
-// ─────────────────────────────────────────
-function renderSummary() {
-  const total = data.length;
-  const selesai = data.filter(p => getProgres(p) === 1).length;
-  const terlambat = data.filter(p => {
-    if (!p.deadline) return false;
-    const today = new Date(); today.setHours(0,0,0,0);
-    const dl = new Date(p.deadline);
-    return !isNaN(dl) && dl < today && getProgres(p) < 1;
-  }).length;
-  const totalSubtask = data.reduce((a,p) => a + (p.subtasks||[]).length, 0);
-  const doneSubtask = data.reduce((a,p) => a + (p.subtasks||[]).filter(s=>s.done).length, 0);
-  const overallPct = totalSubtask > 0 ? Math.round(doneSubtask/totalSubtask*100) : 0;
-
-  document.getElementById('summary-grid').innerHTML = `
-    <div class="summary-card gold">
-      <div class="label">Total Pekerjaan</div>
-      <div class="value">${total}</div>
-      <div class="sub">${selesai} selesai, ${total-selesai} berjalan</div>
-    </div>
-    <div class="summary-card green">
-      <div class="label">Progres Keseluruhan</div>
-      <div class="value">${overallPct}%</div>
-      <div class="sub">${doneSubtask} dari ${totalSubtask} sub-task selesai</div>
-    </div>
-    <div class="summary-card red">
-      <div class="label">Terlambat</div>
-      <div class="value">${terlambat}</div>
-      <div class="sub">Pekerjaan melewati deadline</div>
-    </div>
-    <div class="summary-card blue">
-      <div class="label">Selesai</div>
-      <div class="value">${selesai}</div>
-      <div class="sub">dari ${total} total pekerjaan</div>
-    </div>
-  `;
-}
-
-// ─────────────────────────────────────────
-// RENDER GRUP FILTER BAR
-// ─────────────────────────────────────────
-function renderGrupFilterBar() {
-  const bar = document.getElementById('grup-filter-bar');
-  if (!bar) return;
-  const allGrups = [...new Set(data.map(p => p.grup || 'Lainnya'))];
-  bar.innerHTML = `
-    <div class="filter-bar">
-      <button class="filter-group-btn ${activeGrupFilter === '' ? 'active' : ''}" onclick="setGrupFilter('')">Semua</button>
-      ${allGrups.map(g => `
-        <button class="filter-group-btn ${activeGrupFilter === g ? 'active' : ''}" onclick="setGrupFilter('${g}')">${g}</button>
-      `).join('')}
-    </div>`;
-}
-
-function setGrupFilter(g) {
-  activeGrupFilter = g;
-  renderAll();
-}
-
-// ─────────────────────────────────────────
-// RENDER CARDS
-// ─────────────────────────────────────────
-function renderCards() {
-  const filter = document.getElementById('filter-status').value;
-  const list = document.getElementById('pekerjaan-list');
-
-  let filtered = data;
-  if (filter) filtered = data.filter(p => getStatus(p).key === filter);
-  if (activeGrupFilter) filtered = filtered.filter(p => (p.grup || 'Lainnya') === activeGrupFilter);
-
-  if (filtered.length === 0) {
-    list.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Tidak ada pekerjaan</div><div class="empty-sub">Klik "+ Tambah Pekerjaan" untuk mulai</div></div>`;
-    renderGrupFilterBar();
-    return;
-  }
-
-  // Group by grup
-  const grupMap = {};
-  filtered.forEach(p => {
-    const g = p.grup || 'Lainnya';
-    if (!grupMap[g]) grupMap[g] = [];
-    grupMap[g].push(p);
-  });
-
-  let globalIdx = 0;
-  list.innerHTML = Object.keys(grupMap).map(grupName => {
-    const grupItems = grupMap[grupName];
-    const grupSlug = 'grup-' + grupName.toLowerCase().replace(/\s+/g,'-');
-    const grupCards = grupItems.map(p => {
-      globalIdx++;
-      const idx = globalIdx;
-      const pct = getProgres(p);
-      const pctPct = Math.round(pct * 100);
-      const status = getStatus(p);
-      const done = (p.subtasks||[]).filter(s=>s.done).length;
-      const total = (p.subtasks||[]).length;
-
-      const subtasksHtml = (p.subtasks||[]).map(s => `
-        <div class="checklist-item ${s.done ? 'done' : ''}" id="ci-${s.id}" draggable="true" data-sid="${s.id}" data-pid="${p.id}" onclick="event.stopPropagation()">
-          <span class="drag-handle" title="Geser untuk ubah urutan">⠿</span>
-          <div class="check-box ${s.done ? 'checked' : ''}" onclick="event.stopPropagation();toggleSubtask(${p.id}, ${s.id})">${s.done ? '✓' : ''}</div>
-          <span class="check-label ${s.done ? 'done-text' : ''}" onclick="event.stopPropagation();toggleSubtask(${p.id}, ${s.id})">${esc(s.nama)}</span>
-          <button class="check-delete" onclick="event.stopPropagation();deleteSubtask(${p.id}, ${s.id})" title="Hapus sub-task">✕</button>
-        </div>
-      `).join('');
-
-      return `
-      <div class="pekerjaan-card" id="card-${p.id}" draggable="true" data-pid="${p.id}">
-        <div class="card-header" onclick="toggleCard(${p.id})">
-          <span class="drag-handle" onclick="event.stopPropagation()" title="Geser untuk ubah urutan">⠿</span>
-          <div class="card-no">${idx}</div>
-          <div class="card-info">
-            <div class="card-kategori">${esc(p.kategori)}<span class="grup-badge">${esc(p.grup||'Lainnya')}</span></div>
-            <div class="card-nama" title="${esc(p.nama)}">${esc(p.nama)}</div>
-            <div class="card-meta">
-              <span class="meta-item">📅 ${formatDate(p.deadline)}</span>
-              <span class="meta-item">⏱ ${getSisaHari(p.deadline)}</span>
-              <span class="meta-item">👤 ${esc(p.pic||'-')}</span>
-              <span class="meta-item">${getPrioritasBadge(p.prioritas)}</span>
-            </div>
-          </div>
-          <div class="card-right">
-            <span class="status-badge ${status.cls}">${status.label}</span>
-            <div class="progress-wrap">
-              <div class="progress-label">
-                <span>${done}/${total} sub-task</span>
-                <span class="progress-pct">${pctPct}%</span>
-              </div>
-              <div class="progress-bar-bg">
-                <div class="progress-bar-fill" style="width:${pctPct}%"></div>
-              </div>
-            </div>
-            <span class="chevron" id="chev-${p.id}">▾</span>
-          </div>
-        </div>
-
-        <div class="card-body" id="body-${p.id}" onclick="event.stopPropagation()">
-          <div class="detail-grid">
-            <div class="detail-section">
-              <div class="detail-label">✅ Checklist Sub-task</div>
-              <div class="checklist" id="checklist-${p.id}">${subtasksHtml}</div>
-              <div class="add-subtask">
-                <input type="text" id="new-sub-${p.id}" placeholder="+ Tambah sub-task baru..." onkeydown="if(event.key==='Enter')addSubtask(${p.id})">
-                <button class="btn btn-green btn-sm" onclick="addSubtask(${p.id})">Tambah</button>
-              </div>
-            </div>
-            <div class="detail-section">
-              <div class="detail-label">📝 Informasi Pekerjaan</div>
-              <div class="info-field">
-                <label>Kendala / Hambatan</label>
-                <textarea rows="2" id="kendala-${p.id}" onblur="saveField(${p.id},'kendala',this.value)">${esc(p.kendala||'')}</textarea>
-              </div>
-              <div class="info-field">
-                <label>Catatan / Keterangan</label>
-                <textarea rows="2" id="catatan-${p.id}" onblur="saveField(${p.id},'catatan',this.value)">${esc(p.catatan||'')}</textarea>
-              </div>
-              <div class="info-field">
-                <label>PIC</label>
-                <input type="text" id="pic-${p.id}" value="${esc(p.pic||'')}" onblur="saveField(${p.id},'pic',this.value)">
-              </div>
-            </div>
-          </div>
-
-          <!-- FOTO SECTION -->
-          <div class="foto-section">
-            <div class="detail-label">📷 Foto Dokumentasi</div>
-            <div class="foto-grid" id="foto-grid-${p.id}">
-              ${(p.fotos||[]).map((f,fi) => {
-                const src = f.downloadURL || f.data || '';
-                return `
-                <div class="foto-item">
-                  <img class="foto-img" src="${src}" alt="${esc(f.caption||'')}" onclick="openLightbox('${src}','${esc(f.caption||'')}')">
-                  <button class="foto-del" onclick="deleteFoto(${p.id},${fi})">✕</button>
-                  <div class="foto-caption-wrap">
-                    <textarea class="foto-caption-input" rows="2" placeholder="Tambah keterangan foto..." onblur="saveFotoCaption(${p.id},${fi},this.value)">${esc(f.caption||'')}</textarea>
-                  </div>
-                </div>`;
-              }).join('')}
-
-            </div>
-            ${(p.fotos||[]).length < 10 ? `
-            <label class="foto-upload-btn">
-              📎 Upload Foto (maks. 10)
-              <input type="file" accept="image/*" multiple style="display:none" onchange="handleFotoUpload(event,${p.id})">
-            </label>` : ''}
-            <div class="foto-count">${(p.fotos||[]).length}/10 foto</div>
-          </div>
-
-          <!-- DOKUMEN & LINK SECTION -->
-          <div class="dokumen-section">
-            <div class="detail-label">📎 Dokumen & Link Terkait</div>
-            <div class="dokumen-tabs">
-              <button class="dokumen-tab active" id="dtab-file-${p.id}" onclick="switchDokumenTab(${p.id},'file')">📄 File Upload</button>
-              <button class="dokumen-tab" id="dtab-link-${p.id}" onclick="switchDokumenTab(${p.id},'link')">🔗 Link URL</button>
-            </div>
-
-            <!-- FILE UPLOAD PANEL -->
-            <div id="dpanel-file-${p.id}">
-              <div class="dokumen-list" id="dokumen-file-list-${p.id}">
-                ${(p.dokumens||[]).map((d,di) => d.type === 'file' ? `
-                <div class="dokumen-item">
-                  <span class="dokumen-icon">${getDokumenIcon(d.ext)}</span>
-                  <div class="dokumen-info">
-                    <div class="dokumen-nama" title="${esc(d.nama)}">${esc(d.nama)}</div>
-                    <div class="dokumen-meta">${esc(d.keterangan||'')} ${d.size ? '· '+formatSize(d.size) : ''} ${d.downloadURL ? '· ☁️ Firebase' : '· 💾 Lokal'}</div>
-                  </div>
-                  <div class="dokumen-actions">
-                    <button class="dokumen-btn" onclick="downloadDokumen(${p.id},${di})">⬇ Download</button>
-                    <button class="dokumen-btn del" onclick="deleteDokumen(${p.id},${di})">✕</button>
-                  </div>
-                </div>` : '').join('')}
-              </div>
-              <!-- UPLOAD ZONE -->
-              <div class="dokumen-upload-zone" id="upload-zone-${p.id}"
-                ondragover="handleDragOver(event,${p.id})"
-                ondragleave="handleDragLeave(event,${p.id})"
-                ondrop="handleDrop(event,${p.id})">
-                <div style="font-size:28px;margin-bottom:4px;">📎</div>
-                <div style="font-size:13px;font-weight:600;color:var(--navy);">Klik pilih file atau drag & drop ke sini</div>
-                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">PDF, Word, Excel, PPT, TXT, ZIP (maks. 20MB/file)</div>
-                <input type="file" id="dok-input-${p.id}" multiple style="display:none"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,.rar"
-                  onchange="previewDokumen(event,${p.id})">
-                <button class="btn btn-sm" style="margin-top:8px;background:var(--navy);color:white;"
-                  onclick="document.getElementById('dok-input-${p.id}').click()">Pilih File</button>
-              </div>
-              <!-- PREVIEW SEBELUM UPLOAD -->
-              <div id="dok-preview-${p.id}" style="display:none;margin-top:8px;">
-                <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;">📋 File dipilih — siap upload:</div>
-                <div id="dok-preview-list-${p.id}" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;"></div>
-                <input type="text" id="dok-ket-${p.id}" placeholder="Keterangan dokumen (opsional)" style="margin-bottom:8px;width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;">
-                <div style="display:flex;gap:8px;">
-                  <button class="btn btn-primary btn-sm" style="flex:1;" onclick="konfirmasiUpload(${p.id})">✅ Upload Sekarang</button>
-                  <button class="btn btn-sm" style="background:var(--gray-light);color:var(--text);" onclick="batalPreview(${p.id})">✕ Batal</button>
-                </div>
-              </div>
-              <div class="dokumen-count">${(p.dokumens||[]).filter(d=>d.type==='file').length} file tersimpan</div>
-            </div>
-
-            <!-- LINK PANEL -->
-            <div id="dpanel-link-${p.id}" style="display:none;">
-              <div class="dokumen-list" id="dokumen-link-list-${p.id}">
-                ${(p.dokumens||[]).map((d,di) => d.type === 'link' ? `
-                <div class="dokumen-item">
-                  <span class="dokumen-icon">🔗</span>
-                  <div class="dokumen-info">
-                    <div class="dokumen-nama" title="${esc(d.nama)}">${esc(d.nama)}</div>
-                    <div class="dokumen-meta" style="word-break:break-all;">${esc(d.url||'')}</div>
-                    ${d.keterangan ? `<div class="dokumen-meta">${esc(d.keterangan)}</div>` : ''}
-                  </div>
-                  <div class="dokumen-actions">
-                    <button class="dokumen-btn" onclick="window.open('${esc(d.url||'')}','_blank')">🔗 Buka</button>
-                    <button class="dokumen-btn del" onclick="deleteDokumen(${p.id},${di})">✕</button>
-                  </div>
-                </div>` : '').join('')}
-              </div>
-              <div class="dokumen-add-row">
-                <input type="text" id="link-nama-${p.id}" placeholder="Judul / Nama link (cth: Proposal Seminar)">
-                <input type="url" id="link-url-${p.id}" placeholder="URL (cth: https://drive.google.com/...)" onkeydown="if(event.key==='Enter')addLink(${p.id})">
-                <input type="text" id="link-ket-${p.id}" placeholder="Keterangan (opsional)">
-                <button class="btn btn-primary btn-sm" style="width:100%;" onclick="addLink(${p.id})">+ Tambah Link</button>
-              </div>
-              <div class="dokumen-count">${(p.dokumens||[]).filter(d=>d.type==='link').length} link</div>
-            </div>
-          </div>
-
-          <div class="card-actions">
-            <button class="btn btn-danger btn-sm" onclick="deletePekerjaan(${p.id})">🗑 Hapus</button>
-            <button class="btn btn-sm" style="background:var(--navy-light);color:var(--navy);" onclick="editPekerjaan(${p.id})">✏️ Edit Info</button>
-            <button class="btn btn-sm" style="background:var(--blue-light);color:var(--blue);" onclick="goToLaporan(${p.id})">📄 Laporan</button>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
-
-    return `
-    <div class="group-section">
-      <div class="group-header ${grupSlug}">
-        <span style="font-size:18px;">🏷️</span>
-        <span class="group-label">${grupName}</span>
-        <span class="group-count">${grupItems.length} pekerjaan</span>
-      </div>
-      <div class="pekerjaan-list">${grupCards}</div>
-    </div>`;
-  }).join('');
-
-  renderGrupFilterBar();
-}
-
-function renderAll() {
-  renderSummary();
-  renderCards();
-  renderLaporan();
-  renderAlertBanner();
-  setTimeout(() => {
-    initCardDrag();
-    initSubtaskDrag();
-  }, 50);
-}
-
-// ─────────────────────────────────────────
-// TOGGLE CARD
-// ─────────────────────────────────────────
-function toggleCard(id) {
-  const body = document.getElementById(`body-${id}`);
-  const chev = document.getElementById(`chev-${id}`);
-  const card = document.getElementById(`card-${id}`);
-  body.classList.toggle('open');
-  chev.classList.toggle('open');
-  // Nonaktifkan draggable saat card dibuka agar klik di dalam tidak terganggu
-  if (card) card.draggable = !body.classList.contains('open');
-}
-
-// ─────────────────────────────────────────
-// SUBTASK ACTIONS
-// ─────────────────────────────────────────
-function toggleSubtask(pid, sid) {
-  const p = data.find(x => x.id === pid);
-  if (!p) return;
-  const s = p.subtasks.find(x => x.id === sid);
-  if (!s) return;
-  s.done = !s.done;
-  saveData();
-  // Update just this card's UI without full re-render (smooth)
-  updateCardUI(pid);
-  renderSummary();
-  renderLaporan();
-}
-
-function updateCardUI(pid) {
-  const p = data.find(x => x.id === pid);
-  if (!p) return;
-  const pct = getProgres(p);
-  const pctPct = Math.round(pct * 100);
-  const done = p.subtasks.filter(s=>s.done).length;
-  const total = p.subtasks.length;
-  const status = getStatus(p);
-
-  // Update progress bar
-  const card = document.getElementById(`card-${pid}`);
-  if (!card) return;
-  card.querySelector('.progress-bar-fill').style.width = pctPct + '%';
-  card.querySelector('.progress-pct').textContent = pctPct + '%';
-  card.querySelector('.progress-label span').textContent = `${done}/${total} sub-task`;
-  card.querySelector('.status-badge').className = `status-badge ${status.cls}`;
-  card.querySelector('.status-badge').textContent = status.label;
-
-  // Update checklist items
-  p.subtasks.forEach(s => {
-    const ci = document.getElementById(`ci-${s.id}`);
-    if (!ci) return;
-    const box = ci.querySelector('.check-box');
-    const label = ci.querySelector('.check-label');
-    ci.className = `checklist-item ${s.done ? 'done' : ''}`;
-    box.className = `check-box ${s.done ? 'checked' : ''}`;
-    box.textContent = s.done ? '✓' : '';
-    label.className = `check-label ${s.done ? 'done-text' : ''}`;
-  });
-}
-
-function addSubtask(pid) {
-  const input = document.getElementById(`new-sub-${pid}`);
-  const nama = input.value.trim();
-  if (!nama) return;
-  const p = data.find(x => x.id === pid);
-  if (!p) return;
-  p.subtasks.push({ id: ++nextSubId, nama, done: false });
-  saveData();
-  input.value = '';
-  renderAll();
-  // Re-open card
-  const body = document.getElementById(`body-${pid}`);
-  const chev = document.getElementById(`chev-${pid}`);
-  if (body) { body.classList.add('open'); chev.classList.add('open'); }
-  // Focus input again
-  setTimeout(() => {
-    const inp = document.getElementById(`new-sub-${pid}`);
-    if (inp) inp.focus();
-  }, 50);
-  showToast('✅ Sub-task ditambahkan');
-}
-
-function deleteSubtask(pid, sid) {
-  const p = data.find(x => x.id === pid);
-  if (!p) return;
-  if (!confirm('Hapus sub-task ini?')) return;
-  p.subtasks = p.subtasks.filter(s => s.id !== sid);
-  saveData();
-  renderAll();
-  const body = document.getElementById(`body-${pid}`);
-  const chev = document.getElementById(`chev-${pid}`);
-  if (body) { body.classList.add('open'); chev.classList.add('open'); }
-}
-
-function saveField(pid, field, val) {
-  const p = data.find(x => x.id === pid);
-  if (!p) return;
-  p[field] = val;
-  saveData();
-}
-
-// ─────────────────────────────────────────
-// DRAG & DROP — KARTU PEKERJAAN
-// ─────────────────────────────────────────
-let dragSrcPid = null;
-
-function initCardDrag() {
-  document.querySelectorAll('.pekerjaan-card[draggable]').forEach(card => {
-    card.addEventListener('dragstart', e => {
-      dragSrcPid = parseInt(card.dataset.pid);
-      card.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    });
-    card.addEventListener('dragend', () => {
-      card.classList.remove('dragging');
-      document.querySelectorAll('.pekerjaan-card.drag-over').forEach(el => el.classList.remove('drag-over'));
-    });
-    card.addEventListener('dragover', e => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      document.querySelectorAll('.pekerjaan-card.drag-over').forEach(el => el.classList.remove('drag-over'));
-      card.classList.add('drag-over');
-    });
-    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
-    card.addEventListener('drop', e => {
-      e.preventDefault();
-      card.classList.remove('drag-over');
-      const targetPid = parseInt(card.dataset.pid);
-      if (dragSrcPid === targetPid) return;
-
-      // Find indices in data array (across all groups)
-      const srcIdx = data.findIndex(p => p.id === dragSrcPid);
-      const tgtIdx = data.findIndex(p => p.id === targetPid);
-      if (srcIdx === -1 || tgtIdx === -1) return;
-
-      // Move item
-      const [moved] = data.splice(srcIdx, 1);
-      data.splice(tgtIdx, 0, moved);
-      saveData();
-      renderAll();
-      showToast('↕️ Urutan pekerjaan diperbarui');
-    });
-  });
-}
-
-// ─────────────────────────────────────────
-// DRAG & DROP — SUB-TASK
-// ─────────────────────────────────────────
-let dragSrcSid = null;
-let dragSrcSubPid = null;
-
-function initSubtaskDrag() {
-  document.querySelectorAll('.checklist-item[draggable]').forEach(item => {
-    item.addEventListener('dragstart', e => {
-      dragSrcSid = parseInt(item.dataset.sid);
-      dragSrcSubPid = parseInt(item.dataset.pid);
-      item.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-      e.stopPropagation(); // prevent card drag
-    });
-    item.addEventListener('dragend', () => {
-      item.classList.remove('dragging');
-      document.querySelectorAll('.checklist-item.drag-over').forEach(el => el.classList.remove('drag-over'));
-    });
-    item.addEventListener('dragover', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.dataTransfer.dropEffect = 'move';
-      document.querySelectorAll('.checklist-item.drag-over').forEach(el => el.classList.remove('drag-over'));
-      item.classList.add('drag-over');
-    });
-    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
-    item.addEventListener('drop', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      item.classList.remove('drag-over');
-      const targetSid = parseInt(item.dataset.sid);
-      const targetPid = parseInt(item.dataset.pid);
-      if (dragSrcSid === targetSid) return;
-
-      const p = data.find(x => x.id === dragSrcSubPid);
-      if (!p || !p.subtasks) return;
-
-      const srcIdx = p.subtasks.findIndex(s => s.id === dragSrcSid);
-      const tgtIdx = p.subtasks.findIndex(s => s.id === targetSid);
-      if (srcIdx === -1 || tgtIdx === -1) return;
-
-      const [moved] = p.subtasks.splice(srcIdx, 1);
-      p.subtasks.splice(tgtIdx, 0, moved);
-      saveData();
-
-      // Re-render only the checklist, keep card open
-      const cl = document.getElementById(`checklist-${dragSrcSubPid}`);
-      if (cl) {
-        cl.innerHTML = p.subtasks.map(s => `
-          <div class="checklist-item ${s.done ? 'done' : ''}" id="ci-${s.id}" draggable="true" data-sid="${s.id}" data-pid="${p.id}" onclick="event.stopPropagation()">
-            <span class="drag-handle" title="Geser untuk ubah urutan">⠿</span>
-            <div class="check-box ${s.done ? 'checked' : ''}" onclick="event.stopPropagation();toggleSubtask(${p.id}, ${s.id})">${s.done ? '✓' : ''}</div>
-            <span class="check-label ${s.done ? 'done-text' : ''}" onclick="event.stopPropagation();toggleSubtask(${p.id}, ${s.id})">${esc(s.nama)}</span>
-            <button class="check-delete" onclick="event.stopPropagation();deleteSubtask(${p.id}, ${s.id})" title="Hapus sub-task">✕</button>
-          </div>`).join('');
-        initSubtaskDrag();
-      }
-      showToast('↕️ Urutan sub-task diperbarui');
-    });
-  });
-}
-
-// ─────────────────────────────────────────
-// DOKUMEN & LINK
-// ─────────────────────────────────────────
-function getDokumenIcon(ext) {
-  const e = (ext||'').toLowerCase();
-  if (e === 'pdf') return '📕';
-  if (['doc','docx'].includes(e)) return '📘';
-  if (['xls','xlsx'].includes(e)) return '📗';
-  if (['ppt','pptx'].includes(e)) return '📙';
-  if (['zip','rar'].includes(e)) return '🗜️';
-  if (e === 'txt') return '📄';
-  return '📎';
-}
-
-function formatSize(bytes) {
-  if (!bytes) return '';
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
-  return (bytes/1048576).toFixed(1) + ' MB';
-}
-
-function switchDokumenTab(pid, tab) {
-  ['file','link'].forEach(t => {
-    document.getElementById(`dtab-${t}-${pid}`).classList.toggle('active', t === tab);
-    document.getElementById(`dpanel-${t}-${pid}`).style.display = t === tab ? '' : 'none';
-  });
-}
-
-// ─── UPLOAD DOKUMEN — PREVIEW + KONFIRMASI ───────────────────────────────────
-// Simpan file yang dipilih sementara (per pid)
-const _pendingFiles = {};
-
-function previewDokumen(event, pid) {
-  const files = Array.from(event.target.files);
-  if (!files.length) return;
-  const MAX = 20 * 1024 * 1024; // 20MB
-  const valid = files.filter(f => {
-    if (f.size > MAX) { showToast(`⚠️ ${f.name} terlalu besar (maks. 20MB), dilewati`); return false; }
-    return true;
-  });
-  if (!valid.length) return;
-  _pendingFiles[pid] = valid;
-  renderPreviewList(pid);
-}
-
-function renderPreviewList(pid) {
-  const files = _pendingFiles[pid] || [];
-  const previewBox = document.getElementById(`dok-preview-${pid}`);
-  const listEl    = document.getElementById(`dok-preview-list-${pid}`);
-  if (!previewBox || !listEl) return;
-  if (!files.length) { previewBox.style.display = 'none'; return; }
-
-  listEl.innerHTML = files.map((f, i) => `
-    <div class="dok-preview-item">
-      <span>${getDokumenIcon(f.name.split('.').pop())}</span>
-      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(f.name)}">${esc(f.name)}</span>
-      <span class="dok-preview-size">${formatSize(f.size)}</span>
-      <span class="dok-preview-remove" onclick="hapusPendingFile(${pid},${i})" title="Hapus">✕</span>
-    </div>`).join('');
-
-  previewBox.style.display = 'block';
-}
-
-function hapusPendingFile(pid, idx) {
-  if (_pendingFiles[pid]) {
-    _pendingFiles[pid].splice(idx, 1);
-    if (_pendingFiles[pid].length === 0) {
-      batalPreview(pid);
-    } else {
-      renderPreviewList(pid);
-    }
-  }
-}
-
-function batalPreview(pid) {
-  delete _pendingFiles[pid];
-  const previewBox = document.getElementById(`dok-preview-${pid}`);
-  if (previewBox) previewBox.style.display = 'none';
-  const input = document.getElementById(`dok-input-${pid}`);
-  if (input) input.value = '';
-}
-
-function konfirmasiUpload(pid) {
-  const files = _pendingFiles[pid];
-  if (!files || !files.length) { showToast('⚠️ Tidak ada file dipilih'); return; }
-  const p = data.find(x => x.id === pid);
-  if (!p) { showToast('⚠️ Data pekerjaan tidak ditemukan'); return; }
-  if (!p.dokumens) p.dokumens = [];
-  const ket = document.getElementById(`dok-ket-${pid}`)?.value.trim() || '';
-
-  // Sembunyikan preview
-  const previewBox = document.getElementById(`dok-preview-${pid}`);
-  if (previewBox) previewBox.style.display = 'none';
-
-  // STEP 1: Simpan ke lokal DULU — supaya pasti tampil & tidak hilang
-  let loaded = 0;
-  showToast(`⏳ Menyimpan ${files.length} file...`);
-
-  files.forEach(file => {
-    _uploadDokumenLokal(file, pid, ket, () => {
-      loaded++;
-      if (loaded === files.length) {
-        // Semua file sudah di array, simpan & render dulu
-        delete _pendingFiles[pid];
-        saveData();
-        reopenCard(pid);
-        showToast(`✅ ${files.length} file tersimpan!`);
-
-        // STEP 2: Coba sinkron ke Google Drive di background (opsional, silent, tidak ganggu kalau gagal)
-        _coba_upload_ke_gdrive(pid, p.grup);
-      }
-    });
-  });
-
-  const input = document.getElementById(`dok-input-${pid}`);
-  if (input) input.value = '';
-}
-
-// Upload ke Google Drive di background — SILENT, tidak pernah munculkan popup.
-// Kalau sesi Google tidak aktif, gagal diam-diam & file tetap aman tersimpan lokal.
-function _coba_upload_ke_gdrive(pid, grupNama) {
-  const p = data.find(x => x.id === pid);
-  if (!p || !p.dokumens) return;
-  // Cari entry yang belum punya downloadURL (baru saja disimpan lokal)
-  const localEntries = p.dokumens.filter(d => d.type === 'file' && !d.downloadURL && d.data);
-  if (!localEntries.length) return;
-
-  let done = 0;
-  localEntries.forEach(d => {
-    fetch(d.data).then(r => r.blob()).then(async blob => {
-      const token = await _ensureGDriveToken(false); // silent
-      const folderId = await _ensureGDriveGrupFolder(token, grupNama, 'Dokumen');
-      return uploadFileToGDriveSilent(blob, d.nama, blob.type, folderId);
-    }).then(({ url, fileId }) => {
-      d.downloadURL = url;
-      d.driveFileId = fileId;
-      d.data = null; // hapus base64 setelah ada URL Drive, hemat penyimpanan lokal
-      done++;
-      if (done === localEntries.length) {
-        saveData();
-        showToast('☁️ File tersinkron ke Google Drive!');
-      }
-    }).catch(err => {
-      done++;
-      console.warn('Sinkron Google Drive gagal di background (file tetap tersimpan lokal):', err.message);
-    });
-  });
-}
-
-// Drag & Drop handlers
-function handleDragOver(event, pid) {
-  event.preventDefault();
-  const zone = document.getElementById(`upload-zone-${pid}`);
-  if (zone) zone.classList.add('drag-active');
-}
-function handleDragLeave(event, pid) {
-  const zone = document.getElementById(`upload-zone-${pid}`);
-  if (zone) zone.classList.remove('drag-active');
-}
-function handleDrop(event, pid) {
-  event.preventDefault();
-  const zone = document.getElementById(`upload-zone-${pid}`);
-  if (zone) zone.classList.remove('drag-active');
-  const files = Array.from(event.dataTransfer.files).filter(f =>
-    /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt|zip|rar)$/i.test(f.name));
-  if (!files.length) { showToast('⚠️ Format file tidak didukung'); return; }
-  const MAX = 20 * 1024 * 1024;
-  const valid = files.filter(f => {
-    if (f.size > MAX) { showToast(`⚠️ ${f.name} terlalu besar, dilewati`); return false; }
-    return true;
-  });
-  if (!valid.length) return;
-  _pendingFiles[pid] = valid;
-  renderPreviewList(pid);
-}
-
-// ─── LEGACY — masih dipakai oleh fallback internal ───────────────────────────
-function handleDokumenUpload(event, pid) {
-  // Redirect ke preview flow
-  previewDokumen(event, pid);
-}
-
-function _uploadDokumenLokal(file, pid, ket, cb) {
-  const p = data.find(x => x.id === pid);
-  if (!p) return;
-  const ext = file.name.split('.').pop();
-  const reader = new FileReader();
-  reader.onload = e => {
-    p.dokumens.push({
-      type: 'file',
-      nama: file.name,
-      ext: ext,
-      size: file.size,
-      keterangan: ket,
-      storagePath: null,
-      downloadURL: null,
-      data: e.target.result
-    });
-    if (cb) cb();
-  };
-  reader.readAsDataURL(file);
-}
-
-function addLink(pid) {
-  const p = data.find(x => x.id === pid);
-  if (!p) return;
-  if (!p.dokumens) p.dokumens = [];
-
-  const nama = document.getElementById(`link-nama-${pid}`)?.value.trim();
-  const url  = document.getElementById(`link-url-${pid}`)?.value.trim();
-  const ket  = document.getElementById(`link-ket-${pid}`)?.value.trim();
-
-  if (!nama) { showToast('⚠️ Judul link wajib diisi'); return; }
-  if (!url)  { showToast('⚠️ URL wajib diisi'); return; }
-
-  p.dokumens.push({ type: 'link', nama, url, keterangan: ket });
-  saveData();
-  reopenCard(pid, 'link');
-  showToast('✅ Link ditambahkan');
-}
-
-function deleteDokumen(pid, di) {
-  const p = data.find(x => x.id === pid);
-  if (!p || !p.dokumens) return;
-  if (!confirm('Hapus item ini?')) return;
-  const dok = p.dokumens[di];
-  const type = dok.type;
-
-  // Hapus dari Google Drive / Firebase Storage jika ada
-  if (dok.driveFileId) {
-    deleteImageFromGDrive(dok.driveFileId);
-  } else if (dok.storagePath && window._firebaseReady && window._fbStorage) {
-    const storageRef = window._fbSRef(window._fbStorage, dok.storagePath);
-    window._fbDeleteObject(storageRef)
-      .then(() => console.log('✅ File dihapus dari Firebase Storage'))
-      .catch(e => console.warn('⚠️ Gagal hapus dari Storage:', e));
-  }
-
-  p.dokumens.splice(di, 1);
-  saveData();
-  reopenCard(pid, type === 'link' ? 'link' : 'file');
-  showToast('🗑 Dihapus');
-}
-
-function downloadDokumen(pid, di) {
-  const p = data.find(x => x.id === pid);
-  if (!p || !p.dokumens || !p.dokumens[di]) return;
-  const d = p.dokumens[di];
-
-  // Gunakan Firebase Storage URL jika tersedia
-  if (d.downloadURL) {
-    const a = document.createElement('a');
-    a.href = d.downloadURL;
-    a.target = '_blank';
-    a.download = d.nama;
-    a.click();
-    showToast('⬇️ Mendownload ' + d.nama);
-  } else if (d.data) {
-    // Fallback ke base64 lokal
-    const a = document.createElement('a');
-    a.href = d.data;
-    a.download = d.nama;
-    a.click();
-    showToast('⬇️ Mendownload ' + d.nama);
-  } else {
-    showToast('⚠️ File tidak ditemukan');
-  }
-}
-
-function reopenCard(pid, tab) {
-  renderAll();
-  setTimeout(() => {
-    const body = document.getElementById(`body-${pid}`);
-    const chev = document.getElementById(`chev-${pid}`);
-    if (body) { body.classList.add('open'); }
-    if (chev) { chev.classList.add('open'); }
-    if (tab) switchDokumenTab(pid, tab);
-    // Paksa refresh daftar file
-    refreshDokumenFileList(pid);
-  }, 100);
-}
-
-function refreshDokumenFileList(pid) {
-  const p = data.find(x => x.id === pid);
-  if (!p) return;
-  const listEl = document.getElementById(`dokumen-file-list-${pid}`);
-  const countEl = document.querySelector(`#dpanel-file-${pid} .dokumen-count`);
-  if (!listEl) return;
-  const files = (p.dokumens||[]);
-  listEl.innerHTML = files.map((d, di) => d.type === 'file' ? `
-    <div class="dokumen-item">
-      <span class="dokumen-icon">${getDokumenIcon(d.ext)}</span>
-      <div class="dokumen-info">
-        <div class="dokumen-nama" title="${esc(d.nama)}">${esc(d.nama)}</div>
-        <div class="dokumen-meta">${esc(d.keterangan||'')} ${d.size ? '· '+formatSize(d.size) : ''} ${d.downloadURL ? '· ☁️ Firebase' : '· 💾 Lokal'}</div>
-      </div>
-      <div class="dokumen-actions">
-        <button class="dokumen-btn" onclick="downloadDokumen(${pid},${di})">⬇ Download</button>
-        <button class="dokumen-btn del" onclick="deleteDokumen(${pid},${di})">✕</button>
-      </div>
-    </div>` : '').join('');
-  if (countEl) countEl.textContent = files.filter(d=>d.type==='file').length + ' file tersimpan';
-}
-
-// ─────────────────────────────────────────
-// FOTO DOKUMENTASI
-// ─────────────────────────────────────────
-function handleFotoUpload(event, pid) {
-  const p = data.find(x => x.id === pid);
-  if (!p) return;
-  if (!p.fotos) p.fotos = [];
-  const files = Array.from(event.target.files);
-  const sisa = 10 - p.fotos.length;
-  const toLoad = files.slice(0, sisa);
-  if (files.length > sisa) showToast(`⚠️ Hanya ${sisa} foto lagi yang bisa ditambahkan`);
-  event.target.value = '';
-  if (toLoad.length === 0) return;
-
-  let uploaded = 0;
-  showToast(`⏳ Mengupload ${toLoad.length} foto ke Google Drive...`);
-  const bukaSubtask = () => {
-    const body = document.getElementById(`body-${pid}`);
-    const chev = document.getElementById(`chev-${pid}`);
-    if (body) { body.classList.add('open'); if (chev) chev.classList.add('open'); }
-  };
-
-  toLoad.forEach(file => {
-    uploadImageToGDrive(file, `foto_${pid}`, 'grupFoto', p.grup)
-      .then(({ url, fileId }) => {
-        p.fotos.push({ data: null, downloadURL: url, driveFileId: fileId, storagePath: null, caption: '' });
-        uploaded++;
-        if (uploaded === toLoad.length) {
-          saveData(); renderAll(); bukaSubtask();
-          showToast(`✅ ${toLoad.length} foto berhasil diupload ke Google Drive!`);
-        }
-      })
-      .catch(err => {
-        console.warn('Upload foto ke Drive gagal, simpan lokal:', err);
-        const reader = new FileReader();
-        reader.onload = e => {
-          p.fotos.push({ data: e.target.result, downloadURL: null, driveFileId: null, storagePath: null, caption: '' });
-          uploaded++;
-          if (uploaded === toLoad.length) {
-            saveData(); renderAll(); bukaSubtask();
-            showToast(`⚠️ Upload ke Drive gagal, foto disimpan di perangkat ini saja.`);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-  });
-}
-
-function deleteFoto(pid, fi) {
-  const p = data.find(x => x.id === pid);
-  if (!p || !p.fotos) return;
-  if (!confirm('Hapus foto ini?')) return;
-  const foto = p.fotos[fi];
-
-  if (foto.driveFileId) {
-    deleteImageFromGDrive(foto.driveFileId);
-  } else if (foto.storagePath && window._firebaseReady && window._fbStorage) {
-    const storageRef = window._fbSRef(window._fbStorage, foto.storagePath);
-    window._fbDeleteObject(storageRef).catch(e => console.warn('⚠️ Gagal hapus foto dari Storage:', e));
-  }
-
-  p.fotos.splice(fi, 1);
-  saveData();
-  renderAll();
-  const body = document.getElementById(`body-${pid}`);
-  const chev = document.getElementById(`chev-${pid}`);
-  if (body) { body.classList.add('open'); if(chev) chev.classList.add('open'); }
-  showToast('🗑 Foto dihapus');
-}
-
-function saveFotoCaption(pid, fi, val) {
-  const p = data.find(x => x.id === pid);
-  if (!p || !p.fotos || !p.fotos[fi]) return;
-  p.fotos[fi].caption = val;
-  saveData();
-}
-
-function openLightbox(src, caption) {
-  document.getElementById('lightbox-img').src = src;
-  document.getElementById('lightbox-caption').textContent = caption || '';
-  document.getElementById('lightbox').classList.add('open');
-}
-
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('open');
-}
-
-// ─────────────────────────────────────────
-// PEKERJAAN CRUD
-// ─────────────────────────────────────────
-function populateModalDropdowns(editGrup, editKategori) {
-  // Fill datalists for suggestions
-  document.getElementById('list-grups').innerHTML = grups.map(g => `<option value="${esc(g)}">`).join('');
-  document.getElementById('list-kategoris').innerHTML = kategoris.map(k => `<option value="${esc(k)}">`).join('');
-  // Set current values
-  document.getElementById('m-grup').value = editGrup || grups[0] || '';
-  document.getElementById('m-kategori').value = editKategori || kategoris[0] || '';
-}
-
-function openModal(editId) {
-  document.getElementById('modal-edit-id').value = editId || '';
-  document.getElementById('modal-title').textContent = editId ? 'Edit Pekerjaan' : 'Tambah Pekerjaan Baru';
-  if (editId) {
-    const p = data.find(x => x.id === editId);
-    if (p) {
-      populateModalDropdowns(p.grup || grups[0], p.kategori || kategoris[0]);
-      document.getElementById('m-nama').value = p.nama || '';
-      document.getElementById('m-prioritas').value = p.prioritas || 'Tinggi';
-      document.getElementById('m-mulai').value = p.mulai || '';
-      document.getElementById('m-deadline').value = p.deadline || '';
-      document.getElementById('m-pic').value = p.pic || '';
-      document.getElementById('m-catatan').value = p.catatan || '';
-    }
-  } else {
-    populateModalDropdowns(grups[0], kategoris[0]);
-    document.getElementById('m-nama').value = '';
-    document.getElementById('m-prioritas').value = 'Tinggi';
-    document.getElementById('m-mulai').value = '';
-    document.getElementById('m-deadline').value = '';
-    document.getElementById('m-pic').value = '';
-    document.getElementById('m-catatan').value = '';
-  }
-  document.getElementById('modal-overlay').classList.add('open');
-  setTimeout(() => document.getElementById('m-nama').focus(), 100);
-}
-
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('open');
-}
-
-function closeModalOutside(e) {
-  if (e.target === document.getElementById('modal-overlay')) closeModal();
-}
-
-function savePekerjaan() {
-  const nama = document.getElementById('m-nama').value.trim();
-  const deadline = document.getElementById('m-deadline').value;
-  const grupVal = document.getElementById('m-grup').value.trim();
-  const kategoriVal = document.getElementById('m-kategori').value.trim();
-  if (!nama) { alert('Nama pekerjaan wajib diisi!'); return; }
-  if (!grupVal) { alert('Grup wajib diisi!'); return; }
-  if (!kategoriVal) { alert('Kategori wajib diisi!'); return; }
-
-  // Auto-register new grup/kategori if not yet in list
-  if (!grups.includes(grupVal)) { grups.push(grupVal); showToast(`🏷️ Grup "${grupVal}" ditambahkan`); }
-  if (!kategoris.includes(kategoriVal)) { kategoris.push(kategoriVal); showToast(`🗂️ Kategori "${kategoriVal}" ditambahkan`); }
-
-  const editId = document.getElementById('modal-edit-id').value;
-
-  if (editId) {
-    const p = data.find(x => x.id === parseInt(editId));
-    if (p) {
-      p.nama = nama;
-      p.grup = grupVal;
-      p.kategori = kategoriVal;
-      p.prioritas = document.getElementById('m-prioritas').value;
-      p.mulai = document.getElementById('m-mulai').value;
-      p.deadline = deadline;
-      p.pic = document.getElementById('m-pic').value;
-      p.catatan = document.getElementById('m-catatan').value;
-    }
-    showToast('✅ Pekerjaan diperbarui');
-  } else {
-    data.push({
-      id: ++nextId,
-      no: data.length + 1,
-      grup: grupVal,
-      kategori: kategoriVal,
-      nama,
-      mulai: document.getElementById('m-mulai').value,
-      deadline,
-      pic: document.getElementById('m-pic').value,
-      prioritas: document.getElementById('m-prioritas').value,
-      catatan: document.getElementById('m-catatan').value,
-      kendala: '',
-      subtasks: []
-    });
-    showToast('✅ Pekerjaan baru ditambahkan');
-  }
-
-  saveData();
-  closeModal();
-  renderAll();
-}
-
-function editPekerjaan(id) { openModal(id); }
-
-function deletePekerjaan(id) {
-  const p = data.find(x => x.id === id);
-  if (!p) return;
-  if (!confirm(`Hapus pekerjaan "${p.nama}"? Semua sub-task akan ikut terhapus.`)) return;
-  data = data.filter(x => x.id !== id);
-  saveData();
-  renderAll();
-  showToast('🗑 Pekerjaan dihapus');
-}
-
-// ─────────────────────────────────────────
-// MANAGE GRUP / KATEGORI
-// ─────────────────────────────────────────
-function openManageModal(mode) {
-  manageMode = mode;
-  document.getElementById('manage-modal-title').textContent =
-    mode === 'grup' ? '🏷️ Kelola Grup' : '🗂️ Kelola Kategori';
-  document.getElementById('manage-new-tag').value = '';
-  renderManageTags();
-  document.getElementById('manage-modal-overlay').classList.add('open');
-  setTimeout(() => document.getElementById('manage-new-tag').focus(), 100);
-}
-
-function closeManageModal() {
-  document.getElementById('manage-modal-overlay').classList.remove('open');
-  renderAll();
-}
-
-function renderManageTags() {
-  const list = manageMode === 'grup' ? grups : kategoris;
-  document.getElementById('manage-tag-list').innerHTML = list.map((item, idx) => `
-    <div class="tag-item">
-      ${esc(item)}
-      <button class="tag-del" onclick="deleteManageTag(${idx})" title="Hapus">✕</button>
-    </div>
-  `).join('');
-}
-
-function addManageTag() {
-  const val = document.getElementById('manage-new-tag').value.trim();
-  if (!val) return;
-  if (manageMode === 'grup') {
-    if (grups.includes(val)) { showToast('⚠️ Grup sudah ada'); return; }
-    grups.push(val);
-  } else {
-    if (kategoris.includes(val)) { showToast('⚠️ Kategori sudah ada'); return; }
-    kategoris.push(val);
-  }
-  saveData();
-  document.getElementById('manage-new-tag').value = '';
-  renderManageTags();
-  showToast('✅ Berhasil ditambahkan');
-}
-
-function deleteManageTag(idx) {
-  if (manageMode === 'grup') {
-    const g = grups[idx];
-    const used = data.some(p => p.grup === g);
-    if (used) { if (!confirm(`Grup "${g}" masih digunakan oleh beberapa pekerjaan. Hapus tetap?`)) return; }
-    grups.splice(idx, 1);
-    if (grups.length === 0) grups.push('Lainnya');
-  } else {
-    const k = kategoris[idx];
-    const used = data.some(p => p.kategori === k);
-    if (used) { if (!confirm(`Kategori "${k}" masih digunakan. Hapus tetap?`)) return; }
-    kategoris.splice(idx, 1);
-    if (kategoris.length === 0) kategoris.push('📌 Lainnya');
-  }
-  saveData();
-  renderManageTags();
-  showToast('🗑 Dihapus');
-}
-
-// ─────────────────────────────────────────
-// LAPORAN
-// ─────────────────────────────────────────
-function buildLaporan(p) {
-  if (!p) return '';
-  const subtasks = p.subtasks || [];
-  const pct = Math.round(getProgres(p) * 100);
-  const done = subtasks.filter(s=>s.done).length;
-  const total = subtasks.length;
-  const status = getStatus(p).label;
-  const sisa = getSisaHari(p.deadline);
-  const sudah = subtasks.filter(s=>s.done).map(s=>s.nama).join(', ') || '-';
-  const belum = subtasks.filter(s=>!s.done).map(s=>s.nama).join(', ') || '-';
-
-  const fotoInfo = (p.fotos && p.fotos.length > 0)
-    ? p.fotos.map((f,i) => `  Foto ${i+1}: ${f.caption || '(tanpa keterangan)'}`).join('\n')
-    : '  (belum ada foto)';
-
-  const dokFiles = (p.dokumens||[]).filter(d=>d.type==='file');
-  const dokLinks = (p.dokumens||[]).filter(d=>d.type==='link');
-  const dokInfo = dokFiles.length === 0 && dokLinks.length === 0
-    ? '  (belum ada dokumen/link)'
-    : [
-        ...dokFiles.map((d,i) => `  📄 File ${i+1}: ${d.nama}${d.keterangan ? ' — '+d.keterangan : ''}`),
-        ...dokLinks.map((d,i) => `  🔗 Link ${i+1}: ${d.nama} — ${d.url}${d.keterangan ? ' ('+d.keterangan+')' : ''}`)
-      ].join('\n');
-
-  return `[${p.grup || 'Lainnya'}] [${p.kategori}] ${p.nama}
-PIC         : ${p.pic || '-'}
-Deadline    : ${formatDate(p.deadline)} (${sisa})
-Status      : ${status}
-Progres     : ${'█'.repeat(Math.round(pct/5))}${'░'.repeat(20-Math.round(pct/5))} ${pct}% (${done}/${total} sub-task)
-
-✅ Sudah dikerjakan:
-${sudah}
-
-⏳ Langkah berikutnya:
-${belum}
-
-⚠️ Kendala:
-${p.kendala || '-'}
-
-📋 Catatan:
-${p.catatan || '-'}
-
-📷 Foto Dokumentasi (${(p.fotos||[]).length} foto):
-${fotoInfo}
-
-📎 Dokumen & Link (${dokFiles.length} file, ${dokLinks.length} link):
-${dokInfo}`;
-}
-
-function renderLaporan() {
-  const list = document.getElementById('laporan-list');
-  if (!list) return;
-  list.innerHTML = data.map(p => {
-    const lap = buildLaporan(p);
-    return `
-    <div class="laporan-box" id="laporan-${p.id}">
-      <div class="laporan-box-header">
-        <span class="lh-title">${esc(p.grup||'')? `<span style="font-size:10px;background:var(--navy-mid);color:white;padding:2px 8px;border-radius:10px;margin-right:6px;">${esc(p.grup)}</span>` : ''}${esc(p.kategori)} — ${esc(p.nama)}</span>
-        <span class="status-badge ${getStatus(p).cls}">${getStatus(p).label}</span>
-      </div>
-      <div class="laporan-content">${esc(lap)}</div>
-      <div class="laporan-copy-row" style="gap:8px;">
-        <button class="btn btn-outline btn-sm" style="background:var(--navy-light);color:var(--navy);" onclick="copyText(${JSON.stringify(lap).replace(/</g,'\\u003c')}, this)">📋 Salin</button>
-        <button class="btn btn-sm" style="background:var(--green-light);color:var(--green);" onclick="exportSingleWord(${p.id})">📝 Export Word</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// Navigate from card to its laporan section
-function goToLaporan(pid) {
-  switchTabByName('laporan');
-  setTimeout(() => {
-    const el = document.getElementById('laporan-' + pid);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      el.style.outline = '3px solid var(--gold)';
-      el.style.borderRadius = '14px';
-      setTimeout(() => { el.style.outline = ''; el.style.borderRadius = ''; }, 2000);
-    }
-  }, 150);
-}
-
-function copyText(text, btn) {
-  navigator.clipboard.writeText(text).then(() => {
-    const orig = btn.textContent;
-    btn.textContent = '✅ Tersalin!';
-    setTimeout(() => btn.textContent = orig, 1500);
-    showToast('📋 Laporan tersalin ke clipboard');
-  });
-}
-
-function copyAllLaporan() {
-  const all = data.map(p => buildLaporan(p)).join('\n\n' + '─'.repeat(50) + '\n\n');
-  const now = new Date().toLocaleString('id-ID');
-  const header = `LAPORAN MONITORING PEKERJAAN AKADEMIK\nDibuat: ${now}\n${'═'.repeat(50)}\n\n`;
-  navigator.clipboard.writeText(header + all).then(() => {
-    showToast('📋 Semua laporan tersalin!');
-  });
-}
-
-function exportLaporan() {
-  switchTabByName('laporan');
-  showToast('📄 Beralih ke tab Laporan Otomatis');
-}
-
-// ─────────────────────────────────────────
-// EXPORT WORD (HTML → .doc, no CDN needed)
-// ─────────────────────────────────────────
-function buildWordHTML(pList) {
-  const now = new Date().toLocaleString('id-ID');
-
-  const pagesHtml = pList.map((p, idx) => {
-    const pct = Math.round(getProgres(p) * 100);
-    const done = (p.subtasks||[]).filter(s=>s.done).length;
-    const total = (p.subtasks||[]).length;
-    const status = getStatus(p).label;
-    const sisa = getSisaHari(p.deadline);
-    const bar = '█'.repeat(Math.round(pct/5)) + '░'.repeat(20 - Math.round(pct/5));
-
-    const sudahList = (p.subtasks||[]).filter(s=>s.done).map(s=>`<li>${s.nama}</li>`).join('') || '<li><i>(belum ada)</i></li>';
-    const belumList = (p.subtasks||[]).filter(s=>!s.done).map(s=>`<li>${s.nama}</li>`).join('') || '<li><i>(semua sudah selesai)</i></li>';
-
-    // Foto: embed as actual images with caption below each
-    const fotoHtml = (p.fotos && p.fotos.length > 0)
-      ? p.fotos.map((f, fi) => `
-          <div style="display:inline-block;margin:8px 12px 16px 0;vertical-align:top;max-width:220px;">
-            <img src="${f.data}" width="210" style="border:1px solid #dde3ee;border-radius:4px;display:block;">
-            <p style="font-size:9pt;color:#444;margin:4px 0 0;font-style:italic;max-width:210px;">
-              <b>Foto ${fi+1}:</b> ${f.caption || '(tanpa keterangan)'}
-            </p>
-          </div>`)
-        .join('')
-      : '<p style="color:#888;font-style:italic;">(belum ada foto)</p>';
-
-    return `
-      ${idx > 0 ? '<div style="page-break-before:always;"></div>' : ''}
-      <h2 style="color:#0f2544;border-bottom:3px solid #e8a020;padding-bottom:6px;margin-top:${idx>0?'20px':'0'}">
-        ${idx+1}. ${p.nama}
-      </h2>
-      <p style="color:#1a3a6b;font-size:11pt;">
-        <b>Grup:</b> ${p.grup||'Lainnya'} &nbsp;|&nbsp; <b>Kategori:</b> ${p.kategori||'-'}
-      </p>
-      <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:10.5pt;margin-bottom:14px;">
-        <tr><td style="background:#e8eef7;width:25%;"><b>PIC</b></td><td>${p.pic||'-'}</td></tr>
-        <tr><td style="background:#e8eef7;"><b>Deadline</b></td><td>${formatDate(p.deadline)} (${sisa})</td></tr>
-        <tr><td style="background:#e8eef7;"><b>Status</b></td><td>${status}</td></tr>
-        <tr><td style="background:#e8eef7;"><b>Prioritas</b></td><td>${p.prioritas||'-'}</td></tr>
-        <tr><td style="background:#e8eef7;"><b>Progres</b></td><td style="font-family:monospace;">${bar} ${pct}% (${done}/${total} sub-task)</td></tr>
-      </table>
-
-      <p><b>✅ Sudah Dikerjakan:</b></p>
-      <ul style="margin-top:4px;">${sudahList}</ul>
-
-      <p><b>⏳ Langkah Berikutnya:</b></p>
-      <ul style="margin-top:4px;">${belumList}</ul>
-
-      <p><b>⚠️ Kendala:</b></p>
-      <p style="margin-top:4px;">${p.kendala||'-'}</p>
-
-      <p><b>📋 Catatan:</b></p>
-      <p style="margin-top:4px;">${p.catatan||'-'}</p>
-
-      <p><b>📷 Foto Dokumentasi (${(p.fotos||[]).length} foto):</b></p>
-      <div style="margin-top:4px;">${fotoHtml}</div>
-
-      <p><b>📎 Dokumen & Link Terkait:</b></p>
-      ${(() => {
-        const files = (p.dokumens||[]).filter(d=>d.type==='file');
-        const links = (p.dokumens||[]).filter(d=>d.type==='link');
-        if (files.length === 0 && links.length === 0)
-          return '<p style="color:#888;font-style:italic;">(belum ada dokumen/link)</p>';
-        return `
-          ${files.length > 0 ? `<p style="margin:6px 0 2px;"><b>File (${files.length}):</b></p>
-            <ul style="margin-top:2px;">${files.map(d=>`<li>${d.nama}${d.keterangan?' — '+d.keterangan:''} <span style="color:#888;">${formatSize(d.size)}</span></li>`).join('')}</ul>` : ''}
-          ${links.length > 0 ? `<p style="margin:6px 0 2px;"><b>Link (${links.length}):</b></p>
-            <ul style="margin-top:2px;">${links.map(d=>`<li><b>${d.nama}</b> — <a href="${d.url}">${d.url}</a>${d.keterangan?' ('+d.keterangan+')':''}</li>`).join('')}</ul>` : ''}
-        `;
-      })()}
-    `;
-  }).join('');
-
-  return `
-    <html xmlns:o="urn:schemas-microsoft-com:office:office"
-          xmlns:w="urn:schemas-microsoft-com:office:word"
-          xmlns="http://www.w3.org/TR/REC-html40">
-    <head>
-      <meta charset="utf-8">
-      <meta name=ProgId content=Word.Document>
-      <meta name=Generator content="Microsoft Word 15">
-      <style>
-        body { font-family: Arial, sans-serif; font-size: 11pt; color: #1e293b; margin: 2cm; }
-        h1 { color: #0f2544; font-size: 18pt; text-align: center; margin-bottom: 4px; }
-        h2 { color: #0f2544; font-size: 14pt; }
-        table { border-color: #dde3ee; }
-        td { padding: 6px 10px; }
-        ul { margin: 4px 0 12px 20px; }
-        li { margin-bottom: 3px; }
-        p { margin: 10px 0 4px; }
-        @page { margin: 2cm; }
-      </style>
-    </head>
-    <body>
-      <h1>LAPORAN MONITORING PEKERJAAN</h1>
-      <p style="text-align:center;color:#666;font-size:10pt;margin-bottom:24px;">Dibuat: ${now}</p>
-      <hr style="border:1px solid #e8a020;margin-bottom:24px;">
-      ${pagesHtml}
-    </body>
-    </html>`;
+`;
 }
 
 function downloadWordFile(htmlContent, filename) {
@@ -13684,6 +10246,358 @@ function downloadLaporanWord() {
   showToast('Laporan Word berhasil didownload!');
 }
 
+
+// ═══════════════════════════════════════════
+// DATA FISIK (BB & TB) — di Tab Kesehatan
+// ═══════════════════════════════════════════
+
+let fisikModalJenis = 'berat';
+
+function openFisikModal(jenis) {
+  fisikModalJenis = jenis || 'berat';
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  if (!a) return;
+  document.getElementById('fisik-modal-title').textContent = jenis === 'tinggi' ? '📏 Tambah Tinggi Badan' : '⚖️ Tambah Berat Badan';
+  document.getElementById('fisik-satuan').textContent = jenis === 'tinggi' ? 'cm' : 'kg';
+  document.getElementById('fisik-nilai').value = '';
+  document.getElementById('fisik-tanggal').value = todayLocalISO();
+  document.getElementById('fisik-keterangan').value = '';
+  document.getElementById('fisik-modal-overlay').classList.add('open');
+  setTimeout(function(){ document.getElementById('fisik-nilai').focus(); }, 100);
+}
+
+function closeFisikModal() {
+  document.getElementById('fisik-modal-overlay').classList.remove('open');
+}
+
+function saveFisikData() {
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  if (!a) return;
+  const nilai = document.getElementById('fisik-nilai').value.trim();
+  const tanggal = document.getElementById('fisik-tanggal').value;
+  const keterangan = document.getElementById('fisik-keterangan').value.trim();
+  if (!nilai) { alert('Nilai wajib diisi!'); return; }
+  if (!tanggal) { alert('Tanggal wajib diisi!'); return; }
+  if (!a.perkembangan) a.perkembangan = {};
+  if (!a.perkembangan[fisikModalJenis]) a.perkembangan[fisikModalJenis] = [];
+  a.perkembangan[fisikModalJenis].push({ tanggal, nilai, keterangan });
+  saveKelData();
+  closeFisikModal();
+  renderFisikData();
+  showToast('✅ Data ' + (fisikModalJenis === 'tinggi' ? 'tinggi badan' : 'berat badan') + ' ditambahkan!');
+}
+
+function hapusFisikData(jenis, idx) {
+  if (!confirm('Hapus data ini?')) return;
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  if (!a || !a.perkembangan || !a.perkembangan[jenis]) return;
+  a.perkembangan[jenis].splice(idx, 1);
+  saveKelData();
+  renderFisikData();
+  showToast('🗑️ Data dihapus');
+}
+
+function renderFisikData() {
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  if (!a) return;
+  const perk = a.perkembangan || {};
+
+  // Render BB
+  const beratList = [...(perk.berat || [])].sort(function(x,y){ return new Date(y.tanggal) - new Date(x.tanggal); });
+  const beratEl = document.getElementById('fisik-berat-list');
+  if (beratEl) {
+    if (!beratList.length) {
+      beratEl.innerHTML = '<div style="font-size:12px;color:var(--text-muted);font-style:italic;text-align:center;padding:12px 0;">Belum ada data</div>';
+    } else {
+      beratEl.innerHTML = beratList.map(function(item, i) {
+        var origIdx = (perk.berat||[]).indexOf(item);
+        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">'
+          + '<div style="font-size:11px;color:var(--text-muted);min-width:80px;">' + formatDate(item.tanggal) + '</div>'
+          + '<div style="flex:1;"><span style="font-size:15px;font-weight:700;color:#16a34a;">' + item.nilai + ' kg</span>'
+          + (item.keterangan ? '<div style="font-size:11px;color:var(--text-muted);">' + esc(item.keterangan) + '</div>' : '')
+          + '</div>'
+          + '<button onclick="hapusFisikData(&quot;berat&quot;,' + origIdx + ')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;">&#x2715;</button>'
+          + '</div>';
+      }).join('');
+    }
+  }
+
+  // Render TB
+  const tinggiList = [...(perk.tinggi || [])].sort(function(x,y){ return new Date(y.tanggal) - new Date(x.tanggal); });
+  const tinggiEl = document.getElementById('fisik-tinggi-list');
+  if (tinggiEl) {
+    if (!tinggiList.length) {
+      tinggiEl.innerHTML = '<div style="font-size:12px;color:var(--text-muted);font-style:italic;text-align:center;padding:12px 0;">Belum ada data</div>';
+    } else {
+      tinggiEl.innerHTML = tinggiList.map(function(item, i) {
+        var origIdx = (perk.tinggi||[]).indexOf(item);
+        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">'
+          + '<div style="font-size:11px;color:var(--text-muted);min-width:80px;">' + formatDate(item.tanggal) + '</div>'
+          + '<div style="flex:1;"><span style="font-size:15px;font-weight:700;color:#2563eb;">' + item.nilai + ' cm</span>'
+          + (item.keterangan ? '<div style="font-size:11px;color:var(--text-muted);">' + esc(item.keterangan) + '</div>' : '')
+          + '</div>'
+          + '<button onclick="hapusFisikData(&quot;tinggi&quot;,' + origIdx + ')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;">&#x2715;</button>'
+          + '</div>';
+      }).join('');
+    }
+  }
+
+  // Hitung & tampilkan IMT
+  const imtEl = document.getElementById('fisik-imt-info');
+  const imtVal = document.getElementById('fisik-imt-value');
+  if (imtEl && beratList.length && tinggiList.length) {
+    const bb = parseFloat(beratList[0].nilai);
+    const tb = parseFloat(tinggiList[0].nilai) / 100;
+    if (bb && tb) {
+      const imt = (bb / (tb * tb)).toFixed(1);
+      var status = '';
+      var warna = '';
+      const usia = hitungUsiaAngka(a.lahir);
+      if (usia < 5) {
+        status = 'Lihat kurva WHO untuk anak';
+        warna = '#0f2544';
+      } else if (imt < 18.5) { status = 'Berat Badan Kurang'; warna = '#dc2626'; }
+      else if (imt < 25) { status = 'Normal'; warna = '#16a34a'; }
+      else if (imt < 30) { status = 'Kelebihan Berat Badan'; warna = '#e8a020'; }
+      else { status = 'Obesitas'; warna = '#dc2626'; }
+      imtEl.style.display = 'block';
+      imtVal.innerHTML = 'IMT: <strong style="color:' + warna + ';">' + imt + ' kg/m²</strong> — <span style="color:' + warna + ';font-weight:700;">' + status + '</span>'
+        + '<br><span style="font-size:11px;color:var(--text-muted);">BB terbaru: ' + beratList[0].nilai + ' kg | TB terbaru: ' + tinggiList[0].nilai + ' cm</span>';
+    }
+  } else if (imtEl) {
+    imtEl.style.display = 'none';
+  }
+}
+
+function hitungUsiaAngka(tglLahir) {
+  if (!tglLahir) return 0;
+  var lahir = new Date(tglLahir);
+  var now = new Date();
+  return (now - lahir) / (365.25 * 24 * 3600 * 1000);
+}
+
+// Override renderKesehatan to also render fisik data
+var _origRenderKesehatan = renderKesehatan;
+function renderKesehatan() {
+  _origRenderKesehatan();
+  renderFisikData();
+}
+
+// Update analisisAI to handle new types
+var _origAnalisisAI = analisisAI;
+async function analisisAI(tipe, mode) {
+  if (tipe === 'kesehatan' && mode === 'penyakit') {
+    await _analisisPenyakit();
+  } else if (tipe === 'kesehatan' && mode === 'pertumbuhan') {
+    await _analisisPertumbuhan();
+  } else {
+    await _origAnalisisAI(tipe, mode);
+  }
+}
+
+async function _analisisPenyakit() {
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  if (!a) return;
+  const kesList = a.kesehatan || [];
+  if (!kesList.length) { showToast('⚠️ Belum ada riwayat penyakit'); return; }
+
+  const usia = hitungUsia(a.lahir);
+  const dataKes = kesList.map(function(k) {
+    var pen = (k.penanganan||[]).map(function(p) {
+      return '  - ' + (p.tanggal||'-') + ': ' + (p.tempat||'') + ' | Status: ' + (p.status||'') + ' | Obat: ' + (p.obat||'-') + (p.catatan ? ' | Catatan: ' + p.catatan : '');
+    }).join('
+');
+    return 'Penyakit: ' + (k.penyakit||'-') + '
+Mulai: ' + (k.tanggal||'-') + '
+Penanganan:
+' + (pen||'  Belum ada') + '
+Keterangan akhir: ' + (k.keterangan||'-');
+  }).join('
+
+---
+
+');
+
+  var prompt = 'Kamu adalah dokter umum berpengalaman. Analisis riwayat penyakit berikut dan berikan informasi medis yang berguna.
+
+'
+    + 'IDENTITAS PASIEN:
+'
+    + 'Nama: ' + (a.nama||'-') + '
+Jenis Kelamin: ' + (a.kelamin||'-') + '
+Usia: ' + usia + '
+
+'
+    + 'RIWAYAT PENYAKIT:
+' + dataKes + '
+
+'
+    + 'Berikan analisis lengkap dalam format berikut (bahasa Indonesia):
+
+'
+    + '**RINGKASAN POLA PENYAKIT:**
+[Pola penyakit yang sering muncul dan kemungkinan penyebabnya]
+
+'
+    + '**ANALISIS EFEKTIVITAS PENGOBATAN:**
+[Evaluasi obat yang sudah digunakan]
+
+'
+    + '**REKOMENDASI OBAT HERBAL:**
+[Saran obat herbal alami beserta cara pemakaiannya]
+
+'
+    + '**REKOMENDASI OBAT APOTEK:**
+[Saran obat apotek yang sesuai]
+
+'
+    + '**TINDAK LANJUT YANG DISARANKAN:**
+[Langkah selanjutnya yang harus dilakukan]
+
+'
+    + '**KAPAN PERLU KE DOKTER SPESIALIS:**
+[Kondisi yang memerlukan rujukan spesialis]
+
+'
+    + '**SARAN PENCEGAHAN:**
+[Cara mencegah penyakit serupa kambuh]
+
+'
+    + '**REFERENSI ILMIAH:**
+[Cantumkan sumber: WHO, Kemenkes RI, IDAI, jurnal medis yang relevan]
+
+'
+    + 'PENTING: Ini informasi kesehatan umum, bukan pengganti konsultasi dokter langsung.';
+
+  localStorage.setItem('last_analisis_tipe', 'kesehatan');
+  localStorage.setItem('last_analisis_mode', 'penyakit');
+  showLoadingAnalisis(a, 'kesehatan', 'penyakit');
+
+  try {
+    var GROQ_API_KEY = localStorage.getItem('groq_api_key') || '';
+    if (!GROQ_API_KEY) { showInputGroqKey(); return; }
+    var response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_API_KEY },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          { role: 'system', content: 'Kamu adalah dokter dan ahli kesehatan berpengalaman. Berikan analisis yang akurat dan informatif dalam bahasa Indonesia. Selalu cantumkan referensi ilmiah yang kredibel.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7, max_tokens: 2048
+      })
+    });
+    if (!response.ok) throw new Error('Groq Error ' + response.status);
+    var data = await response.json();
+    var text = data.choices && data.choices[0] ? data.choices[0].message.content : 'Tidak ada hasil.';
+    showHasilAnalisis(a, 'kesehatan', 'penyakit', text);
+  } catch(err) {
+    console.error(err);
+    document.getElementById('modal-analisis-ai-content').innerHTML = '<div style="text-align:center;padding:40px;"><div style="font-size:40px;">⚠️</div><div style="font-size:14px;font-weight:700;color:#dc2626;margin-top:10px;">Gagal Analisis</div><div style="font-size:13px;color:#64748b;margin-top:6px;">' + err.message + '</div></div>';
+  }
+}
+
+async function _analisisPertumbuhan() {
+  const a = anggotaList.find(x => x.id === activeAnggotaId);
+  if (!a) return;
+  const perk = a.perkembangan || {};
+  const beratList = [...(perk.berat||[])].sort(function(x,y){ return new Date(y.tanggal)-new Date(x.tanggal); });
+  const tinggiList = [...(perk.tinggi||[])].sort(function(x,y){ return new Date(y.tanggal)-new Date(x.tanggal); });
+
+  if (!beratList.length && !tinggiList.length) { showToast('⚠️ Belum ada data pertumbuhan fisik'); return; }
+
+  const usia = hitungUsia(a.lahir);
+  const beratTeks = beratList.map(function(x){ return '- ' + x.tanggal + ': ' + x.nilai + ' kg' + (x.keterangan ? ' (' + x.keterangan + ')' : ''); }).join('
+') || 'Tidak ada data';
+  const tinggiTeks = tinggiList.map(function(x){ return '- ' + x.tanggal + ': ' + x.nilai + ' cm' + (x.keterangan ? ' (' + x.keterangan + ')' : ''); }).join('
+') || 'Tidak ada data';
+
+  var prompt = 'Kamu adalah dokter anak dan ahli gizi berpengalaman. Analisis data pertumbuhan fisik berikut berdasarkan standar WHO Child Growth Standards 2006, Kemenkes RI, dan IDAI.
+
+'
+    + 'IDENTITAS:
+Nama: ' + (a.nama||'-') + '
+Jenis Kelamin: ' + (a.kelamin||'-') + '
+Tanggal Lahir: ' + (a.lahir||'-') + '
+Usia: ' + usia + '
+
+'
+    + 'RIWAYAT BERAT BADAN:
+' + beratTeks + '
+
+RIWAYAT TINGGI BADAN:
+' + tinggiTeks + '
+
+'
+    + 'Berikan analisis LENGKAP (bahasa Indonesia):
+
+'
+    + '**STATUS GIZI SAAT INI:**
+[Status berdasarkan Z-score WHO: BB/U, TB/U, BB/TB]
+[Berat normal untuk usia ini: ... kg]
+[Tinggi normal untuk usia ini: ... cm]
+
+'
+    + '**ANALISIS TREN PERTUMBUHAN:**
+[Kenaikan/penurunan BB dan TB dari waktu ke waktu]
+
+'
+    + '**KEMUNGKINAN HAMBATAN PERTUMBUHAN:**
+[Apa yang mungkin menyebabkan pertumbuhan terhambat jika ada]
+
+'
+    + '**SARAN NUTRISI & GIZI:**
+[Makanan dan asupan yang disarankan untuk meningkatkan pertumbuhan]
+
+'
+    + '**TARGET PERTUMBUHAN:**
+[BB dan TB yang seharusnya dicapai dalam 1-3 bulan ke depan]
+
+'
+    + '**KAPAN PERLU KE DOKTER:**
+[Kondisi yang memerlukan pemeriksaan medis]
+
+'
+    + '**REFERENSI ILMIAH:**
+[WHO Child Growth Standards 2006, Kemenkes RI, IDAI, CDC Growth Charts]
+
+'
+    + 'PENTING: Ini informasi edukatif, bukan pengganti konsultasi dokter.';
+
+  localStorage.setItem('last_analisis_tipe', 'kesehatan');
+  localStorage.setItem('last_analisis_mode', 'pertumbuhan');
+  showLoadingAnalisis(a, 'kesehatan', 'pertumbuhan');
+
+  try {
+    var GROQ_API_KEY = localStorage.getItem('groq_api_key') || '';
+    if (!GROQ_API_KEY) { showInputGroqKey(); return; }
+    var response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_API_KEY },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          { role: 'system', content: 'Kamu adalah dokter anak dan ahli gizi. Berikan analisis pertumbuhan yang akurat berdasarkan standar WHO. Gunakan bahasa Indonesia yang mudah dipahami. Selalu cantumkan referensi ilmiah.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7, max_tokens: 2048
+      })
+    });
+    if (!response.ok) throw new Error('Groq Error ' + response.status);
+    var data = await response.json();
+    var text = data.choices && data.choices[0] ? data.choices[0].message.content : 'Tidak ada hasil.';
+    showHasilAnalisis(a, 'kesehatan', 'pertumbuhan', text);
+  } catch(err) {
+    console.error(err);
+    document.getElementById('modal-analisis-ai-content').innerHTML = '<div style="text-align:center;padding:40px;"><div style="font-size:40px;">⚠️</div><div style="font-size:14px;font-weight:700;color:#dc2626;margin-top:10px;">Gagal Analisis</div><div style="font-size:13px;color:#64748b;margin-top:6px;">' + err.message + '</div></div>';
+  }
+}
+
+function closeLaporanModal() {
+  var m = document.getElementById('modal-laporan-perkembangan');
+  if (m) m.style.display = 'none';
+}
 </script>
 
 <!-- MODAL ANALISIS AI -->
@@ -13694,7 +10608,7 @@ function downloadLaporanWord() {
       <div style="display:flex;gap:8px;align-items:center;">
         <button onclick="downloadAnalisisPDF()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#16a34a;color:white;border:none;cursor:pointer;">&#128196; PDF</button>
         <button onclick="downloadAnalisisWord()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#2563eb;color:white;border:none;cursor:pointer;">&#128221; Word</button>
-        <button onclick="document.getElementById('modal-analisis-ai').style.display='none'" style="width:30px;height:30px;border:none;background:rgba(255,255,255,0.15);border-radius:7px;cursor:pointer;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;">&#x2715;</button>
+        <button onclick="closeAnalisisModal()" style="width:30px;height:30px;border:none;background:rgba(255,255,255,0.15);border-radius:7px;cursor:pointer;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;">&#x2715;</button>
       </div>
     </div>
     <div id="modal-analisis-ai-content" style="padding:24px;max-height:80vh;overflow-y:auto;"></div>
@@ -13709,7 +10623,7 @@ function downloadLaporanWord() {
       <div style="display:flex;gap:8px;align-items:center;">
         <button onclick="downloadLaporanPDF()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#16a34a;color:white;border:none;cursor:pointer;">&#128196; PDF</button>
         <button onclick="downloadLaporanWord()" style="display:flex;align-items:center;gap:5px;padding:6px 13px;font-size:12px;font-weight:600;border-radius:7px;background:#2563eb;color:white;border:none;cursor:pointer;">&#128221; Word</button>
-        <button onclick="document.getElementById('modal-laporan-perkembangan').style.display='none'" style="width:30px;height:30px;border:none;background:rgba(255,255,255,0.15);border-radius:7px;cursor:pointer;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;">&#x2715;</button>
+        <button onclick="closeLaporanModal()" style="width:30px;height:30px;border:none;background:rgba(255,255,255,0.15);border-radius:7px;cursor:pointer;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;">&#x2715;</button>
       </div>
     </div>
     <div id="laporan-perkembangan-content" style="padding:28px;background:#fff;font-family:Georgia,serif;max-height:80vh;overflow-y:auto;"></div>
