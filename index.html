@@ -3608,7 +3608,7 @@ function exportSingleWord(pid) {
   try {
     const html = buildWordHTML([p]);
     const safeName = p.nama.replace(/[^a-zA-Z0-9\s]/g,'').trim().replace(/\s+/g,'_').slice(0,40);
-    downloadWordFile(html, `Laporan_${safeName}.doc`);
+    downloadWordFile(html, 'Laporan_' + safeName + '.doc');
     showToast('✅ File Word berhasil didownload!');
   } catch(e) {
     console.error(e);
@@ -6509,9 +6509,7 @@ function deleteCurrentBuku() {
   const buku = bukuList.find(b=>b.id===activeBukuId);
   if (!buku) return;
   const trxCount = (transaksiMap[activeBukuId]||[]).length;
-  const msg = trxCount > 0
-    ? `Hapus buku kas "${buku.nama}"?\nBuku ini berisi ${trxCount} transaksi dan akan dihapus permanen.`
-    : `Hapus buku kas "${buku.nama}"?`;
+  const msg = 'Hapus buku kas "' + buku.nama + '"?' + (trxCount > 0 ? '\nBuku ini berisi ' + trxCount + ' transaksi dan akan dihapus permanen.' : '');
   if (!confirm(msg)) return;
   bukuList = bukuList.filter(b=>b.id!==activeBukuId);
   delete transaksiMap[activeBukuId];
@@ -6819,7 +6817,7 @@ function exportSingleWord(pid) {
   try {
     const html = buildWordHTML([p]);
     const safeName = p.nama.replace(/[^a-zA-Z0-9\s]/g,'').trim().replace(/\s+/g,'_').slice(0,40);
-    downloadWordFile(html, `Laporan_${safeName}.doc`);
+    downloadWordFile(html, 'Laporan_' + safeName + '.doc');
     showToast('✅ File Word berhasil didownload!');
   } catch(e) {
     console.error(e);
