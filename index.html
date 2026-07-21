@@ -6585,6 +6585,8 @@ function deleteKasTransaksi(id) {
 
 let _lastAnalisisHTML = '';
 let _lastAnalisisText = '';
+let _laporanFilterDari = '';
+let _laporanFilterSampai = '';
 
 function hitungUsia(tglLahir) {
   if (!tglLahir) return '';
@@ -6600,112 +6602,73 @@ function hitungUsia(tglLahir) {
   return tahun + ' Tahun ' + bulan + ' Bulan';
 }
 
-async function analisisAI(tipe, mode) {
+async function _analisisPerkembangan(mode) {
   const a = anggotaList.find(x => x.id === activeAnggotaId);
   if (!a) { showToast('Pilih anggota keluarga terlebih dahulu'); return; }
 
+  const perk = a.perkembangan || {};
   const usia = hitungUsia(a.lahir);
-  let prompt = '';
 
-  if (tipe === 'perkembangan') {
-    const perk = a.perkembangan || {};
-    const beratList = (perk.berat || []).sort((x,y) => new Date(y.tanggal) - new Date(x.tanggal));
-    const tinggiList = (perk.tinggi || []).sort((x,y) => new Date(y.tanggal) - new Date(x.tanggal));
-    const prestasiList = perk.prestasi || [];
-    const kemampuanList = perk.kemampuan || [];
-    const lainnyaList = perk.lainnya || [];
+  const beratAll = [...(perk.berat||[])].sort((x,y) => new Date(y.tanggal)-new Date(x.tanggal));
+  const tinggiAll = [...(perk.tinggi||[])].sort((x,y) => new Date(y.tanggal)-new Date(x.tanggal));
+  const prestasiAll = [...(perk.prestasi||[])].sort((x,y) => new Date(y.tanggal)-new Date(x.tanggal));
+  const kemampuanAll = [...(perk.kemampuan||[])].sort((x,y) => new Date(y.tanggal)-new Date(x.tanggal));
+  const lainnyaAll = [...(perk.lainnya||[])].sort((x,y) => new Date(y.tanggal)-new Date(x.tanggal));
 
-    const beratData = mode === 'terbaru' ? beratList.slice(0,1) : beratList;
-    const tinggiData = mode === 'terbaru' ? tinggiList.slice(0,1) : tinggiList;
+  const isTerbaru = mode === 'terbaru';
+  const beratData = isTerbaru ? beratAll.slice(0,1) : beratAll;
+  const tinggiData = isTerbaru ? tinggiAll.slice(0,1) : tinggiAll;
+  const prestasiData = isTerbaru ? prestasiAll.slice(0,1) : prestasiAll;
+  const kemampuanData = isTerbaru ? kemampuanAll.slice(0,1) : kemampuanAll;
+  const lainnyaData = isTerbaru ? lainnyaAll.slice(0,1) : lainnyaAll;
 
-    const beratTeks = beratData.map(x => '- ' + x.tanggal + ': ' + x.nilai + ' kg' + (x.keterangan ? ' (' + x.keterangan + ')' : '')).join('\n') || 'Tidak ada data';
-    const tinggiTeks = tinggiData.map(x => '- ' + x.tanggal + ': ' + x.nilai + ' cm' + (x.keterangan ? ' (' + x.keterangan + ')' : '')).join('\n') || 'Tidak ada data';
-    const prestasiTeks = prestasiList.length ? 'PRESTASI:\n' + prestasiList.map(x => '- ' + x.tanggal + ': ' + x.nilai).join('\n') : '';
-    const kemampuanTeks = kemampuanList.length ? 'KEMAMPUAN BARU:\n' + kemampuanList.map(x => '- ' + x.tanggal + ': ' + x.nilai).join('\n') : '';
-    const lainnyaTeks = lainnyaList.length ? 'CATATAN LAINNYA:\n' + lainnyaList.map(x => '- ' + x.tanggal + ': ' + x.nilai).join('\n') : '';
-
-    prompt = 'Kamu adalah dokter anak dan ahli gizi berpengalaman. Analisis data perkembangan berikut berdasarkan standar WHO Child Growth Standards 2006, Kemenkes RI, dan IDAI.\n\n'
-      + 'IDENTITAS:\n'
-      + '- Nama: ' + (a.nama || '-') + '\n'
-      + '- Hubungan: ' + (a.peran || '-') + '\n'
-      + '- Jenis Kelamin: ' + (a.kelamin || '-') + '\n'
-      + '- Tanggal Lahir: ' + (a.lahir || '-') + '\n'
-      + '- Usia Saat Ini: ' + usia + '\n\n'
-      + 'DATA BERAT BADAN:\n' + beratTeks + '\n\n'
-      + 'DATA TINGGI BADAN:\n' + tinggiTeks + '\n\n'
-      + (prestasiTeks ? prestasiTeks + '\n' : '')
-      + (kemampuanTeks ? kemampuanTeks + '\n' : '')
-      + (lainnyaTeks ? lainnyaTeks + '\n' : '')
-      + '\nBerikan analisis LENGKAP dalam format berikut (gunakan bahasa Indonesia yang jelas):\n\n'
-      + '**STATUS GIZI:**\n'
-      + '[Status: Normal/Gizi Kurang/Gizi Buruk/Overweight]\n'
-      + '[Z-score BB/U: ... SD]\n'
-      + '[Z-score TB/U: ... SD]\n'
-      + '[Z-score BB/TB: ... SD]\n'
-      + '[Berat normal untuk usia ini: ... kg]\n'
-      + '[Tinggi normal untuk usia ini: ... cm]\n\n'
-      + '**ANALISIS TREN:**\n'
-      + '[Penjelasan tren pertumbuhan dari data yang ada]\n\n'
-      + '**KESIMPULAN:**\n'
-      + '[Kesimpulan status gizi dan kondisi]\n\n'
-      + '**SARAN & REKOMENDASI:**\n'
-      + '[Saran asupan makanan spesifik]\n'
-      + '[Jadwal timbang ulang]\n'
-      + '[Aktivitas yang disarankan]\n\n'
-      + '**KAPAN PERLU KE DOKTER:**\n'
-      + '[Kondisi yang memerlukan pemeriksaan segera]\n\n'
-      + '**SUMBER ILMIAH:**\n'
-      + '[Standar/referensi yang digunakan]';
-
-  } else if (tipe === 'kesehatan') {
-    const kesList = a.kesehatan || [];
-    if (!kesList.length) { showToast('Belum ada data kesehatan yang diinput'); return; }
-
-    const dataKes = kesList.map(function(k) {
-      const penanganan = (k.penanganan || []).map(function(p) {
-        return '  - ' + (p.tanggal||'-') + ': ' + (p.tempat||'') + ' | Status: ' + (p.status||'') + ' | Obat: ' + (p.obat||'-') + ' | Catatan: ' + (p.catatan||'-');
-      }).join('\n');
-      return 'PENYAKIT: ' + (k.penyakit||'-') + '\nMulai Sakit: ' + (k.tanggal||'-') + '\nRiwayat Penanganan:\n' + (penanganan||'  Belum ada penanganan') + '\nKeterangan Akhir: ' + (k.keterangan||'-');
-    }).join('\n\n---\n\n');
-
-    prompt = 'Kamu adalah dokter umum dan konsultan kesehatan berpengalaman. Analisis riwayat kesehatan berikut berdasarkan sumber ilmiah.\n\n'
-      + 'IDENTITAS PASIEN:\n'
-      + '- Nama: ' + (a.nama||'-') + '\n'
-      + '- Hubungan: ' + (a.peran||'-') + '\n'
-      + '- Jenis Kelamin: ' + (a.kelamin||'-') + '\n'
-      + '- Tanggal Lahir: ' + (a.lahir||'-') + '\n'
-      + '- Usia: ' + usia + '\n\n'
-      + 'RIWAYAT KESEHATAN:\n' + dataKes + '\n\n'
-      + 'Berikan analisis LENGKAP dalam format berikut (bahasa Indonesia):\n\n'
-      + '**RINGKASAN KONDISI KESEHATAN:**\n'
-      + '[Ringkasan pola penyakit yang dialami]\n\n'
-      + '**KEMUNGKINAN PENYEBAB:**\n'
-      + '[Analisis kemungkinan penyebab berdasarkan gejala dan penanganan]\n\n'
-      + '**ANALISIS EFEKTIVITAS PENGOBATAN:**\n'
-      + '[Evaluasi obat yang sudah digunakan]\n\n'
-      + '**REKOMENDASI OBAT HERBAL:**\n'
-      + '[Saran obat herbal alami beserta cara pemakaiannya]\n\n'
-      + '**REKOMENDASI OBAT APOTEK:**\n'
-      + '[Saran obat apotek yang umum untuk kondisi ini]\n\n'
-      + '**SARAN GAYA HIDUP:**\n'
-      + '[Perubahan pola makan, aktivitas, atau kebiasaan]\n\n'
-      + '**KAPAN PERLU KE DOKTER SPESIALIS:**\n'
-      + '[Tanda-tanda yang memerlukan rujukan spesialis]\n\n'
-      + '**SUMBER ILMIAH:**\n'
-      + '[Referensi medis yang digunakan]\n\n'
-      + 'PENTING: Ini informasi kesehatan umum, bukan pengganti konsultasi dokter.';
+  if (!beratData.length && !tinggiData.length && !prestasiData.length && !kemampuanData.length && !lainnyaData.length) {
+    showToast('⚠️ Belum ada data perkembangan untuk dianalisis');
+    return;
   }
 
-  localStorage.setItem('last_analisis_tipe', tipe);
+  const fmt = (list, satuan) => list.length
+    ? list.map(x => '- ' + x.tanggal + ': ' + x.nilai + (satuan ? ' ' + satuan : '') + (x.keterangan ? ' (' + x.keterangan + ')' : '')).join('\n')
+    : 'Tidak ada data';
+
+  const beratTeks = fmt(beratData, 'kg');
+  const tinggiTeks = fmt(tinggiData, 'cm');
+  const prestasiTeks = fmt(prestasiData, '');
+  const kemampuanTeks = fmt(kemampuanData, '');
+  const lainnyaTeks = fmt(lainnyaData, '');
+
+  const cakupan = isTerbaru ? 'HANYA data paling baru dari tiap kategori' : 'SELURUH riwayat data dari tiap kategori';
+
+  var prompt = 'Kamu adalah dokter anak, ahli gizi, dan psikolog tumbuh kembang anak berpengalaman. Analisis data perkembangan anak berikut berdasarkan standar WHO Child Growth Standards, Kemenkes RI, IDAI, dan tonggak perkembangan anak (KPSP/Denver) sesuai kelompok usianya. Cakupan data yang dianalisis: ' + cakupan + '.\n\n'
+    + 'IDENTITAS ANAK:\n'
+    + '- Nama: ' + (a.nama||'-') + '\n'
+    + '- Jenis Kelamin: ' + (a.kelamin||'-') + '\n'
+    + '- Tanggal Lahir: ' + (a.lahir||'-') + '\n'
+    + '- Usia Saat Ini: ' + usia + '\n\n'
+    + 'DATA BERAT BADAN:\n' + beratTeks + '\n\n'
+    + 'DATA TINGGI BADAN:\n' + tinggiTeks + '\n\n'
+    + 'DATA PRESTASI:\n' + prestasiTeks + '\n\n'
+    + 'DATA KEMAMPUAN BARU:\n' + kemampuanTeks + '\n\n'
+    + 'DATA CATATAN LAINNYA:\n' + lainnyaTeks + '\n\n'
+    + 'Berikan analisis LENGKAP per kategori (bahasa Indonesia). Untuk SETIAP kategori (Berat Badan, Tinggi Badan, Prestasi, Kemampuan Baru, Catatan Lainnya), gunakan format berikut. Jika suatu kategori tidak ada datanya, tulis "Belum ada data" dan lewati bagian penyebab/saran untuk kategori itu:\n\n'
+    + '**[NAMA KATEGORI]**\n'
+    + 'Status: [Normal / Perlu Perhatian / Belum Ada Data]\n'
+    + 'Analisis: [apakah hasil ini sudah sesuai dengan usia anak saat ini, jelaskan alasannya]\n'
+    + 'Kemungkinan Penyebab (jika Perlu Perhatian): [sebutkan kemungkinan penyebab]\n'
+    + 'Saran & Tindakan: [langkah konkret yang bisa dilakukan orang tua]\n\n'
+    + 'Setelah kelima kategori di atas selesai dibahas, tutup dengan:\n\n'
+    + '**KESIMPULAN KESELURUHAN:**\n[Ringkasan kondisi tumbuh kembang anak secara umum]\n\n'
+    + '**KAPAN PERLU KONSULTASI PROFESIONAL:**\n[Tanda-tanda yang memerlukan pemeriksaan ke dokter anak/psikolog tumbuh kembang]\n\n'
+    + '**SUMBER REFERENSI:**\n[Standar/referensi yang digunakan]\n\n'
+    + 'PENTING: Ini informasi edukatif, bukan pengganti pemeriksaan/skrining tumbuh kembang resmi oleh dokter atau profesional.';
+
+  localStorage.setItem('last_analisis_tipe', 'perkembangan');
   localStorage.setItem('last_analisis_mode', mode);
-  showLoadingAnalisis(a, tipe, mode);
+  showLoadingAnalisis(a, 'perkembangan', mode);
 
   try {
     const GROQ_API_KEY = localStorage.getItem('groq_api_key') || '';
-    if (!GROQ_API_KEY) {
-      showInputGroqKey();
-      return;
-    }
+    if (!GROQ_API_KEY) { showInputGroqKey(); return; }
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -6716,14 +6679,8 @@ async function analisisAI(tipe, mode) {
       body: JSON.stringify({
         model: 'llama-3.1-8b-instant',
         messages: [
-          {
-            role: 'system',
-            content: 'Kamu adalah dokter dan ahli kesehatan berpengalaman. Berikan analisis kesehatan yang akurat, informatif, dan mudah dipahami dalam bahasa Indonesia. Selalu cantumkan sumber ilmiah dan ingatkan bahwa ini bukan pengganti konsultasi dokter.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
+          { role: 'system', content: 'Kamu adalah dokter anak, ahli gizi, dan psikolog tumbuh kembang berpengalaman. Berikan analisis yang akurat, terstruktur per kategori, dan mudah dipahami dalam bahasa Indonesia. Selalu cantumkan sumber ilmiah dan ingatkan bahwa ini bukan pengganti pemeriksaan resmi.' },
+          { role: 'user', content: prompt }
         ],
         temperature: 0.7,
         max_tokens: 2048
@@ -6740,7 +6697,7 @@ async function analisisAI(tipe, mode) {
       ? data.choices[0].message.content
       : 'Tidak ada hasil analisis.';
 
-    showHasilAnalisis(a, tipe, mode, text);
+    showHasilAnalisis(a, 'perkembangan', mode, text);
 
   } catch (err) {
     console.error('Analisis AI error:', err);
@@ -6917,11 +6874,27 @@ function buildLaporanHTML() {
   const tglCetak = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
   const inisial = (a.nama||'?').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
 
+  const dari = _laporanFilterDari;
+  const sampai = _laporanFilterSampai;
+
   const semuaTanggal = new Set();
-  PERK_JENIS.forEach(function(j){ (perk[j.key]||[]).forEach(function(item){ if(item.tanggal) semuaTanggal.add(item.tanggal); }); });
+  PERK_JENIS.forEach(function(j){
+    (perk[j.key]||[]).forEach(function(item){
+      if (!item.tanggal) return;
+      if (dari && item.tanggal < dari) return;
+      if (sampai && item.tanggal > sampai) return;
+      semuaTanggal.add(item.tanggal);
+    });
+  });
   const tanggalSorted = Array.from(semuaTanggal).sort(function(a,b){return new Date(b)-new Date(a);});
 
-  if (!tanggalSorted.length) return '<div style="text-align:center;padding:40px;color:#64748b;font-family:sans-serif;">Belum ada data perkembangan.</div>';
+  const periodeStr = (dari || sampai)
+    ? '<div style="font-size:12px;color:#7c3aed;font-weight:700;margin-top:4px;font-family:sans-serif;">Periode: ' + (dari ? new Date(dari).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : 'Awal') + ' &mdash; ' + (sampai ? new Date(sampai).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : 'Sekarang') + '</div>'
+    : '';
+
+  if (!tanggalSorted.length) {
+    return '<div style="text-align:center;padding:40px;color:#64748b;font-family:sans-serif;">Tidak ada data perkembangan' + ((dari||sampai) ? ' pada periode yang dipilih.' : '.') + '</div>';
+  }
 
   const fotoHtml = a.fotoProfil
     ? '<img src="' + a.fotoProfil + '" style="width:76px;height:76px;border-radius:50%;object-fit:cover;margin:0 auto 12px;display:block;border:3px solid #dbeafe;">'
@@ -6962,15 +6935,15 @@ function buildLaporanHTML() {
     + fotoHtml
     + '<div style="font-size:22px;font-weight:700;color:#0f2544;margin-bottom:4px;font-family:sans-serif;">' + (a.nama||'-') + '</div>'
     + lahirStr + usiaStr
+    + periodeStr
     + '<div style="font-size:11px;color:#94a3b8;margin-top:6px;font-family:sans-serif;">Laporan dicetak: ' + tglCetak + '</div>'
     + '</div>'
     + entriesHTML
     + '<div style="text-align:center;margin-top:28px;padding-top:16px;border-top:1px solid #e2e8f0;font-family:sans-serif;font-size:11px;color:#94a3b8;">Laporan Perkembangan - ' + (a.nama||'') + ' - Dicetak ' + tglCetak + '</div>';
 }
 
-function openLaporanPerkembangan() {
+function renderLaporanModalBody() {
   const html = buildLaporanHTML();
-  // Include last AI analysis result if available
   const analisisSection = _lastAnalisisHTML
     ? '<div style="margin-top:24px;padding-top:20px;border-top:2px solid #0f2544;">'
       + '<div style="font-size:14px;font-weight:700;color:#0f2544;margin-bottom:16px;">&#129302; Hasil Analisis AI</div>'
@@ -6979,7 +6952,41 @@ function openLaporanPerkembangan() {
     : '<div style="margin-top:24px;padding:16px;background:#f8fafc;border-radius:8px;text-align:center;color:#64748b;font-size:13px;font-family:sans-serif;">'
       + '&#129302; Klik tombol "Analisis AI" untuk mendapatkan analisis otomatis yang akan muncul di sini.</div>';
 
+  const filterBar = '<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;padding:14px 18px;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-family:sans-serif;">'
+    + '<div><label style="display:block;font-size:11px;color:#64748b;font-weight:600;margin-bottom:3px;">Dari Tanggal</label>'
+    + '<input type="date" id="laporan-filter-dari" value="' + (_laporanFilterDari||'') + '" style="padding:7px 10px;border:1.5px solid #dde3ee;border-radius:7px;font-size:12px;"></div>'
+    + '<div><label style="display:block;font-size:11px;color:#64748b;font-weight:600;margin-bottom:3px;">Sampai Tanggal</label>'
+    + '<input type="date" id="laporan-filter-sampai" value="' + (_laporanFilterSampai||'') + '" style="padding:7px 10px;border:1.5px solid #dde3ee;border-radius:7px;font-size:12px;"></div>'
+    + '<button onclick="terapkanFilterLaporan()" style="padding:8px 14px;background:#0f2544;color:white;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">Terapkan Filter</button>'
+    + '<button onclick="resetFilterLaporan()" style="padding:8px 14px;background:#e2e8f0;color:#334155;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">Reset</button>'
+    + '</div>';
+
+  document.getElementById('laporan-filter-bar').innerHTML = filterBar;
   document.getElementById('laporan-perkembangan-content').innerHTML = html + analisisSection;
+}
+
+function terapkanFilterLaporan() {
+  const dari = document.getElementById('laporan-filter-dari').value;
+  const sampai = document.getElementById('laporan-filter-sampai').value;
+  if (dari && sampai && dari > sampai) {
+    alert('Tanggal "Dari" tidak boleh lebih besar dari tanggal "Sampai"!');
+    return;
+  }
+  _laporanFilterDari = dari;
+  _laporanFilterSampai = sampai;
+  renderLaporanModalBody();
+}
+
+function resetFilterLaporan() {
+  _laporanFilterDari = '';
+  _laporanFilterSampai = '';
+  renderLaporanModalBody();
+}
+
+function openLaporanPerkembangan() {
+  _laporanFilterDari = '';
+  _laporanFilterSampai = '';
+  renderLaporanModalBody();
   document.getElementById('modal-laporan-perkembangan').style.display = 'flex';
 }
 
@@ -7002,14 +7009,28 @@ function downloadLaporanWord() {
   const usia = hitungUsia(a.lahir);
   const tglCetak = new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
   const perk = a.perkembangan || {};
+  const dari = _laporanFilterDari;
+  const sampai = _laporanFilterSampai;
   const semuaTanggal = new Set();
-  PERK_JENIS.forEach(function(j){ (perk[j.key]||[]).forEach(function(item){ if(item.tanggal) semuaTanggal.add(item.tanggal); }); });
+  PERK_JENIS.forEach(function(j){
+    (perk[j.key]||[]).forEach(function(item){
+      if (!item.tanggal) return;
+      if (dari && item.tanggal < dari) return;
+      if (sampai && item.tanggal > sampai) return;
+      semuaTanggal.add(item.tanggal);
+    });
+  });
   const tanggalSorted = Array.from(semuaTanggal).sort(function(a,b){return new Date(b)-new Date(a);});
 
   let teks = 'LAPORAN PERKEMBANGAN\n' + '='.repeat(50) + '\nNama: ' + nama + '\n';
   if (a.lahir) teks += 'Tgl Lahir: ' + new Date(a.lahir).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) + '\n';
   if (usia) teks += 'Usia: ' + usia + '\n';
+  if (dari || sampai) teks += 'Periode: ' + (dari ? new Date(dari).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : 'Awal') + ' - ' + (sampai ? new Date(sampai).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : 'Sekarang') + '\n';
   teks += 'Dicetak: ' + tglCetak + '\n\n' + '='.repeat(50) + '\nRIWAYAT PERKEMBANGAN\n' + '='.repeat(50) + '\n\n';
+
+  if (!tanggalSorted.length) {
+    teks += 'Tidak ada data pada periode yang dipilih.\n';
+  }
 
   tanggalSorted.forEach(function(tgl) {
     teks += 'Update: ' + new Date(tgl).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) + '\n' + '-'.repeat(40) + '\n';
@@ -7023,6 +7044,10 @@ function downloadLaporanWord() {
     });
     teks += '\n';
   });
+
+  if (_lastAnalisisText) {
+    teks += '='.repeat(50) + '\nHASIL ANALISIS AI\n' + '='.repeat(50) + '\n\n' + _lastAnalisisText + '\n';
+  }
 
   const blob = new Blob(['\ufeff' + teks], {type:'application/msword;charset=utf-8'});
   const url = URL.createObjectURL(blob);
@@ -7171,15 +7196,16 @@ function renderKesehatan() {
   renderFisikData();
 }
 
-// Update analisisAI to handle new types
-var _origAnalisisAI = analisisAI;
+// Dispatcher analisisAI: arahkan ke fungsi analisis yang sesuai tipe & mode
 async function analisisAI(tipe, mode) {
   if (tipe === 'kesehatan' && mode === 'penyakit') {
     await _analisisPenyakit();
   } else if (tipe === 'kesehatan' && mode === 'pertumbuhan') {
     await _analisisPertumbuhan();
+  } else if (tipe === 'perkembangan') {
+    await _analisisPerkembangan(mode);
   } else {
-    await _origAnalisisAI(tipe, mode);
+    showToast('Jenis analisis tidak dikenali');
   }
 }
 
@@ -7328,6 +7354,7 @@ function closeLaporanModal() {
         <button onclick="closeLaporanModal()" style="width:30px;height:30px;border:none;background:rgba(255,255,255,0.15);border-radius:7px;cursor:pointer;color:white;font-size:16px;display:flex;align-items:center;justify-content:center;">&#x2715;</button>
       </div>
     </div>
+    <div id="laporan-filter-bar"></div>
     <div id="laporan-perkembangan-content" style="padding:28px;background:#fff;font-family:Georgia,serif;max-height:80vh;overflow-y:auto;"></div>
   </div>
 </div>
