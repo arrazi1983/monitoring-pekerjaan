@@ -6616,6 +6616,54 @@ let _lastAnalisisText = '';
 let _laporanFilterDari = '';
 let _laporanFilterSampai = '';
 
+// Panggil Groq Chat Completions dengan auto-retry saat kena rate limit (429).
+// onStatus(msg) dipanggil untuk update tampilan status/countdown ke pengguna.
+async function _callGroqWithRetry(systemContent, userPrompt, maxTokens, onStatus) {
+  const GROQ_API_KEY = localStorage.getItem('groq_api_key') || '';
+  if (!GROQ_API_KEY) { showInputGroqKey(); throw new Error('__NO_KEY__'); }
+
+  const MAX_RETRY = 2;
+  for (let attempt = 0; attempt <= MAX_RETRY; attempt++) {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_API_KEY },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          { role: 'system', content: systemContent },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: maxTokens || 2048
+      })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data.choices && data.choices[0] && data.choices[0].message
+        ? data.choices[0].message.content
+        : 'Tidak ada hasil analisis.';
+    }
+
+    const errData = await response.json().catch(() => ({}));
+    const errMsg = errData.error ? errData.error.message : JSON.stringify(errData);
+
+    if (response.status === 429 && attempt < MAX_RETRY) {
+      const m = /try again in ([\d.]+)s/i.exec(errMsg);
+      const waitSec = m ? Math.min(Math.ceil(parseFloat(m[1])) + 1, 60) : 15;
+      for (let s = waitSec; s > 0; s--) {
+        if (onStatus) onStatus('⏳ Server AI sedang sibuk (batas kuota tercapai). Mencoba lagi otomatis dalam ' + s + ' detik... (percobaan ' + (attempt+1) + '/' + (MAX_RETRY+1) + ')');
+        await new Promise(function(r){ setTimeout(r, 1000); });
+      }
+      continue;
+    }
+
+    throw new Error('Groq API Error ' + response.status + ': ' + errMsg);
+  }
+  throw new Error('Gagal setelah beberapa kali percobaan. Silakan coba lagi beberapa saat lagi.');
+}
+
+
 function hitungUsia(tglLahir) {
   if (!tglLahir) return '';
   const lahir = new Date(tglLahir);
@@ -6685,39 +6733,19 @@ async function _analisisPerkembangan(mode) {
   showLoadingAnalisis(a, 'perkembangan', mode);
 
   try {
-    const GROQ_API_KEY = localStorage.getItem('groq_api_key') || '';
-    if (!GROQ_API_KEY) { showInputGroqKey(); return; }
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + GROQ_API_KEY
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        messages: [
-          { role: 'system', content: 'Kamu adalah tim ahli tumbuh kembang anak (dokter anak, ahli gizi, psikolog anak, guru PAUD/SD) berpengalaman. Berikan analisis yang akurat, terstruktur per kategori, berorientasi pada rencana perbaikan/stimulasi yang konkret, dan mudah dipahami dalam bahasa Indonesia. Selalu cantumkan sumber ilmiah dan ingatkan bahwa ini bukan pengganti pemeriksaan resmi.' },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 2500
-      })
-    });
-
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error('Groq API Error ' + response.status + ': ' + (errData.error ? errData.error.message : JSON.stringify(errData)));
-    }
-
-    const data = await response.json();
-    const text = data.choices && data.choices[0] && data.choices[0].message
-      ? data.choices[0].message.content
-      : 'Tidak ada hasil analisis.';
-
+    const text = await _callGroqWithRetry(
+      'Kamu adalah tim ahli tumbuh kembang anak (dokter anak, ahli gizi, psikolog anak, guru PAUD/SD) berpengalaman. Berikan analisis yang akurat, terstruktur per kategori, berorientasi pada rencana perbaikan/stimulasi yang konkret, dan mudah dipahami dalam bahasa Indonesia. Selalu cantumkan sumber ilmiah dan ingatkan bahwa ini bukan pengganti pemeriksaan resmi.',
+      prompt,
+      2500,
+      function(msg) {
+        const el = document.getElementById('analisis-status-text');
+        if (el) el.textContent = msg;
+      }
+    );
     showHasilAnalisis(a, 'perkembangan', mode, text);
 
   } catch (err) {
+    if (err.message === '__NO_KEY__') return;
     console.error('Analisis AI error:', err);
     document.getElementById('modal-analisis-ai-content').innerHTML =
       '<div style="text-align:center;padding:40px;">'
@@ -6819,7 +6847,7 @@ function showLoadingAnalisis(a, tipe, mode) {
     + '<div style="text-align:center;padding:40px 20px;">'
     + '<div style="font-size:40px;margin-bottom:16px;">&#129302;</div>'
     + '<div style="font-size:15px;font-weight:700;color:#0f2544;margin-bottom:8px;">AI sedang menganalisis data...</div>'
-    + '<div style="font-size:13px;color:#64748b;">Mohon tunggu 5-15 detik</div></div>';
+    + '<div id="analisis-status-text" style="font-size:13px;color:#64748b;">Mohon tunggu 5-15 detik</div></div>';
   document.getElementById('modal-analisis-ai').style.display = 'flex';
 }
 
@@ -7261,25 +7289,18 @@ async function _analisisPenyakit() {
   showLoadingAnalisis(a, 'kesehatan', 'penyakit');
 
   try {
-    var GROQ_API_KEY = localStorage.getItem('groq_api_key') || '';
-    if (!GROQ_API_KEY) { showInputGroqKey(); return; }
-    var response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_API_KEY },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        messages: [
-          { role: 'system', content: 'Kamu adalah dokter dan ahli kesehatan berpengalaman. Berikan analisis yang akurat dan informatif dalam bahasa Indonesia. Selalu cantumkan referensi ilmiah yang kredibel.' },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7, max_tokens: 2048
-      })
-    });
-    if (!response.ok) throw new Error('Groq Error ' + response.status);
-    var data = await response.json();
-    var text = data.choices && data.choices[0] ? data.choices[0].message.content : 'Tidak ada hasil.';
+    var text = await _callGroqWithRetry(
+      'Kamu adalah dokter dan ahli kesehatan berpengalaman. Berikan analisis yang akurat dan informatif dalam bahasa Indonesia. Selalu cantumkan referensi ilmiah yang kredibel.',
+      prompt,
+      2048,
+      function(msg) {
+        var el = document.getElementById('analisis-status-text');
+        if (el) el.textContent = msg;
+      }
+    );
     showHasilAnalisis(a, 'kesehatan', 'penyakit', text);
   } catch(err) {
+    if (err.message === '__NO_KEY__') return;
     console.error(err);
     document.getElementById('modal-analisis-ai-content').innerHTML = '<div style="text-align:center;padding:40px;"><div style="font-size:40px;">⚠️</div><div style="font-size:14px;font-weight:700;color:#dc2626;margin-top:10px;">Gagal Analisis</div><div style="font-size:13px;color:#64748b;margin-top:6px;">' + err.message + '</div></div>';
   }
@@ -7316,25 +7337,18 @@ async function _analisisPertumbuhan() {
   showLoadingAnalisis(a, 'kesehatan', 'pertumbuhan');
 
   try {
-    var GROQ_API_KEY = localStorage.getItem('groq_api_key') || '';
-    if (!GROQ_API_KEY) { showInputGroqKey(); return; }
-    var response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + GROQ_API_KEY },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        messages: [
-          { role: 'system', content: 'Kamu adalah dokter anak dan ahli gizi. Berikan analisis pertumbuhan yang akurat berdasarkan standar WHO. Gunakan bahasa Indonesia yang mudah dipahami. Selalu cantumkan referensi ilmiah.' },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7, max_tokens: 2048
-      })
-    });
-    if (!response.ok) throw new Error('Groq Error ' + response.status);
-    var data = await response.json();
-    var text = data.choices && data.choices[0] ? data.choices[0].message.content : 'Tidak ada hasil.';
+    var text = await _callGroqWithRetry(
+      'Kamu adalah dokter anak dan ahli gizi. Berikan analisis pertumbuhan yang akurat berdasarkan standar WHO. Gunakan bahasa Indonesia yang mudah dipahami. Selalu cantumkan referensi ilmiah.',
+      prompt,
+      2048,
+      function(msg) {
+        var el = document.getElementById('analisis-status-text');
+        if (el) el.textContent = msg;
+      }
+    );
     showHasilAnalisis(a, 'kesehatan', 'pertumbuhan', text);
   } catch(err) {
+    if (err.message === '__NO_KEY__') return;
     console.error(err);
     document.getElementById('modal-analisis-ai-content').innerHTML = '<div style="text-align:center;padding:40px;"><div style="font-size:40px;">⚠️</div><div style="font-size:14px;font-weight:700;color:#dc2626;margin-top:10px;">Gagal Analisis</div><div style="font-size:13px;color:#64748b;margin-top:6px;">' + err.message + '</div></div>';
   }
