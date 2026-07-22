@@ -1427,8 +1427,8 @@ if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.p
           <button onclick="analisisAI('perkembangan','terbaru')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#7c3aed;color:white;border:none;cursor:pointer;">🤖 Analisis Terbaru</button>
           <button onclick="analisisAI('perkembangan','semua')" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#5b21b6;color:white;border:none;cursor:pointer;">🤖 Analisis Semua</button>
           <button onclick="openLaporanPerkembangan()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:var(--navy);color:white;border:none;cursor:pointer;">👁 Laporan</button>
-          <button onclick="downloadLaporanPDF()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#16a34a;color:white;border:none;cursor:pointer;">📄 PDF</button>
-          <button onclick="downloadLaporanWord()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#2563eb;color:white;border:none;cursor:pointer;">📝 Word</button>
+          <button onclick="openLaporanPerkembangan()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#16a34a;color:white;border:none;cursor:pointer;">📄 PDF</button>
+          <button onclick="openLaporanPerkembangan()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;font-weight:700;border-radius:9px;background:#2563eb;color:white;border:none;cursor:pointer;">📝 Word</button>
         </div>
         <div id="kel-analisis-result" style="display:none;margin-bottom:20px;"></div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;" id="kel-perkembangan-grid"></div>
@@ -5474,11 +5474,16 @@ const KES_STATUS_OPTIONS = [
 ];
 
 const PERK_JENIS = [
-  { key: 'berat',    label: '⚖️ Berat Badan',    satuan: 'kg',   placeholder: 'Cth: 12.5' },
-  { key: 'tinggi',   label: '📏 Tinggi Badan',    satuan: 'cm',   placeholder: 'Cth: 95' },
-  { key: 'prestasi', label: '🏆 Prestasi',        satuan: '',     placeholder: 'Cth: Juara 1 lomba mewarnai' },
-  { key: 'kemampuan',label: '⭐ Kemampuan Baru',  satuan: '',     placeholder: 'Cth: Sudah bisa berjalan' },
-  { key: 'lainnya',  label: '📝 Catatan Lainnya', satuan: '',     placeholder: 'Catatan bebas...' },
+  { key: 'berat',            label: '⚖️ Berat Badan',           satuan: 'kg', placeholder: 'Cth: 12.5' },
+  { key: 'tinggi',           label: '📏 Tinggi Badan',           satuan: 'cm', placeholder: 'Cth: 95' },
+  { key: 'kognitif',         label: '🧠 Kognitif',               satuan: '',   placeholder: 'Cth: Sudah bisa menghitung 1-10' },
+  { key: 'bahasa',           label: '🗣️ Bahasa & Komunikasi',    satuan: '',   placeholder: 'Cth: Sudah bisa menyusun kalimat 3 kata' },
+  { key: 'motorik_kasar',    label: '🏃 Motorik Kasar',          satuan: '',   placeholder: 'Cth: Sudah bisa melompat dengan 2 kaki' },
+  { key: 'motorik_halus',    label: '✋ Motorik Halus',          satuan: '',   placeholder: 'Cth: Sudah bisa memegang pensil dengan benar' },
+  { key: 'afektif',          label: '🧭 Afektif',                satuan: '',   placeholder: 'Cth: Sikap - berani minta maaf sendiri / Minat - senang menggambar / Percaya diri tampil di depan kelas' },
+  { key: 'akademik',         label: '📚 Akademik',               satuan: '',   placeholder: 'Cth: Sudah lancar membaca 2 suku kata' },
+  { key: 'prestasi',         label: '🏆 Prestasi',               satuan: '',   placeholder: 'Cth: Juara 1 lomba mewarnai' },
+  { key: 'lainnya',          label: '📝 Catatan Lainnya',        satuan: '',   placeholder: 'Catatan bebas...' },
 ];
 
 function loadKelData() {
@@ -5489,6 +5494,8 @@ function loadKelData() {
       anggotaList = p.anggotaList || [];
       kelNextId   = p.kelNextId   || 1;
       migrateAllKesehatan();
+      migrateKemampuanLama();
+      migrateSosialEmosionalLama();
       _mergeFoto(); // pasang foto dari key terpisah
     }
   } catch(e) { anggotaList = []; }
@@ -5587,6 +5594,8 @@ function loadKelFromFirebase() {
     }));
     kelNextId = val.kelNextId || 1;
     migrateAllKesehatan();
+    migrateKemampuanLama();
+    migrateSosialEmosionalLama();
 
     // Pasang foto dari KEY TERPISAH — Firebase tidak bisa memengaruhi ini
     _mergeFoto();
@@ -5737,6 +5746,25 @@ function migrateKesehatanItem(k) {
 
 function migrateAllKesehatan() {
   (anggotaList || []).forEach(a => { (a.kesehatan || []).forEach(migrateKesehatanItem); });
+}
+
+// Migrasi data lama kategori "Kemampuan Baru" (dihapus) ke "Catatan Lainnya"
+// supaya tidak ada data yang hilang setelah kategori perkembangan diperbarui.
+function migrateKemampuanLama() {
+  (anggotaList || []).forEach(function(a) {
+    if (!a.perkembangan || !a.perkembangan.kemampuan || !a.perkembangan.kemampuan.length) return;
+    a.perkembangan.lainnya = (a.perkembangan.lainnya || []).concat(a.perkembangan.kemampuan);
+    delete a.perkembangan.kemampuan;
+  });
+}
+
+// Migrasi data lama kategori "Sosial-Emosional" (kini digabung & diganti nama jadi "Afektif")
+function migrateSosialEmosionalLama() {
+  (anggotaList || []).forEach(function(a) {
+    if (!a.perkembangan || !a.perkembangan.sosial_emosional || !a.perkembangan.sosial_emosional.length) return;
+    a.perkembangan.afektif = (a.perkembangan.afektif || []).concat(a.perkembangan.sosial_emosional);
+    delete a.perkembangan.sosial_emosional;
+  });
 }
 
 function kesOptionsHTML(options, selected) {
@@ -6608,57 +6636,47 @@ async function _analisisPerkembangan(mode) {
 
   const perk = a.perkembangan || {};
   const usia = hitungUsia(a.lahir);
-
-  const beratAll = [...(perk.berat||[])].sort((x,y) => new Date(y.tanggal)-new Date(x.tanggal));
-  const tinggiAll = [...(perk.tinggi||[])].sort((x,y) => new Date(y.tanggal)-new Date(x.tanggal));
-  const prestasiAll = [...(perk.prestasi||[])].sort((x,y) => new Date(y.tanggal)-new Date(x.tanggal));
-  const kemampuanAll = [...(perk.kemampuan||[])].sort((x,y) => new Date(y.tanggal)-new Date(x.tanggal));
-  const lainnyaAll = [...(perk.lainnya||[])].sort((x,y) => new Date(y.tanggal)-new Date(x.tanggal));
-
   const isTerbaru = mode === 'terbaru';
-  const beratData = isTerbaru ? beratAll.slice(0,1) : beratAll;
-  const tinggiData = isTerbaru ? tinggiAll.slice(0,1) : tinggiAll;
-  const prestasiData = isTerbaru ? prestasiAll.slice(0,1) : prestasiAll;
-  const kemampuanData = isTerbaru ? kemampuanAll.slice(0,1) : kemampuanAll;
-  const lainnyaData = isTerbaru ? lainnyaAll.slice(0,1) : lainnyaAll;
-
-  if (!beratData.length && !tinggiData.length && !prestasiData.length && !kemampuanData.length && !lainnyaData.length) {
-    showToast('⚠️ Belum ada data perkembangan untuk dianalisis');
-    return;
-  }
 
   const fmt = (list, satuan) => list.length
     ? list.map(x => '- ' + x.tanggal + ': ' + x.nilai + (satuan ? ' ' + satuan : '') + (x.keterangan ? ' (' + x.keterangan + ')' : '')).join('\n')
     : 'Tidak ada data';
 
-  const beratTeks = fmt(beratData, 'kg');
-  const tinggiTeks = fmt(tinggiData, 'cm');
-  const prestasiTeks = fmt(prestasiData, '');
-  const kemampuanTeks = fmt(kemampuanData, '');
-  const lainnyaTeks = fmt(lainnyaData, '');
+  let totalData = 0;
+  let dataBlok = '';
+  PERK_JENIS.forEach(function(j) {
+    const all = [...(perk[j.key]||[])].sort((x,y) => new Date(y.tanggal)-new Date(x.tanggal));
+    const data = isTerbaru ? all.slice(0,1) : all;
+    totalData += data.length;
+    dataBlok += 'DATA ' + j.label.replace(/[^\w\s&-]/gi,'').trim().toUpperCase() + ':\n' + fmt(data, j.satuan) + '\n\n';
+  });
+
+  if (!totalData) {
+    showToast('⚠️ Belum ada data perkembangan untuk dianalisis');
+    return;
+  }
 
   const cakupan = isTerbaru ? 'HANYA data paling baru dari tiap kategori' : 'SELURUH riwayat data dari tiap kategori';
+  const daftarKategori = PERK_JENIS.map(function(j){ return j.label.replace(/[^\w\s&-]/gi,'').trim(); }).join(', ');
 
-  var prompt = 'Kamu adalah dokter anak, ahli gizi, dan psikolog tumbuh kembang anak berpengalaman. Analisis data perkembangan anak berikut berdasarkan standar WHO Child Growth Standards, Kemenkes RI, IDAI, dan tonggak perkembangan anak (KPSP/Denver) sesuai kelompok usianya. Cakupan data yang dianalisis: ' + cakupan + '.\n\n'
+  var prompt = 'Kamu adalah tim ahli tumbuh kembang anak (dokter anak, ahli gizi, psikolog anak, dan guru PAUD/SD berpengalaman). Analisis data perkembangan anak berikut secara MENYELURUH berdasarkan standar WHO Child Growth Standards, Kemenkes RI, IDAI, dan tonggak perkembangan anak (KPSP/Denver) sesuai kelompok usianya. Cakupan data yang dianalisis: ' + cakupan + '. Tujuan analisis ini adalah menjadi BAHAN NYATA untuk melakukan perbaikan/stimulasi perkembangan anak di rumah, jadi saran harus konkret dan bisa langsung dipraktikkan orang tua.\n\n'
     + 'IDENTITAS ANAK:\n'
     + '- Nama: ' + (a.nama||'-') + '\n'
     + '- Jenis Kelamin: ' + (a.kelamin||'-') + '\n'
     + '- Tanggal Lahir: ' + (a.lahir||'-') + '\n'
     + '- Usia Saat Ini: ' + usia + '\n\n'
-    + 'DATA BERAT BADAN:\n' + beratTeks + '\n\n'
-    + 'DATA TINGGI BADAN:\n' + tinggiTeks + '\n\n'
-    + 'DATA PRESTASI:\n' + prestasiTeks + '\n\n'
-    + 'DATA KEMAMPUAN BARU:\n' + kemampuanTeks + '\n\n'
-    + 'DATA CATATAN LAINNYA:\n' + lainnyaTeks + '\n\n'
-    + 'Berikan analisis LENGKAP per kategori (bahasa Indonesia). Untuk SETIAP kategori (Berat Badan, Tinggi Badan, Prestasi, Kemampuan Baru, Catatan Lainnya), gunakan format berikut. Jika suatu kategori tidak ada datanya, tulis "Belum ada data" dan lewati bagian penyebab/saran untuk kategori itu:\n\n'
+    + dataBlok
+    + 'CATATAN KHUSUS UNTUK KATEGORI AFEKTIF: kategori ini mencakup 5 sub-aspek sekaligus, nilai datanya sebagai satu kesatuan yang meliputi (1) Sikap - cara anak merespon situasi/perintah, (2) Minat - ketertarikan pada aktivitas tertentu, (3) Nilai & Moral - kejujuran, empati, tanggung jawab, sopan santun, (4) Motivasi - semangat/inisiatif dalam belajar atau beraktivitas, (5) Konsep Diri - kepercayaan diri dan kemandirian. Dalam bagian Analisis untuk kategori Afektif, singgung sub-aspek mana yang tampak menonjol dari data yang ada dan mana yang belum banyak datanya.\n\n'
+    + 'Berikan analisis LENGKAP per kategori (bahasa Indonesia). Kategori yang harus dibahas: ' + daftarKategori + '. Gunakan format berikut untuk SETIAP kategori. Jika suatu kategori tidak ada datanya, cukup tulis "Belum ada data" dan lewati bagian penyebab/saran untuk kategori itu:\n\n'
     + '**[NAMA KATEGORI]**\n'
     + 'Status: [Normal / Perlu Perhatian / Belum Ada Data]\n'
-    + 'Analisis: [apakah hasil ini sudah sesuai dengan usia anak saat ini, jelaskan alasannya]\n'
-    + 'Kemungkinan Penyebab (jika Perlu Perhatian): [sebutkan kemungkinan penyebab]\n'
-    + 'Saran & Tindakan: [langkah konkret yang bisa dilakukan orang tua]\n\n'
-    + 'Setelah kelima kategori di atas selesai dibahas, tutup dengan:\n\n'
-    + '**KESIMPULAN KESELURUHAN:**\n[Ringkasan kondisi tumbuh kembang anak secara umum]\n\n'
-    + '**KAPAN PERLU KONSULTASI PROFESIONAL:**\n[Tanda-tanda yang memerlukan pemeriksaan ke dokter anak/psikolog tumbuh kembang]\n\n'
+    + 'Analisis: [apakah hasil ini sudah sesuai dengan tahapan usia anak saat ini, jelaskan alasannya berdasarkan tonggak perkembangan yang berlaku]\n'
+    + 'Kemungkinan Penyebab (jika Perlu Perhatian): [sebutkan kemungkinan penyebab keterlambatan/hambatan]\n'
+    + 'Rencana Perbaikan / Stimulasi: [langkah konkret, aktivitas, atau latihan harian yang bisa dilakukan orang tua di rumah untuk memperbaiki/meningkatkan aspek ini]\n\n'
+    + 'Setelah seluruh kategori di atas selesai dibahas, tutup dengan:\n\n'
+    + '**KESIMPULAN KESELURUHAN:**\n[Ringkasan kondisi tumbuh kembang anak secara umum, aspek mana yang sudah baik dan mana yang perlu difokuskan untuk diperbaiki]\n\n'
+    + '**PRIORITAS TINDAK LANJUT:**\n[Urutkan 1-3 hal paling penting yang harus segera dilakukan orang tua, dari yang paling mendesak]\n\n'
+    + '**KAPAN PERLU KONSULTASI PROFESIONAL:**\n[Tanda-tanda yang memerlukan pemeriksaan ke dokter anak/psikolog tumbuh kembang/terapis]\n\n'
     + '**SUMBER REFERENSI:**\n[Standar/referensi yang digunakan]\n\n'
     + 'PENTING: Ini informasi edukatif, bukan pengganti pemeriksaan/skrining tumbuh kembang resmi oleh dokter atau profesional.';
 
@@ -6679,11 +6697,11 @@ async function _analisisPerkembangan(mode) {
       body: JSON.stringify({
         model: 'llama-3.1-8b-instant',
         messages: [
-          { role: 'system', content: 'Kamu adalah dokter anak, ahli gizi, dan psikolog tumbuh kembang berpengalaman. Berikan analisis yang akurat, terstruktur per kategori, dan mudah dipahami dalam bahasa Indonesia. Selalu cantumkan sumber ilmiah dan ingatkan bahwa ini bukan pengganti pemeriksaan resmi.' },
+          { role: 'system', content: 'Kamu adalah tim ahli tumbuh kembang anak (dokter anak, ahli gizi, psikolog anak, guru PAUD/SD) berpengalaman. Berikan analisis yang akurat, terstruktur per kategori, berorientasi pada rencana perbaikan/stimulasi yang konkret, dan mudah dipahami dalam bahasa Indonesia. Selalu cantumkan sumber ilmiah dan ingatkan bahwa ini bukan pengganti pemeriksaan resmi.' },
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
-        max_tokens: 2048
+        max_tokens: 2500
       })
     });
 
